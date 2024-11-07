@@ -3,15 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Webpage</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Islamic Quiz</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to My Simple Webpage</h1>
-        <p id="message">Click the button to see a message!</p>
-        <button onclick="displayMessage()">Click Me</button>
+        <h1>Islamic Knowledge Quiz</h1>
+        <div id="quiz-container">
+            <div id="question-container">
+                <h2 id="question">Loading question...</h2>
+                <div id="options-container">
+                    <!-- Options will be dynamically added here -->
+                </div>
+            </div>
+            <div id="timer-container">
+                <span id="timer">10</span> seconds left
+            </div>
+            <button id="next-button" class="hidden">Next Question</button>
+        </div>
     </div>
+
+    <!-- Donate Section -->
+    <div class="donate-section">
+        <h2>Please Donate</h2>
+        <p>Your support helps us provide accessible Islamic knowledge and resources.</p>
+        <div class="donate-info">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSX1j8_1o20igEk7AJyDYrJ_cH3dBXBr6jwuw&usqp=CAU" alt="Wave Logo" class="wave-logo">
+            <p>Phone Number: <strong>3709558</strong></p>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
