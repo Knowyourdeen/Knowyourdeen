@@ -3,36 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Islamic Quiz</title>
+    <title>Ramadan Portal</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
 <body>
+    <div class="header">
+        <h1>Ramadan Portal</h1>
+        <p>Your complete guide for the blessed month</p>
+    </div>
+
+    <nav class="nav-bar">
+        <ul class="nav-links">
+            <li><a href="#prayers">Prayers</a></li>
+            <li><a href="#quran">Quran</a></li>
+            <li><a href="#calendar">Calendar</a></li>
+            <li><a href="#duas">Duas</a></li>
+            <li><a href="#progress">Progress</a></li>
+        </ul>
+    </nav>
+
     <div class="container">
-        <h1>Islamic Knowledge Quiz</h1>
-        <div id="quiz-container">
-            <div id="question-container">
-                <h2 id="question">Loading question...</h2>
-                <div id="options-container">
-                    <!-- Options will be dynamically added here -->
+        <div id="prayers" class="card">
+            <h2>Prayer Times</h2>
+            <div id="countdown" class="fade-in"></div>
+            <div class="prayer-times">
+                <div class="prayer-card" id="fajr"><h3>Fajr</h3><p id="fajr-time">4:30 AM</p></div>
+                <div class="prayer-card" id="dhuhr"><h3>Dhuhr</h3><p id="dhuhr-time">1:30 PM</p></div>
+                <div class="prayer-card" id="asr"><h3>Asr</h3><p id="asr-time">4:45 PM</p></div>
+                <div class="prayer-card" id="maghrib"><h3>Maghrib</h3><p id="maghrib-time">7:15 PM</p></div>
+                <div class="prayer-card" id="isha"><h3>Isha</h3><p id="isha-time">8:45 PM</p></div>
+            </div>
+        </div>
+
+        <div id="quran" class="quran-verse fade-in">
+            <h2>Daily Verse</h2>
+            <div class="arabic-text" id="arabic-verse"></div>
+            <p id="verse-translation"></p>
+            <button onclick="getNewVerse()">New Verse</button>
+        </div>
+
+        <div class="grid-container">
+            <div class="card">
+                <h2>Zakat Calculator</h2>
+                <input type="number" id="wealth" placeholder="Enter your total wealth">
+                <input type="number" id="gold-value" placeholder="Current gold value per gram">
+                <button onclick="calculateZakat()">Calculate Zakat</button>
+                <p id="zakat-result"></p>
+            </div>
+
+            <div id="calendar" class="card">
+                <h2>Islamic Calendar Converter</h2>
+                <div class="calendar-converter">
+                    <div><h3>Gregorian to Hijri</h3><input type="date" id="gregorian-date"><p id="hijri-result"></p></div>
+                    <div><h3>Hijri to Gregorian</h3><input type="number" id="hijri-year" placeholder="Year"><input type="number" id="hijri-month" placeholder="Month"><input type="number" id="hijri-day" placeholder="Day"><p id="gregorian-result"></p></div>
                 </div>
             </div>
-            <div id="timer-container">
-                <span id="timer">10</span> seconds left
-            </div>
-            <button id="next-button" class="hidden">Next Question</button>
+        </div>
+
+        <div id="duas" class="card dua-collection">
+            <h2>Daily Duas</h2>
+            <div id="dua-list"></div>
+        </div>
+
+        <div id="progress" class="progress-tracker">
+            <h2>Ramadan Progress</h2>
+            <div class="progress-bar"><div class="progress-fill" id="ramadan-progress"></div></div>
+            <p id="progress-text"></p>
+        </div>
+
+        <div class="card donation-tracker">
+            <h2>Charity Tracker</h2>
+            <canvas id="donation-chart"></canvas>
+            <div><input type="number" id="donation-amount" placeholder="Enter donation amount"><button onclick="addDonation()">Add Donation</button></div>
         </div>
     </div>
 
-    <!-- Donate Section -->
-    <div class="donate-section">
-        <h2>Please Donate</h2>
-        <p>Your support helps us provide accessible Islamic knowledge and resources.</p>
-        <div class="donate-info">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSX1j8_1o20igEk7AJyDYrJ_cH3dBXBr6jwuw&usqp=CAU" alt="Wave Logo" class="wave-logo">
-            <p>Phone Number: <strong>3709558</strong></p>
-        </div>
-    </div>
-
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
     <script src="script.js"></script>
 </body>
 </html>
