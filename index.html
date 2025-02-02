@@ -3,83 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ramadan Portal</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <title>Ramadan 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #ffd700;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+        }
+
+        .section {
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .popup img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .popup .cta-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #ffd700;
+            color: black;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .popup .cta-button:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .close-popup {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: white;
+            font-size: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #ffd700;
+        }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Ramadan Portal</h1>
-        <p>Your complete guide for the blessed month</p>
-    </div>
-
-    <nav class="nav-bar">
-        <ul class="nav-links">
-            <li><a href="#prayers">Prayers</a></li>
-            <li><a href="#quran">Quran</a></li>
-            <li><a href="#calendar">Calendar</a></li>
-            <li><a href="#duas">Duas</a></li>
-            <li><a href="#progress">Progress</a></li>
-        </ul>
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="#prayer-times">Prayer Times</a>
+            <a href="#calendar">Ramadan Calendar</a>
+            <a href="#videos">Videos</a>
+            <a href="#recipes">Recipes</a>
+            <a href="#quizzes">Quizzes</a>
+        </div>
     </nav>
 
-    <div class="container">
-        <div id="prayers" class="card">
-            <h2>Prayer Times</h2>
-            <div id="countdown" class="fade-in"></div>
-            <div class="prayer-times">
-                <div class="prayer-card" id="fajr"><h3>Fajr</h3><p id="fajr-time">4:30 AM</p></div>
-                <div class="prayer-card" id="dhuhr"><h3>Dhuhr</h3><p id="dhuhr-time">1:30 PM</p></div>
-                <div class="prayer-card" id="asr"><h3>Asr</h3><p id="asr-time">4:45 PM</p></div>
-                <div class="prayer-card" id="maghrib"><h3>Maghrib</h3><p id="maghrib-time">7:15 PM</p></div>
-                <div class="prayer-card" id="isha"><h3>Isha</h3><p id="isha-time">8:45 PM</p></div>
-            </div>
-        </div>
+    <div class="main-content">
+        <section id="prayer-times" class="section">
+            <h1>Prayer Times</h1>
+            <p>Prayer times section content will be populated based on user's location</p>
+        </section>
 
-        <div id="quran" class="quran-verse fade-in">
-            <h2>Daily Verse</h2>
-            <div class="arabic-text" id="arabic-verse"></div>
-            <p id="verse-translation"></p>
-            <button onclick="getNewVerse()">New Verse</button>
-        </div>
+        <section id="calendar" class="section">
+            <h1>Ramadan Calendar 2025</h1>
+            <p>February 28/March 1 - March 30/31, 2025</p>
+        </section>
 
-        <div class="grid-container">
-            <div class="card">
-                <h2>Zakat Calculator</h2>
-                <input type="number" id="wealth" placeholder="Enter your total wealth">
-                <input type="number" id="gold-value" placeholder="Current gold value per gram">
-                <button onclick="calculateZakat()">Calculate Zakat</button>
-                <p id="zakat-result"></p>
-            </div>
+        <section id="videos" class="section">
+            <h1>Ramadan Videos</h1>
+            <p>Inspiring Ramadan videos section</p>
+        </section>
 
-            <div id="calendar" class="card">
-                <h2>Islamic Calendar Converter</h2>
-                <div class="calendar-converter">
-                    <div><h3>Gregorian to Hijri</h3><input type="date" id="gregorian-date"><p id="hijri-result"></p></div>
-                    <div><h3>Hijri to Gregorian</h3><input type="number" id="hijri-year" placeholder="Year"><input type="number" id="hijri-month" placeholder="Month"><input type="number" id="hijri-day" placeholder="Day"><p id="gregorian-result"></p></div>
-                </div>
-            </div>
-        </div>
+        <section id="recipes" class="section">
+            <h1>Ramadan Recipes</h1>
+            <p>Delicious Ramadan recipes and cooking tutorials</p>
+        </section>
 
-        <div id="duas" class="card dua-collection">
-            <h2>Daily Duas</h2>
-            <div id="dua-list"></div>
-        </div>
-
-        <div id="progress" class="progress-tracker">
-            <h2>Ramadan Progress</h2>
-            <div class="progress-bar"><div class="progress-fill" id="ramadan-progress"></div></div>
-            <p id="progress-text"></p>
-        </div>
-
-        <div class="card donation-tracker">
-            <h2>Charity Tracker</h2>
-            <canvas id="donation-chart"></canvas>
-            <div><input type="number" id="donation-amount" placeholder="Enter donation amount"><button onclick="addDonation()">Add Donation</button></div>
-        </div>
+        <section id="quizzes" class="section">
+            <h1>Ramadan Quizzes</h1>
+            <p>Test your knowledge about Ramadan</p>
+        </section>
     </div>
 
-    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
-    <script src="script.js"></script>
+    <div id="donation-popup" class="popup">
+        <span class="close-popup" onclick="closePopup('donation-popup')">×</span>
+        <img src="/api/placeholder/100/100" alt="Hungry child placeholder">
+        <p><strong>SHOCKING FACT:</strong> Every minute, over 100 people break their fast without proper food.</p>
+        <p>Your donation can help provide iftar meals to those in need this Ramadan.</p>
+        <a href="#donate" class="cta-button">CLICK HERE TO DONATE</a>
+    </div>
+
+    <div id="telegram-popup" class="popup">
+        <span class="close-popup" onclick="closePopup('telegram-popup')">×</span>
+        <img src="/api/placeholder/100/100" alt="Telegram logo placeholder">
+        <p>Join our Ramadan community on Telegram for daily reminders, duas, and inspiring content!</p>
+        <a href="#telegram" class="cta-button">CLICK HERE TO JOIN</a>
+    </div>
+
+    <script>
+        // Popup management
+        function showPopup(popupId) {
+            const popup = document.getElementById(popupId);
+            popup.style.display = 'block';
+            setTimeout(() => closePopup(popupId), 10000); // Close after 10 seconds
+        }
+
+        function closePopup(popupId) {
+            const popup = document.getElementById(popupId);
+            popup.style.display = 'none';
+        }
+
+        // Show donation popup every 30 seconds
+        setInterval(() => {
+            showPopup('donation-popup');
+        }, 30000);
+
+        // Show telegram popup every 45 seconds
+        setInterval(() => {
+            showPopup('telegram-popup');
+        }, 45000);
+
+        // Initial popup displays
+        setTimeout(() => showPopup('donation-popup'), 5000);
+        setTimeout(() => showPopup('telegram-popup'), 15000);
+    </script>
 </body>
 </html>
