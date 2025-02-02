@@ -353,6 +353,82 @@
                 min-width: 600px;
             }
         }
+        /* New Prayer Times Styles */
+        .prayer-times-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 95%;
+            max-width: 1200px;
+            margin: 2rem auto;
+        }
+
+        .time-notice {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .prayer-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .prayer-table th, 
+        .prayer-table td {
+            padding: 0.8rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .prayer-table th {
+            background: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .prayer-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .prayer-table td {
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        /* Prayer name translations */
+        .prayer-name {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .prayer-arabic {
+            font-size: 0.8rem;
+            color: #ffd700;
+            margin-top: 0.2rem;
+            opacity: 0.8;
+        }
+
+        /* Make the table scrollable on mobile */
+        @media (max-width: 1024px) {
+            .prayer-times-container {
+                overflow-x: auto;
+                padding: 1rem;
+            }
+
+            .prayer-table {
+                min-width: 900px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -368,10 +444,88 @@
 
     <div class="main-content">
         <section id="prayer-times" class="section">
-            <h1>Prayer Times</h1>
-            <p>Prayer times section content will be populated based on user's location</p>
-        </section>
-
+        <h1>Daily Prayer Times</h1>
+        <div class="prayer-times-container">
+            <div class="time-notice">
+                ⚠️ IMPORTANT: All times are in GMT (Greenwich Mean Time)
+            </div>
+            <table class="prayer-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>
+                            <div class="prayer-name">
+                                Fajr
+                                <span class="prayer-arabic">الفجر</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="prayer-name">
+                                Sunrise
+                                <span class="prayer-arabic">الشروق</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="prayer-name">
+                                Dhuhr
+                                <span class="prayer-arabic">الظهر</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="prayer-name">
+                                Asr
+                                <span class="prayer-arabic">العصر</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="prayer-name">
+                                Maghrib
+                                <span class="prayer-arabic">المغرب</span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="prayer-name">
+                                Isha
+                                <span class="prayer-arabic">العشاء</span>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>March 1, 2025</td><td>6:13 AM</td><td>7:22 AM</td><td>1:22 PM</td><td>4:41 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 2, 2025</td><td>6:12 AM</td><td>7:21 AM</td><td>1:22 PM</td><td>4:41 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 3, 2025</td><td>6:12 AM</td><td>7:21 AM</td><td>1:21 PM</td><td>4:40 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 4, 2025</td><td>6:11 AM</td><td>7:20 AM</td><td>1:21 PM</td><td>4:40 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 5, 2025</td><td>6:11 AM</td><td>7:20 AM</td><td>1:21 PM</td><td>4:40 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 6, 2025</td><td>6:10 AM</td><td>7:19 AM</td><td>1:21 PM</td><td>4:40 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 7, 2025</td><td>6:09 AM</td><td>7:18 AM</td><td>1:20 PM</td><td>4:39 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 8, 2025</td><td>6:09 AM</td><td>7:18 AM</td><td>1:20 PM</td><td>4:39 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 9, 2025</td><td>6:08 AM</td><td>7:17 AM</td><td>1:20 PM</td><td>4:39 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 10, 2025</td><td>6:07 AM</td><td>7:16 AM</td><td>1:19 PM</td><td>4:38 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 11, 2025</td><td>6:07 AM</td><td>7:16 AM</td><td>1:19 PM</td><td>4:38 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 12, 2025</td><td>6:06 AM</td><td>7:15 AM</td><td>1:19 PM</td><td>4:38 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 13, 2025</td><td>6:05 AM</td><td>7:14 AM</td><td>1:18 PM</td><td>4:37 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 14, 2025</td><td>6:05 AM</td><td>7:14 AM</td><td>1:18 PM</td><td>4:37 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 15, 2025</td><td>6:04 AM</td><td>7:13 AM</td><td>1:18 PM</td><td>4:37 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 16, 2025</td><td>6:03 AM</td><td>7:12 AM</td><td>1:17 PM</td><td>4:36 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 17, 2025</td><td>6:02 AM</td><td>7:11 AM</td><td>1:17 PM</td><td>4:36 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 18, 2025</td><td>6:02 AM</td><td>7:11 AM</td><td>1:17 PM</td><td>4:36 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 19, 2025</td><td>6:01 AM</td><td>7:10 AM</td><td>1:16 PM</td><td>4:35 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 20, 2025</td><td>6:00 AM</td><td>7:09 AM</td><td>1:16 PM</td><td>4:35 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 21, 2025</td><td>5:59 AM</td><td>7:08 AM</td><td>1:16 PM</td><td>4:34 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 22, 2025</td><td>5:58 AM</td><td>7:07 AM</td><td>1:15 PM</td><td>4:34 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 23, 2025</td><td>5:57 AM</td><td>7:06 AM</td><td>1:15 PM</td><td>4:34 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 24, 2025</td><td>5:56 AM</td><td>7:05 AM</td><td>1:15 PM</td><td>4:33 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 25, 2025</td><td>5:55 AM</td><td>7:04 AM</td><td>1:14 PM</td><td>4:33 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 26, 2025</td><td>5:54 AM</td><td>7:03 AM</td><td>1:14 PM</td><td>4:32 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 27, 2025</td><td>5:53 AM</td><td>7:02 AM</td><td>1:14 PM</td><td>4:32 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 28, 2025</td><td>5:52 AM</td><td>7:01 AM</td><td>1:13 PM</td><td>4:31 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 29, 2025</td><td>5:51 AM</td><td>7:00 AM</td><td>1:13 PM</td><td>4:31 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                    <tr><td>March 30, 2025</td><td>5:50 AM</td><td>6:59 AM</td><td>1:13 PM</td><td>4:31 PM</td><td>7:16 PM</td><td>8:23 PM</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
         <section id="calendar" class="section">
         <h1>Ramadan Calendar 2025</h1>
         <div class="calendar-container">
