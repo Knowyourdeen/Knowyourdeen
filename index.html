@@ -244,6 +244,55 @@
         .time-bar-progress.warning {
             background: #ff6b6b;
         }
+        /* New Start Quiz Screen Styles */
+        .quiz-start-screen {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .quiz-start-screen h2 {
+            color: #ffd700;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .quiz-start-screen p {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #ffffff;
+        }
+
+        .start-quiz-btn {
+            background: #ffd700;
+            color: #000;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .start-quiz-btn:hover {
+            background: #ffed4a;
+            transform: scale(1.05);
+        }
+
+        .quiz-content {
+            display: none;
+        }
+
+        /* Fade in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
     </style>
 </head>
 <body>
@@ -279,11 +328,18 @@
         </section>
 
         <section id="quizzes" class="section">
-            <h1>Ramadan Quizzes</h1>
-            <p>Test your knowledge about Ramadan</p>
-        <section id="quizzes" class="section">
         <h1>Ramadan Quizzes</h1>
-        <div class="quiz-container">
+        
+        <!-- New Start Screen -->
+        <div id="quiz-start-screen" class="quiz-start-screen">
+            <h2>Test Your Ramadan Knowledge</h2>
+            <p>Challenge yourself with our interactive Ramadan quiz! You'll have 30 seconds to answer each question.</p>
+            <p>Ready to begin your journey of discovery?</p>
+            <button class="start-quiz-btn" onclick="startQuiz()">Start Quiz</button>
+        </div>
+
+        <!-- Previous quiz container with new display:none by default -->
+        <div id="quiz-container" class="quiz-container quiz-content">
             <div class="quiz-score">Score: <span id="score">0</span></div>
             <div class="timer-container">
                 <div class="timer" id="timer">30</div>
@@ -495,6 +551,20 @@
 
         // Initial load
         loadNextQuestion();
+      // Add new start quiz function
+        function startQuiz() {
+            document.getElementById('quiz-start-screen').style.display = 'none';
+            const quizContainer = document.getElementById('quiz-container');
+            quizContainer.style.display = 'block';
+            quizContainer.classList.add('fade-in');
+            
+            // Reset score
+            score = 0;
+            document.getElementById('score').textContent = score;
+            
+            // Load first question
+            loadNextQuestion();
+        }
     </script>
 </body>
 </html>
