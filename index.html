@@ -119,6 +119,90 @@
             margin-bottom: 2rem;
             color: #ffd700;
         }
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            margin: 2rem auto;
+        }
+
+        .quiz-question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .quiz-options {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .quiz-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .quiz-option.correct {
+            background: rgba(0, 255, 0, 0.3);
+            border: 2px solid #00ff00;
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(255, 0, 0, 0.3);
+            border: 2px solid #ff0000;
+        }
+
+        .quiz-feedback {
+            height: 5px;
+            width: 100%;
+            margin-top: 1rem;
+            border-radius: 3px;
+            transition: background-color 0.3s ease;
+        }
+
+        .quiz-feedback.correct {
+            background-color: #00ff00;
+        }
+
+        .quiz-feedback.incorrect {
+            background-color: #ff0000;
+        }
+
+        .quiz-score {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            color: #ffd700;
+        }
+
+        .next-question {
+            background: #ffd700;
+            color: black;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            margin: 1rem auto;
+        }
+
+        .next-question:hover {
+            background: #ffed4a;
+        }
     </style>
 </head>
 <body>
@@ -157,12 +241,22 @@
             <h1>Ramadan Quizzes</h1>
             <p>Test your knowledge about Ramadan</p>
         </section>
+        <section id="quizzes" class="section">
+            <h1>Ramadan Quizzes</h1>
+            <div class="quiz-container">
+                <div class="quiz-score">Score: <span id="score">0</span></div>
+                <div class="quiz-question" id="question"></div>
+                <div class="quiz-options" id="options"></div>
+                <div class="quiz-feedback"></div>
+                <button class="next-question" onclick="loadNextQuestion()">Next Question</button>
+            </div>
+        </section>
     </div>
 
     <div id="donation-popup" class="popup">
         <span class="close-popup" onclick="closePopup('donation-popup')">×</span>
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8Yl7tC0OLtn-JNMwiaE_wFCGKVo6v4aQX5g&s" alt="Hungry child placeholder">
-        <p><strong>SHOCKING FACT:</strong> Every minute, over 100 people break their fast without proper food.</p>
+        <p><strong>DID YOU KNOW:</strong> Every minute, over 100 people break their fast without proper food.</p>
         <p>Your donation can help provide iftar meals to those in need this Ramadan.</p>
         <a href="#donate" class="cta-button">CLICK HERE TO DONATE</a>
     </div>
@@ -200,6 +294,108 @@
         // Initial popup displays
         setTimeout(() => showPopup('donation-popup'), 5000);
         setTimeout(() => showPopup('telegram-popup'), 15000);
+        // New Quiz JavaScript
+        const quizQuestions = [
+            {
+                question: "What is the primary purpose of fasting during Ramadan?",
+                options: [
+                    "To lose weight",
+                    "To develop self-discipline and God-consciousness",
+                    "To save money on food",
+                    "To follow tradition"
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "What is the meal called that breaks the daily fast?",
+                options: [
+                    "Suhoor",
+                    "Maghrib",
+                    "Iftar",
+                    "Isha"
+                ],
+                correctAnswer: 2
+            },
+            {
+                question: "Which night is known as the 'Night of Power'?",
+                options: [
+                    "Laylat al-Qadr",
+                    "Eid al-Fitr",
+                    "Jumah",
+                    "Ashura"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "What is the pre-dawn meal called during Ramadan?",
+                options: [
+                    "Iftar",
+                    "Suhoor",
+                    "Zakat",
+                    "Taraweeh"
+                ],
+                correctAnswer: 1
+            },
+            {
+                question: "What invalidates the fast?",
+                options: [
+                    "Sleeping",
+                    "Swimming",
+                    "Eating intentionally",
+                    "Walking"
+                ],
+                correctAnswer: 2
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let canAnswer = true;
+
+        function loadNextQuestion() {
+            canAnswer = true;
+            const feedbackBar = document.querySelector('.quiz-feedback');
+            feedbackBar.className = 'quiz-feedback';
+            
+            currentQuestion = Math.floor(Math.random() * quizQuestions.length);
+            const questionElem = document.getElementById('question');
+            const optionsElem = document.getElementById('options');
+            
+            questionElem.textContent = quizQuestions[currentQuestion].question;
+            optionsElem.innerHTML = '';
+            
+            quizQuestions[currentQuestion].options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'quiz-option';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(index);
+                optionsElem.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (!canAnswer) return;
+            
+            canAnswer = false;
+            const correctIndex = quizQuestions[currentQuestion].correctAnswer;
+            const options = document.querySelectorAll('.quiz-option');
+            const feedbackBar = document.querySelector('.quiz-feedback');
+            
+            if (selectedIndex === correctIndex) {
+                options[selectedIndex].classList.add('correct');
+                feedbackBar.classList.add('correct');
+                score++;
+            } else {
+                options[selectedIndex].classList.add('incorrect');
+                options[correctIndex].classList.add('correct');
+                feedbackBar.classList.add('incorrect');
+            }
+            
+            document.getElementById('score').textContent = score;
+        }
+
+        // Initial load
+        loadNextQuestion();
     </script>
 </body>
 </html>
