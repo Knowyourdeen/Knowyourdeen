@@ -1,128 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ramadan Quiz Challenge</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #000; color: #fff;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; overflow: hidden;
-        }
-        .container {
-            width: 100%; height: 100vh;
-            background: radial-gradient(ellipse at top, #1a0a2e 0%, #0d1b3e 40%, #0a0f1e 100%);
-            position: relative; overflow: hidden;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .stars { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 0; }
-        .star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle var(--duration) ease-in-out infinite alternate; }
-        @keyframes twinkle { from { opacity: 0.1; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
-        .moon { position: absolute; top: 10px; right: 18px; width: 58px; height: 58px; z-index: 2; filter: drop-shadow(0 0 12px rgba(255,215,80,0.8)); }
-        .lantern-left, .lantern-right { position: absolute; top: 58px; font-size: 2rem; z-index: 2; animation: swing 3s ease-in-out infinite alternate; transform-origin: top center; }
-        .lantern-left { left: 16px; } .lantern-right { right: 16px; animation-direction: alternate-reverse; }
-        @keyframes swing { from { transform: rotate(-8deg); } to { transform: rotate(8deg); } }
-        .mosque-silhouette { position: absolute; bottom: 0; left: 0; width: 100%; height: 80px; pointer-events: none; z-index: 0; opacity: 0.18; }
-        .question-number {
-            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-            background: linear-gradient(135deg, #7c3800, #c87000, #f5c518, #c87000, #7c3800);
-            padding: 8px 20px; border-radius: 25px; font-weight: bold; font-size: 1.2rem;
-            box-shadow: 0 0 14px rgba(212,160,23,0.7), inset 0 0 6px rgba(0,0,0,0.3);
-            z-index: 10; border: 2px solid #ffe066; text-align: center; min-width: 150px;
-            color: #fff; text-shadow: 1px 1px 3px #000; letter-spacing: 0.5px;
-        }
-        .ramadan-header {
-            position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
-            font-size: 0.68rem; color: #ffe066; letter-spacing: 2px; text-transform: uppercase;
-            opacity: 0.75; white-space: nowrap; z-index: 3; text-shadow: 0 0 8px rgba(212,160,23,0.8);
-        }
-        .question-container {
-            width: 90%; margin-top: 74px; height: calc(100% - 158px);
-            display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
-            background: linear-gradient(160deg, rgba(10,20,60,0.88) 0%, rgba(30,10,60,0.88) 100%);
-            border-radius: 18px; padding: 15px;
-            box-shadow: 0 0 25px rgba(212,160,23,0.35), 0 0 60px rgba(100,0,150,0.2);
-            border: 1.5px solid rgba(212,160,23,0.45);
-            position: relative; transition: transform 0.5s, opacity 0.5s; overflow: hidden; z-index: 5;
-        }
-        .question-container::before, .question-container::after { content: '✦'; position: absolute; font-size: 1.4rem; color: rgba(212,160,23,0.55); top: 10px; }
-        .question-container::before { left: 14px; } .question-container::after { right: 14px; }
-        .timer-section { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; }
-        .timer-container { width: 100%; height: 10px; background-color: rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; border: 1px solid rgba(212,160,23,0.3); }
-        .timer { height: 100%; background: linear-gradient(90deg, #ffe066, #f5a623); width: 100%; transition: width 10s linear, background-color 0.5s; border-radius: 10px; }
-        .timer.paused { transition: none; } .timer.ending { background: linear-gradient(90deg, #ff4444, #ff0000); }
-        .countdown { font-size: 1.1rem; font-weight: bold; background: linear-gradient(135deg, #7c3800, #c87000); border-radius: 50%; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; margin-top: 5px; border: 2px solid #ffe066; color: #fff; text-shadow: 1px 1px 2px #000; }
-        .countdown.hidden { display: none; }
-        .image-container { width: 100%; height: 168px; margin: 8px 0 14px; position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 0 14px rgba(212,160,23,0.4); border: 1.5px solid rgba(212,160,23,0.4); }
-        .question-image { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
-        .tiktok-banner { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background-color: rgba(0,0,0,0.35); display: flex; justify-content: center; align-items: center; padding: 6px 12px; z-index: 10; border-radius: 15px; border: 1px solid rgba(212,160,23,0.4); max-width: 90%; animation: subtle-pulse 3s ease-in-out infinite; }
-        .tiktok-logo { width: 18px; height: 18px; margin-right: 6px; flex-shrink: 0; opacity: 0.75; }
-        .tiktok-text { font-weight: bold; font-size: 13px; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.75; color: #ffe066; }
-        @keyframes subtle-pulse { 0% { transform: translate(-50%,-50%) scale(1); } 50% { transform: translate(-50%,-50%) scale(1.03); } 100% { transform: translate(-50%,-50%) scale(1); } }
-        .question { font-size: 1.4rem; font-weight: bold; margin-bottom: 14px; text-align: center; text-shadow: 2px 2px 5px rgba(0,0,0,0.9); padding: 0 8px; color: #fff; line-height: 1.35; }
-        .options { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 6px; }
-        .option { background: linear-gradient(135deg, rgba(60,20,100,0.7), rgba(10,20,80,0.7)); border: 1.5px solid rgba(212,160,23,0.5); color: white; padding: 13px; border-radius: 12px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; font-weight: bold; text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); }
-        .option:active { background: rgba(212,160,23,0.25); transform: scale(0.98); }
-        .option.correct { background: linear-gradient(135deg, #1a7a2e, #27ae60); border-color: #2ecc71; box-shadow: 0 0 12px rgba(46,204,113,0.6); }
-        .option.incorrect { background: linear-gradient(135deg, #7a1a1a, #c0392b); border-color: #e74c3c; box-shadow: 0 0 12px rgba(231,76,60,0.6); }
-        .question-container.exit { transform: translateX(-100%); opacity: 0; }
-        .question-container.enter { transform: translateX(100%); opacity: 0; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramadan Carousel</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f5f5f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .carousel-wrapper {
+    width: 380px;
+    position: relative;
+  }
+
+  .carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+    width: 100%;
+  }
+
+  .slide {
+    min-width: 380px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px 36px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+    border: 1.5px solid #ebebeb;
+    min-height: 460px;
+    justify-content: space-between;
+  }
+
+  /* Slide number */
+  .slide-number {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #aaa;
+    align-self: flex-end;
+  }
+
+  /* Statement text */
+  .statement {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.45;
+    color: #111;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .highlight {
+    background: #FFE034;
+    padding: 0 4px 2px;
+    border-radius: 3px;
+    color: #111;
+  }
+
+  /* Circular image */
+  .avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #FFE034;
+    display: block;
+    background: #f0f0f0;
+  }
+
+  /* Dots */
+  .dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+    border: none;
+    padding: 0;
+  }
+
+  .dot.active {
+    background: #FFE034;
+    transform: scale(1.3);
+  }
+
+  /* Nav arrows */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+  }
+
+  .nav-btn {
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .nav-btn:hover {
+    background: #FFE034;
+    color: #111;
+    transform: scale(1.08);
+  }
+
+  .overflow-hidden {
+    overflow: hidden;
+    border-radius: 24px;
+  }
+</style>
 </head>
 <body>
-<div class="container">
-    <div class="stars" id="stars"></div>
-    <svg class="moon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <defs><radialGradient id="moonGrad" cx="40%" cy="40%" r="60%"><stop offset="0%" stop-color="#fff9c4"/><stop offset="100%" stop-color="#f5a623"/></radialGradient></defs>
-        <circle cx="52" cy="50" r="38" fill="url(#moonGrad)"/><circle cx="72" cy="40" r="33" fill="#0d1b3e"/>
-    </svg>
-    <div class="lantern-left">🪔</div>
-    <div class="lantern-right">🪔</div>
-    <svg class="mosque-silhouette" viewBox="0 0 800 80" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-        <path fill="white" d="M0,80 L0,55 L30,55 L30,35 L50,35 L50,25 Q60,5 70,25 L70,35 L90,35 L90,55 L120,55 L120,40 L140,40 L140,30 L160,30 L160,20 Q175,0 190,20 L190,30 L210,30 L210,40 L230,40 L230,55 L280,55 L280,40 L300,40 L300,30 L320,30 L320,20 Q340,0 360,20 L360,30 L380,30 L380,40 L400,40 L400,55 L450,55 L450,30 L470,30 L470,20 Q490,0 510,20 L510,30 L530,30 L530,55 L570,55 L570,40 L590,40 L590,30 L610,30 L610,20 Q625,2 640,20 L640,30 L660,30 L660,40 L680,40 L680,55 L710,55 L710,35 L730,35 L730,25 Q740,5 750,25 L750,35 L770,35 L770,55 L800,55 L800,80 Z"/>
-    </svg>
-    <div class="question-number" id="question-number">Question: 1/10</div>
-    <div class="ramadan-header">🌙 Ramadan Mubarak 🌙</div>
-    <div class="question-container" id="question-container">
-        <div class="timer-section">
-            <div class="timer-container"><div class="timer paused" id="timer"></div></div>
-            <div class="countdown hidden" id="countdown">10</div>
-        </div>
-        <div class="image-container" id="image-container">
-            <img class="question-image" id="question-image" src="/api/placeholder/400/168" alt="Question illustration">
-            <div class="tiktok-banner">
-                <svg class="tiktok-logo" viewBox="0 0 32 32" fill="white"><path d="M16.708 0.027c1.745-0.027 3.48-0.011 5.213-0.027 0.105 2.041 0.839 4.12 2.333 5.563 1.491 1.479 3.6 2.156 5.652 2.385v5.369c-1.923-0.063-3.855-0.463-5.6-1.291-0.76-0.344-1.468-0.787-2.161-1.24-0.009 3.896 0.016 7.787-0.025 11.667-0.104 1.864-0.719 3.719-1.803 5.255-1.744 2.557-4.771 4.224-7.88 4.276-1.907 0.109-3.812-0.411-5.437-1.369-2.693-1.588-4.588-4.495-4.864-7.615-0.032-0.667-0.043-1.333-0.016-1.984 0.24-2.537 1.495-4.964 3.443-6.615 2.208-1.923 5.301-2.839 8.197-2.297 0.027 1.975-0.052 3.948-0.052 5.923-1.323-0.428-2.869-0.308-4.025 0.495-0.844 0.547-1.485 1.385-1.819 2.333-0.276 0.676-0.197 1.427-0.181 2.145 0.317 2.188 2.421 4.027 4.667 3.828 1.489-0.016 2.916-0.88 3.692-2.145 0.251-0.443 0.532-0.896 0.547-1.417 0.131-2.385 0.079-4.76 0.095-7.145 0.011-5.375-0.016-10.735 0.025-16.093z"/></svg>
-                <span class="tiktok-text">FOLLOW @ramadan.quiz</span>
-            </div>
-        </div>
-        <div class="question" id="question">Loading…</div>
-        <div class="options" id="options"></div>
+
+<div class="carousel-wrapper">
+  <div class="overflow-hidden">
+    <div class="carousel-track" id="track">
+
+      <!-- Slide 1 -->
+      <div class="slide">
+        <span class="slide-number">01 / 04</span>
+        <p class="statement">In The Gambia, <span class="highlight">1 in 4 families</span> does not have a single meal for iftar during Ramadan.</p>
+        <img class="avatar" src="https://placehold.co/110x110/e8e8e8/aaa?text=Photo" alt="Community photo" />
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="slide">
+        <span class="slide-number">02 / 04</span>
+        <p class="statement">That's <span class="highlight">25% of families</span> in The Gambia unable to afford even one meal to break their fast.</p>
+        <img class="avatar" src="https://placehold.co/110x110/e8e8e8/aaa?text=Photo" alt="Community photo" />
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="slide">
+        <span class="slide-number">03 / 04</span>
+        <p class="statement">With the sudden <span class="highlight">spike in food prices</span>, many households are struggling more than ever.</p>
+        <img class="avatar" src="https://placehold.co/110x110/e8e8e8/aaa?text=Photo" alt="Community photo" />
+      </div>
+
+      <!-- Slide 4 -->
+      <div class="slide">
+        <span class="slide-number">04 / 04</span>
+        <p class="statement">But <span class="highlight">your donation</span> can change that.</p>
+        <img class="avatar" src="https://placehold.co/110x110/e8e8e8/aaa?text=Photo" alt="Community photo" />
+      </div>
+
     </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="prev">&#8592;</button>
+    <div class="dots" id="dots">
+      <button class="dot active" onclick="goTo(0)"></button>
+      <button class="dot" onclick="goTo(1)"></button>
+      <button class="dot" onclick="goTo(2)"></button>
+      <button class="dot" onclick="goTo(3)"></button>
+    </div>
+    <button class="nav-btn" id="next">&#8594;</button>
+  </div>
 </div>
+
 <script>
-    (function(){const c=document.getElementById('stars');for(let i=0;i<80;i++){const s=document.createElement('div');s.className='star';const z=Math.random()*2.5+0.5;s.style.cssText=`width:${z}px;height:${z}px;top:${Math.random()*60}%;left:${Math.random()*100}%;--duration:${(Math.random()*3+1.5).toFixed(1)}s;`;c.appendChild(s);}})();
-    const questions=[
-        {question:"In Islam, during which month does Ramadan occur?",options:["Shawwal","Rajab","The 9th month","Dhul Hijjah"],correctIndex:2,readTime:5000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Ramadan_Karim_Wallpaper_by_سعد_الشهري.jpg/640px-Ramadan_Karim_Wallpaper_by_سعد_الشهري.jpg"},
-        {question:"What is the pre-dawn meal eaten before fasting begins called?",options:["Iftar","Suhoor","Zakat","Sadaqah"],correctIndex:1,readTime:5000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Muslims_break_their_Ramadan_fast_in_Turkey.jpg/640px-Muslims_break_their_Ramadan_fast_in_Turkey.jpg"},
-        {question:"What is the meal used to break the fast at sunset called?",options:["Suhoor","Tarawih","Iftar","Eid"],correctIndex:2,readTime:5000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Muslims_break_their_Ramadan_fast_in_Turkey.jpg/640px-Muslims_break_their_Ramadan_fast_in_Turkey.jpg"},
-        {question:"With which food did Prophet Muhammad (SAW) traditionally break his fast?",options:["Figs","Pomegranate","Dates","Olives"],correctIndex:2,readTime:5000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Date_Fruits.jpg/640px-Date_Fruits.jpg"},
-        {question:"What is the special nightly prayer performed during Ramadan called?",options:["Tahajjud","Tarawih","Witr","Jumu'ah"],correctIndex:1,readTime:6000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Pray_in_mosque.jpg/640px-Pray_in_mosque.jpg"},
-        {question:"Laylat al-Qadr (Night of Power) falls in which part of Ramadan?",options:["First 10 nights","Middle 10 nights","Last 10 nights","First night only"],correctIndex:2,readTime:6000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Quran_at_the_Ali_ibn_Abi_Talib_Mosque.jpg/640px-Quran_at_the_Ali_ibn_Abi_Talib_Mosque.jpg"},
-        {question:"Which holy book was revealed during the month of Ramadan?",options:["Torah","Bible","Zabur","The Quran"],correctIndex:3,readTime:5000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Quran_at_the_Ali_ibn_Abi_Talib_Mosque.jpg/640px-Quran_at_the_Ali_ibn_Abi_Talib_Mosque.jpg"},
-        {question:"What is the obligatory charity paid at the end of Ramadan called?",options:["Zakat al-Fitr","Sadaqah","Khums","Jizya"],correctIndex:0,readTime:6000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Ramadan_street_decorations.jpg/640px-Ramadan_street_decorations.jpg"},
-        {question:"What is the celebration marking the end of Ramadan called?",options:["Eid al-Adha","Mawlid","Eid al-Fitr","Isra Mi'raj"],correctIndex:2,readTime:5000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Eid_ul_Fitr_%285%29.jpg/640px-Eid_ul_Fitr_%285%29.jpg"},
-        {question:"How many times a day are Muslims required to pray during Ramadan?",options:["3 times","4 times","5 times","7 times"],correctIndex:2,readTime:5000,imageSrc:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Islam_Muslim_Pray_Man_Masjid.jpg/640px-Islam_Muslim_Pray_Man_Masjid.jpg"}
-    ];
-    let idx=0,timerTO,cdInt,clickable=true;
-    const qEl=document.getElementById('question'),opEl=document.getElementById('options'),tEl=document.getElementById('timer'),cdEl=document.getElementById('countdown'),numEl=document.getElementById('question-number'),cardEl=document.getElementById('question-container'),imgEl=document.getElementById('question-image');
-    function load(){if(idx>=questions.length)idx=0;numEl.textContent=`Question: ${idx+1}/10`;cardEl.classList.add('enter');setTimeout(()=>{cardEl.classList.remove('enter','exit');const q=questions[idx];qEl.textContent=q.question;imgEl.src=q.imageSrc;opEl.innerHTML='';q.options.forEach((o,i)=>{const b=document.createElement('button');b.className='option';b.textContent=o;b.addEventListener('click',()=>{if(clickable)check(i);});opEl.appendChild(b);});startTimer(q.readTime);clickable=true;},50);}
-    function startTimer(pause){tEl.style.transition='none';tEl.style.width='100%';tEl.classList.add('paused');tEl.classList.remove('ending');cdEl.classList.add('hidden');void tEl.offsetWidth;clearTimeout(timerTO);clearInterval(cdInt);setTimeout(()=>{tEl.classList.remove('paused');tEl.style.transition='width 10s linear';tEl.style.width='0%';let s=10;cdEl.textContent=s;cdEl.classList.remove('hidden');cdInt=setInterval(()=>{s--;cdEl.textContent=s;if(s<=3)tEl.classList.add('ending');if(s<=0)clearInterval(cdInt);},1000);timerTO=setTimeout(()=>{if(clickable){clickable=false;clearInterval(cdInt);document.querySelectorAll('.option')[questions[idx].correctIndex].classList.add('correct');setTimeout(next,1500);}},10000);},pause);}
-    function check(i){clickable=false;clearTimeout(timerTO);clearInterval(cdInt);const q=questions[idx];const opts=document.querySelectorAll('.option');if(i===q.correctIndex){opts[i].classList.add('correct');}else{opts[i].classList.add('incorrect');opts[q.correctIndex].classList.add('correct');}setTimeout(next,1500);}
-    function next(){cardEl.classList.add('exit');setTimeout(()=>{idx++;load();},500);}
-    document.addEventListener('DOMContentLoaded',load);
+  let current = 0;
+  const total = 4;
+  const track = document.getElementById('track');
+  const dots = document.querySelectorAll('.dot');
+
+  function goTo(index) {
+    current = (index + total) % total;
+    track.style.transform = `translateX(-${current * 380}px)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
+  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
 </script>
 </body>
 </html>
