@@ -4,757 +4,695 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CV — Ousman Jallow</title>
-<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600;700;900&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:       #0a0a0a;
-    --surface:  #111111;
-    --surface2: #161616;
-    --border:   #222222;
-    --gold:     #d4922a;
-    --gold2:    #f0b84a;
-    --amber:    #b87020;
-    --text:     #e8e0d0;
-    --muted:    #7a6a54;
-    --dim:      #4a3e2e;
-    --geo1:     #1a1208;
-    --geo2:     #2a1e08;
-    --geo3:     #1e1608;
+    --bg:      #080808;
+    --card:    #101010;
+    --left:    #131313;
+    --border:  #1e1e1e;
+    --gold:    #d4922a;
+    --gold2:   #f0b84a;
+    --amber:   #b87020;
+    --text:    #e2d8c8;
+    --muted:   #6a5c46;
+    --dim:     #3a3020;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: #050505;
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
     font-family: 'Raleway', sans-serif;
     display: flex;
+    align-items: center;
     justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    padding: 40px 16px 60px;
   }
 
-  /* ─── PAGE ─── */
+  /* ── OUTER WRAPPER ── */
+  .wrap {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  /* ── PAGE CARD ── */
   .page {
     width: 100%;
-    max-width: 760px;
-    background: var(--surface);
+    max-width: 820px;
+    height: min(96vh, 540px);
+    background: var(--card);
     position: relative;
     overflow: hidden;
+    border: 1px solid rgba(212,146,42,0.18);
     box-shadow:
-      0 40px 100px rgba(0,0,0,0.9),
-      0 0 0 1px rgba(212,146,42,0.15),
-      inset 0 0 120px rgba(212,146,42,0.02);
+      0 30px 80px rgba(0,0,0,0.95),
+      0 0 60px rgba(212,146,42,0.05),
+      inset 0 0 80px rgba(212,146,42,0.015);
+    display: flex;
+    flex-direction: column;
     opacity: 0;
-    transform: scale(0.96) translateY(30px);
-    animation: pageIn 0.9s cubic-bezier(.16,1,.3,1) 0.1s forwards;
+    transform: scale(0.96) translateY(20px);
+    animation: pageIn 0.8s cubic-bezier(.16,1,.3,1) 0.1s forwards;
   }
 
   @keyframes pageIn {
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    to { opacity:1; transform:scale(1) translateY(0); }
   }
 
-  /* Glowing border */
+  /* Glowing border overlay */
   .page::after {
     content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 2px;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(212,146,42,0.5), transparent 40%, rgba(212,146,42,0.2) 80%, transparent);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    position: absolute; inset: 0;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, rgba(212,146,42,0.4), transparent 45%, rgba(212,146,42,0.15) 80%, transparent) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
-    z-index: 20;
+    z-index: 30;
   }
 
-  /* ─── GEO SHAPES ─── */
-  .geo-tl, .geo-tr, .geo-bl, .geo-br {
-    position: absolute;
-    overflow: hidden;
-    z-index: 1;
-    pointer-events: none;
-  }
-  .geo-tl { top:0; left:0;   width:230px; height:260px; }
-  .geo-tr { top:0; right:0;  width:200px; height:180px; }
-  .geo-bl { bottom:0; left:0;  width:200px; height:160px; }
-  .geo-br { bottom:0; right:0; width:200px; height:160px; }
-  .geo-tl svg, .geo-tr svg, .geo-bl svg, .geo-br svg { width:100%; height:100%; }
+  /* ── GEO CORNERS ── */
+  .geo { position:absolute; overflow:hidden; z-index:1; pointer-events:none; }
+  .geo svg { width:100%; height:100%; }
+  .geo-tl { top:0; left:0; width:180px; height:200px; }
+  .geo-tr { top:0; right:0; width:160px; height:140px; }
+  .geo-bl { bottom:0; left:0; width:160px; height:120px; }
+  .geo-br { bottom:0; right:0; width:160px; height:120px; }
 
-  /* ─── LAYOUT ─── */
+  /* ── MAIN LAYOUT ── */
   .layout {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 200px 1fr;
+    flex: 1;
+    overflow: hidden;
     position: relative;
     z-index: 2;
   }
 
-  /* ─── LEFT ─── */
+  /* ── LEFT COLUMN ── */
   .left {
-    padding: 220px 22px 40px;
+    background: var(--left);
+    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    background: var(--surface2);
-    border-right: 1px solid var(--border);
+    padding: 16px 16px 12px;
+    overflow: hidden;
+    gap: 12px;
   }
 
-  /* ─── PHOTO ─── */
-  .photo-area {
-    position: absolute;
-    top: 24px; left: 20px;
-    z-index: 10;
+  /* Photo + name */
+  .profile {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 8px;
   }
 
   .photo-outer {
-    width: 150px; height: 150px;
+    width: 80px; height: 80px;
     border-radius: 50%;
-    background: conic-gradient(var(--gold) 0deg, var(--amber) 120deg, #3a1a00 240deg, var(--gold) 360deg);
-    padding: 4px;
+    background: conic-gradient(var(--gold), var(--amber), #1a0800, var(--gold));
+    padding: 3px;
     position: relative;
-    animation: photoSpin 0.8s cubic-bezier(.16,1,.3,1) 0.6s both;
-    box-shadow: 0 0 40px rgba(212,146,42,0.35), 0 0 80px rgba(212,146,42,0.1);
+    box-shadow: 0 0 24px rgba(212,146,42,0.35);
+    animation: photoIn 0.8s cubic-bezier(.16,1,.3,1) 0.6s both;
+    flex-shrink: 0;
   }
 
-  @keyframes photoSpin {
-    from { transform: scale(0) rotate(-90deg); opacity: 0; }
-    to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+  @keyframes photoIn {
+    from { transform: scale(0) rotate(-80deg); opacity:0; }
+    to   { transform: scale(1) rotate(0);      opacity:1; }
   }
 
-  /* spinning ring animation */
   .photo-outer::before {
     content: '';
-    position: absolute;
-    inset: -3px;
+    position: absolute; inset: -2px;
     border-radius: 50%;
-    background: conic-gradient(var(--gold), var(--amber), transparent, var(--gold));
-    animation: ringRotate 4s linear infinite;
-    z-index: -1;
-    opacity: 0.6;
+    background: conic-gradient(var(--gold), transparent, var(--amber), transparent);
+    animation: spin 5s linear infinite;
+    z-index: -1; opacity: 0.5;
   }
-  @keyframes ringRotate { to { transform: rotate(360deg); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .photo-inner {
     width: 100%; height: 100%;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid var(--surface);
-    background: var(--surface2);
+    border-radius: 50%; overflow: hidden;
+    border: 2px solid var(--card);
   }
-
-  .photo-inner img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-    filter: brightness(0.9) contrast(1.05);
-  }
-
-  /* Name */
-  .name-area { margin-top: 12px; text-align: center; }
+  .photo-inner img { width:100%; height:100%; object-fit:cover; display:block; filter:brightness(0.9) contrast(1.05); }
 
   .person-name {
-    font-size: 22px; font-weight: 900;
-    letter-spacing: 1px;
-    color: var(--text);
-    text-transform: uppercase;
-    line-height: 1.1;
-    opacity: 0; transform: translateY(16px);
-    animation: fadeUp 0.6s ease 1s forwards;
+    font-size: 13px; font-weight: 900;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text); text-align: center;
+    line-height: 1.2;
   }
-
   .person-title {
-    font-size: 12px; font-weight: 600;
-    color: var(--gold);
-    font-style: italic;
-    margin-top: 4px;
-    opacity: 0; transform: translateY(10px);
-    animation: fadeUp 0.6s ease 1.15s forwards;
+    font-size: 9.5px; font-weight: 700;
+    color: var(--gold); text-align: center;
+    letter-spacing: 0.06em;
+    margin-top: -4px;
   }
 
-  .bio {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.8;
-    text-align: justify;
-    margin-top: 12px;
-    opacity: 0;
-    animation: fadeUp 0.6s ease 1.3s forwards;
-  }
-
-  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-
-  /* ─── LEFT SECTIONS ─── */
-  .left-section { width: 100%; margin-top: 24px; }
-
-  .left-sec-title {
-    font-size: 12px; font-weight: 900;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--text);
-    text-align: center;
-    margin-bottom: 14px;
-    opacity: 0; transform: translateY(10px);
-    transition: opacity 0.5s, transform 0.5s;
-  }
-  .left-sec-title.vis { opacity: 1; transform: translateY(0); }
+  /* divider */
+  .ldiv { height: 1px; background: var(--border); width: 100%; flex-shrink: 0; }
 
   /* Contact */
-  .contact-item {
-    display: flex; align-items: flex-start; gap: 10px;
-    margin-bottom: 11px;
-    font-size: 11px; color: var(--muted);
-    opacity: 0; transform: translateX(-14px);
-    transition: opacity 0.5s, transform 0.5s;
+  .l-section-title {
+    font-size: 8.5px; font-weight: 900; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--text); margin-bottom: 6px;
+    opacity: 0; transform: translateY(6px);
+    transition: opacity 0.4s, transform 0.4s;
   }
-  .contact-item.vis { opacity: 1; transform: translateX(0); }
+  .l-section-title.vis { opacity:1; transform:translateY(0); }
 
-  .contact-icon {
-    width: 26px; height: 26px;
-    border-radius: 6px;
-    background: linear-gradient(135deg, var(--amber), var(--geo2));
-    border: 1px solid rgba(212,146,42,0.3);
+  .contact-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 9.5px; color: var(--muted); margin-bottom: 5px;
+    opacity: 0; transform: translateX(-10px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .contact-item.vis { opacity:1; transform:translateX(0); }
+
+  .cicon {
+    width: 20px; height: 20px; border-radius: 5px;
+    background: linear-gradient(135deg, var(--amber), #2a1200);
+    border: 1px solid rgba(212,146,42,0.25);
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-size: 12px;
+    font-size: 10px; flex-shrink: 0;
     transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
   }
-  .contact-icon:hover {
-    transform: scale(1.18);
-    box-shadow: 0 0 14px rgba(212,146,42,0.4);
-  }
+  .cicon:hover { transform: scale(1.2); box-shadow: 0 0 10px rgba(212,146,42,0.4); }
 
   /* Skills */
   .skill-row {
-    display: flex; align-items: center;
-    justify-content: space-between;
-    margin-bottom: 11px;
-    opacity: 0; transform: translateX(-12px);
-    transition: opacity 0.5s, transform 0.5s;
+    display: flex; align-items: center; gap: 7px;
+    margin-bottom: 5px;
+    opacity: 0; transform: translateX(-8px);
+    transition: opacity 0.4s, transform 0.4s;
   }
-  .skill-row.vis { opacity: 1; transform: translateX(0); }
-
-  .skill-name { font-size: 11px; font-weight: 600; color: var(--text); width: 90px; }
-
-  .skill-bar-bg {
-    flex: 1; height: 5px;
-    background: var(--border);
-    border-radius: 3px; overflow: hidden;
-  }
-
-  .skill-bar-fill {
-    height: 100%;
+  .skill-row.vis { opacity:1; transform:translateX(0); }
+  .s-name { font-size: 9px; font-weight: 700; color: var(--text); width: 72px; flex-shrink:0; }
+  .s-bar-bg { flex:1; height: 4px; background: var(--border); border-radius: 2px; overflow:hidden; }
+  .s-bar-fill {
+    height: 100%; width: 0%;
     background: linear-gradient(to right, var(--amber), var(--gold2));
-    border-radius: 3px;
-    width: 0%;
-    transition: width 1.3s cubic-bezier(.16,1,.3,1);
-    box-shadow: 0 0 8px rgba(212,146,42,0.5);
+    border-radius: 2px;
+    transition: width 1.2s cubic-bezier(.16,1,.3,1);
+    box-shadow: 0 0 6px rgba(212,146,42,0.45);
   }
 
-  /* ─── RIGHT ─── */
-  .right { padding: 28px 28px 40px 22px; }
+  /* ── RIGHT COLUMN ── */
+  .right {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-  /* ─── SECTION BANNERS ─── */
+  /* ── TOP HEADER STRIP ── */
+  .header-strip {
+    padding: 14px 20px 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .bio { font-size: 10px; color: var(--muted); line-height: 1.65; max-width: 460px; font-style: italic; }
+
+  /* ── CONTENT GRID (3 columns on right) ── */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .col { padding: 12px 18px; overflow: hidden; }
+  .col:first-child { border-right: 1px solid var(--border); }
+
+  /* Section banners */
   .sec-banner {
-    background: linear-gradient(135deg, #1a0f00, #2e1a00, #1a0f00);
-    border: 1px solid rgba(212,146,42,0.25);
-    color: var(--gold);
-    font-size: 11px; font-weight: 900;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    padding: 8px 22px;
-    border-radius: 30px;
-    margin-bottom: 18px; margin-top: 6px;
-    position: relative; overflow: hidden;
-    opacity: 0; transform: translateX(20px);
-    transition: opacity 0.5s, transform 0.5s;
-    box-shadow: 0 0 20px rgba(212,146,42,0.1), inset 0 1px 0 rgba(212,146,42,0.15);
+    background: linear-gradient(135deg, #1c1000, #2a1800);
+    border: 1px solid rgba(212,146,42,0.22);
+    color: var(--gold); font-size: 8.5px; font-weight: 900;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 20px; margin-bottom: 10px;
+    position: relative; overflow: hidden; width: fit-content;
+    opacity: 0; transform: translateX(12px);
+    transition: opacity 0.4s, transform 0.4s;
+    box-shadow: inset 0 1px 0 rgba(212,146,42,0.1);
   }
-  .sec-banner.vis { opacity: 1; transform: translateX(0); }
-
+  .sec-banner.vis { opacity:1; transform:translateX(0); }
   .sec-banner::after {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 60%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(212,146,42,0.15), transparent);
-    animation: sheen 3.5s ease-in-out infinite;
+    content:''; position:absolute; top:0; left:-100%; width:50%; height:100%;
+    background:linear-gradient(90deg,transparent,rgba(212,146,42,0.15),transparent);
+    animation: sheen 4s ease-in-out infinite;
   }
   @keyframes sheen { 0%,100%{left:-100%;} 50%{left:130%;} }
 
-  /* ─── TIMELINE ─── */
-  .timeline { position: relative; padding-left: 18px; }
+  /* Timeline */
+  .timeline { position:relative; padding-left: 14px; }
   .timeline::before {
-    content: '';
-    position: absolute;
-    left: 5px; top: 6px; bottom: 6px;
-    width: 1px;
-    background: linear-gradient(to bottom, var(--gold), var(--amber), transparent);
-    opacity: 0.4;
+    content:''; position:absolute; left:4px; top:5px; bottom:5px;
+    width:1px; background:linear-gradient(to bottom, var(--gold), transparent);
+    opacity:0.3;
   }
 
   .tl-item {
-    position: relative;
-    margin-bottom: 18px;
-    display: grid;
-    grid-template-columns: 46px 1fr;
-    gap: 8px;
-    opacity: 0; transform: translateY(14px);
-    transition: opacity 0.55s, transform 0.55s;
+    position: relative; margin-bottom: 10px;
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.45s, transform 0.45s;
   }
-  .tl-item.vis { opacity: 1; transform: translateY(0); }
-  .tl-item:last-child { margin-bottom: 0; }
+  .tl-item.vis { opacity:1; transform:translateY(0); }
+  .tl-item:last-child { margin-bottom:0; }
 
   .tl-item::before {
-    content: '';
-    position: absolute;
-    left: -14px; top: 5px;
-    width: 11px; height: 11px;
-    border-radius: 50%;
-    background: var(--surface);
-    border: 2px solid var(--gold);
-    box-shadow: 0 0 8px rgba(212,146,42,0.4);
-    transition: transform 0.3s, box-shadow 0.3s;
-    z-index: 2;
+    content:''; position:absolute; left:-11px; top:4px;
+    width:8px; height:8px; border-radius:50%;
+    background:var(--card); border:1.5px solid var(--gold);
+    box-shadow: 0 0 6px rgba(212,146,42,0.35);
+    transition: transform 0.25s, background 0.25s;
+    z-index:2;
   }
-  .tl-item:hover::before {
-    transform: scale(1.5);
-    background: var(--gold);
-    box-shadow: 0 0 16px rgba(212,146,42,0.7);
-  }
+  .tl-item:hover::before { transform:scale(1.5); background:var(--gold); }
 
-  .tl-years { font-size: 10px; color: var(--dim); font-weight: 700; line-height: 1.5; padding-top: 1px; }
-  .tl-title { font-size: 12.5px; font-weight: 800; color: var(--text); margin-bottom: 2px; }
-  .tl-desc  { font-size: 11px; color: var(--muted); line-height: 1.65; font-style: italic; }
+  .tl-row { display:flex; justify-content:space-between; align-items:baseline; gap:6px; }
+  .tl-title { font-size: 10.5px; font-weight: 800; color: var(--text); line-height:1.3; }
+  .tl-yr    { font-size: 8.5px; color: var(--dim); font-weight:700; white-space:nowrap; flex-shrink:0; }
+  .tl-desc  { font-size: 9px; color: var(--muted); line-height:1.6; margin-top:1px; }
 
-  /* ─── LANGUAGE CIRCLES ─── */
+  /* ── LANGUAGE CIRCLES ── */
   .lang-row {
-    display: flex; gap: 20px; flex-wrap: wrap;
-    padding-top: 4px;
-    opacity: 0; transform: translateY(12px);
-    transition: opacity 0.6s, transform 0.6s;
+    display: flex; gap: 14px; flex-wrap: wrap;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.5s, transform 0.5s;
   }
-  .lang-row.vis { opacity: 1; transform: translateY(0); }
+  .lang-row.vis { opacity:1; transform:translateY(0); }
 
-  .lang-circle { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .lang-circle { display:flex; flex-direction:column; align-items:center; gap:3px; }
 
-  .lang-ring { position: relative; width: 72px; height: 72px; }
-  .lang-ring svg { width: 72px; height: 72px; transform: rotate(-90deg); }
-
-  .lang-ring .track { fill: none; stroke: #1e1e1e; stroke-width: 5; }
-  .lang-ring .fill {
-    fill: none;
-    stroke: url(#langGrad);
-    stroke-width: 5;
-    stroke-linecap: round;
-    stroke-dasharray: 188;
-    stroke-dashoffset: 188;
-    transition: stroke-dashoffset 1.5s cubic-bezier(.16,1,.3,1);
-    filter: drop-shadow(0 0 4px rgba(212,146,42,0.6));
+  .lang-ring { position:relative; width:52px; height:52px; }
+  .lang-ring svg { width:52px; height:52px; transform:rotate(-90deg); }
+  .l-track { fill:none; stroke:#1e1e1e; stroke-width:4.5; }
+  .l-fill {
+    fill:none; stroke:url(#lg); stroke-width:4.5;
+    stroke-linecap:round;
+    stroke-dasharray: 138;
+    stroke-dashoffset: 138;
+    transition: stroke-dashoffset 1.4s cubic-bezier(.16,1,.3,1);
+    filter: drop-shadow(0 0 3px rgba(212,146,42,0.55));
   }
-
-  .lang-pct {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 800; color: var(--gold);
+  .l-pct {
+    position:absolute; inset:0; display:flex;
+    align-items:center; justify-content:center;
+    font-size: 10px; font-weight: 900; color: var(--gold);
   }
+  .l-name { font-size: 8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
 
-  .lang-name {
-    font-size: 9.5px; font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* ─── FOOTER ─── */
+  /* ── FOOTER ── */
   .footer {
-    text-align: center;
-    padding: 10px;
-    font-size: 9.5px;
-    letter-spacing: 0.22em;
-    color: var(--dim);
-    text-transform: uppercase;
+    text-align:center; padding: 6px;
+    font-size: 8.5px; letter-spacing:0.2em;
+    color: var(--dim); text-transform:uppercase;
     border-top: 1px solid var(--border);
-    position: relative; z-index: 2;
-    background: var(--surface2);
+    background: #0c0c0c;
+    position: relative; z-index:2; flex-shrink:0;
   }
 
-  /* ─── PRINT BTN ─── */
+  /* ── PRINT BTN ── */
   .print-btn {
-    position: fixed;
-    bottom: 26px; right: 26px;
+    position:fixed; bottom:20px; right:20px;
     background: linear-gradient(135deg, var(--amber), var(--gold));
-    color: #0a0500;
-    border: none;
-    padding: 10px 22px;
-    font-family: 'Raleway', sans-serif;
-    font-size: 10px; font-weight: 900;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 30px;
-    transition: all 0.2s;
-    box-shadow: 0 6px 28px rgba(212,146,42,0.5);
-    z-index: 999;
+    color: #050200; border:none;
+    padding: 8px 18px;
+    font-family:'Raleway',sans-serif;
+    font-size:9px; font-weight:900;
+    letter-spacing:0.2em; text-transform:uppercase;
+    cursor:pointer; border-radius:20px;
+    box-shadow: 0 4px 20px rgba(212,146,42,0.5);
+    transition: all 0.2s; z-index:999;
   }
-  .print-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(212,146,42,0.6); }
+  .print-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(212,146,42,0.6); }
 
-  @media (max-width: 580px) {
-    .layout { grid-template-columns: 1fr; }
-    .left { padding-top: 210px; }
-    .right { border-top: 1px solid var(--border); }
-  }
   @media print {
-    body { background: var(--surface); padding:0; }
-    .print-btn { display: none; }
+    html, body { overflow: visible; height: auto; }
+    .wrap { height: auto; padding: 0; }
+    .page { height: auto; min-height: 100vh; }
+    .print-btn { display:none; }
   }
 </style>
 </head>
 <body>
 
+<div class="wrap">
 <div class="page" id="page">
 
-  <!-- ── DARK GEOMETRIC CORNERS ── -->
-  <div class="geo-tl">
-    <svg viewBox="0 0 230 260" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="0,0 160,0 80,100 0,80"   fill="#2a1800" opacity="0.95"/>
-      <polygon points="0,0 100,0 50,60 0,50"    fill="#1a0e00" opacity="0.9"/>
-      <polygon points="0,60 60,80 20,180 0,200" fill="#3a2000" opacity="0.7"/>
-      <polygon points="50,0 140,0 100,70 30,50" fill="#d4922a" opacity="0.08"/>
-      <!-- gold edge glow lines -->
-      <line x1="0" y1="0" x2="160" y2="0"   stroke="#d4922a" stroke-width="0.8" opacity="0.4"/>
-      <line x1="0" y1="0" x2="0"   y2="80"  stroke="#d4922a" stroke-width="0.8" opacity="0.4"/>
-      <line x1="0" y1="80" x2="80" y2="100" stroke="#d4922a" stroke-width="0.5" opacity="0.2"/>
+  <!-- GEO CORNERS -->
+  <div class="geo geo-tl">
+    <svg viewBox="0 0 180 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,0 140,0 70,90 0,70"   fill="#1e1000" opacity="0.97"/>
+      <polygon points="0,0 85,0 42,54 0,44"    fill="#130b00" opacity="0.9"/>
+      <polygon points="0,50 55,68 18,160 0,180" fill="#2a1800" opacity="0.65"/>
+      <line x1="0" y1="0" x2="140" y2="0" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+      <line x1="0" y1="0" x2="0" y2="70"  stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="geo geo-tr">
+    <svg viewBox="0 0 160 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,0 160,0 160,100 85,50"  fill="#1e1000" opacity="0.97"/>
+      <polygon points="100,0 160,0 160,66 128,33" fill="#130b00" opacity="0.9"/>
+      <line x1="50" y1="0"  x2="160" y2="0"  stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+      <line x1="160" y1="0" x2="160" y2="100" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="geo geo-bl">
+    <svg viewBox="0 0 160 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="0,55 75,42 58,120 0,120"   fill="#1e1000" opacity="0.97"/>
+      <polygon points="0,90 44,78 36,120 0,120"   fill="#130b00" opacity="0.9"/>
+      <line x1="0" y1="120" x2="58" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+      <line x1="0" y1="55"  x2="0"  y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="geo geo-br">
+    <svg viewBox="0 0 160 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="85,42 160,60 160,120 60,120"   fill="#1e1000" opacity="0.97"/>
+      <polygon points="120,78 160,90 160,120 100,120" fill="#130b00" opacity="0.9"/>
+      <line x1="160" y1="60"  x2="160" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+      <line x1="60"  y1="120" x2="160" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
     </svg>
   </div>
 
-  <div class="geo-tr">
-    <svg viewBox="0 0 200 180" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="60,0 200,0 200,120 100,60"  fill="#2a1800" opacity="0.95"/>
-      <polygon points="120,0 200,0 200,80 150,40"  fill="#1a0e00" opacity="0.9"/>
-      <polygon points="80,0 180,0 200,60 90,30"    fill="#d4922a" opacity="0.06"/>
-      <line x1="60" y1="0"   x2="200" y2="0"   stroke="#d4922a" stroke-width="0.8" opacity="0.4"/>
-      <line x1="200" y1="0" x2="200" y2="120"  stroke="#d4922a" stroke-width="0.8" opacity="0.4"/>
-    </svg>
-  </div>
+  <!-- SVG gradient def -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#b87020"/>
+        <stop offset="100%" stop-color="#f0b84a"/>
+      </linearGradient>
+    </defs>
+  </svg>
 
-  <div class="geo-bl">
-    <svg viewBox="0 0 200 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="0,80 80,60 60,160 0,160"    fill="#2a1800" opacity="0.95"/>
-      <polygon points="0,120 50,100 40,160 0,160"  fill="#1a0e00" opacity="0.9"/>
-      <polygon points="0,60 120,50 100,160 0,160"  fill="#d4922a" opacity="0.06"/>
-      <line x1="0" y1="160"  x2="60" y2="160"  stroke="#d4922a" stroke-width="0.8" opacity="0.4"/>
-      <line x1="0" y1="80"   x2="0"  y2="160"  stroke="#d4922a" stroke-width="0.8" opacity="0.4"/>
-    </svg>
-  </div>
-
-  <div class="geo-br">
-    <svg viewBox="0 0 200 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="100,60 200,80 200,160 80,160"    fill="#2a1800" opacity="0.95"/>
-      <polygon points="150,100 200,120 200,160 130,160" fill="#1a0e00" opacity="0.9"/>
-      <polygon points="60,50 200,60 200,160 40,160"     fill="#d4922a" opacity="0.06"/>
-      <line x1="200" y1="80"  x2="200" y2="160" stroke="#d4922a" stroke-width="0.8" opacity="0.4"/>
-      <line x1="80"  y1="160" x2="200" y2="160" stroke="#d4922a" stroke-width="0.8" opacity="0.4"/>
-    </svg>
-  </div>
-
-  <!-- ── PHOTO ── -->
-  <div class="photo-area" id="photoArea">
-    <div class="photo-outer">
-      <div class="photo-inner">
-        <!-- ✏️ Replace with your client's image URL -->
-        <img src="https://i.pravatar.cc/300?img=47" alt="Ousman Jallow">
-      </div>
-    </div>
-    <div class="name-area">
-      <div class="person-name" id="personName">Ousman Jallow</div>
-      <div class="person-title">Civil Engineer</div>
-    </div>
-  </div>
-
-  <!-- ── LAYOUT ── -->
+  <!-- LAYOUT -->
   <div class="layout">
 
     <!-- LEFT -->
     <div class="left">
-      <p class="bio">Dedicated civil engineer with 9+ years of experience delivering infrastructure projects across The Gambia. Passionate about sustainable development and community resilience.</p>
-
-      <!-- CONTACT -->
-      <div class="left-section">
-        <div class="left-sec-title">Contact</div>
-        <div class="contact-item"><div class="contact-icon">✉</div><span>ousman.jallow@gra.gm</span></div>
-        <div class="contact-item"><div class="contact-icon">📞</div><span>+220 772 3344</span></div>
-        <div class="contact-item"><div class="contact-icon">📍</div><span>14 Kairaba Ave,<br>Banjul, The Gambia</span></div>
-        <div class="contact-item"><div class="contact-icon">🌐</div><span>ousmanjallow.gm</span></div>
+      <div class="profile">
+        <div class="photo-outer">
+          <div class="photo-inner">
+            <!-- ✏️ Replace src with your client's image URL -->
+            <img src="https://i.pravatar.cc/300?img=47" alt="Ousman Jallow">
+          </div>
+        </div>
+        <div class="person-name" id="personName">Ousman Jallow</div>
+        <div class="person-title">Civil Engineer</div>
       </div>
 
+      <div class="ldiv"></div>
+
+      <!-- CONTACT -->
+      <div>
+        <div class="l-section-title">Contact</div>
+        <div class="contact-item"><div class="cicon">✉</div><span>ousman.jallow@gra.gm</span></div>
+        <div class="contact-item"><div class="cicon">📞</div><span>+220 772 3344</span></div>
+        <div class="contact-item"><div class="cicon">📍</div><span>Kairaba Ave, Banjul</span></div>
+        <div class="contact-item"><div class="cicon">🌐</div><span>ousmanjallow.gm</span></div>
+      </div>
+
+      <div class="ldiv"></div>
+
       <!-- SKILLS -->
-      <div class="left-section">
-        <div class="left-sec-title">Skills</div>
-        <div class="skill-row" data-level="92"><span class="skill-name">AutoCAD</span><div class="skill-bar-bg"><div class="skill-bar-fill"></div></div></div>
-        <div class="skill-row" data-level="85"><span class="skill-name">Civil 3D</span><div class="skill-bar-bg"><div class="skill-bar-fill"></div></div></div>
-        <div class="skill-row" data-level="88"><span class="skill-name">Project Mgmt</span><div class="skill-bar-bg"><div class="skill-bar-fill"></div></div></div>
-        <div class="skill-row" data-level="78"><span class="skill-name">GIS / Survey</span><div class="skill-bar-bg"><div class="skill-bar-fill"></div></div></div>
+      <div>
+        <div class="l-section-title">Skills</div>
+        <div class="skill-row" data-level="92"><span class="s-name">AutoCAD</span><div class="s-bar-bg"><div class="s-bar-fill"></div></div></div>
+        <div class="skill-row" data-level="85"><span class="s-name">Civil 3D</span><div class="s-bar-bg"><div class="s-bar-fill"></div></div></div>
+        <div class="skill-row" data-level="88"><span class="s-name">Project Mgmt</span><div class="s-bar-bg"><div class="s-bar-fill"></div></div></div>
+        <div class="skill-row" data-level="78"><span class="s-name">GIS / Survey</span><div class="s-bar-bg"><div class="s-bar-fill"></div></div></div>
       </div>
     </div>
 
     <!-- RIGHT -->
     <div class="right">
 
-      <!-- EDUCATION -->
-      <div class="sec-banner">Education</div>
-      <div class="timeline">
-        <div class="tl-item">
-          <div class="tl-years">2010<br>2014</div>
-          <div class="tl-content">
-            <div class="tl-title">University of The Gambia</div>
-            <div class="tl-desc">B.Sc. Civil Engineering — Upper Second Class Honours.</div>
-          </div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-years">2008<br>2010</div>
-          <div class="tl-content">
-            <div class="tl-title">Gambia Technical Training Institute</div>
-            <div class="tl-desc">HND in Construction Technology.</div>
-          </div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-years">2022<br>2023</div>
-          <div class="tl-content">
-            <div class="tl-title">Professional Certified Engineer (PCE)</div>
-            <div class="tl-desc">Certified by the Gambia Institution of Engineers and Accreditation Board.</div>
-          </div>
-        </div>
+      <!-- BIO STRIP -->
+      <div class="header-strip">
+        <p class="bio">Dedicated civil engineer with 9+ years delivering infrastructure projects across The Gambia — passionate about sustainable development and community resilience.</p>
       </div>
 
-      <!-- EXPERIENCE -->
-      <div class="sec-banner" style="margin-top:22px;">Experience</div>
-      <div class="timeline">
-        <div class="tl-item">
-          <div class="tl-years">2019<br>Now</div>
-          <div class="tl-content">
-            <div class="tl-title">Gambia Roads Authority</div>
-            <div class="tl-desc">Led highway corridor projects on the Trans-Gambia route, managing a team of 18 engineers and a budget of D12M. Reduced overrun by 28%.</div>
+      <!-- TWO-COLUMN CONTENT -->
+      <div class="content-grid">
+
+        <!-- COL 1: Education + Experience -->
+        <div class="col">
+          <div class="sec-banner">Education</div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-row"><span class="tl-title">University of The Gambia</span><span class="tl-yr">2010–14</span></div>
+              <div class="tl-desc">B.Sc. Civil Engineering — Upper Second Class Honours.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-row"><span class="tl-title">GTTI</span><span class="tl-yr">2008–10</span></div>
+              <div class="tl-desc">HND in Construction Technology.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-row"><span class="tl-title">Professional Cert. (PCE)</span><span class="tl-yr">2023</span></div>
+              <div class="tl-desc">Gambia Institution of Engineers.</div>
+            </div>
+          </div>
+
+          <div class="sec-banner" style="margin-top:12px;">Experience</div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-row"><span class="tl-title">Gambia Roads Authority</span><span class="tl-yr">2019–Now</span></div>
+              <div class="tl-desc">Led Trans-Gambia highway projects, team of 18, D12M budget. Cut overrun 28%.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-row"><span class="tl-title">NAWEC</span><span class="tl-yr">2016–19</span></div>
+              <div class="tl-desc">Borehole & piping across Greater Banjul, serving 4 new communities.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-row"><span class="tl-title">UNDP Gambia</span><span class="tl-yr">2014–16</span></div>
+              <div class="tl-desc">Flood drainage design across URR & CRR regions.</div>
+            </div>
           </div>
         </div>
-        <div class="tl-item">
-          <div class="tl-years">2016<br>2019</div>
-          <div class="tl-content">
-            <div class="tl-title">NAWEC — Water & Utilities</div>
-            <div class="tl-desc">Supervised borehole and piping installations across Greater Banjul Area, delivering potable water to 4 new communities.</div>
+
+        <!-- COL 2: Languages + Stats -->
+        <div class="col">
+          <div class="sec-banner">Languages</div>
+          <div class="lang-row" id="langRow">
+            <div class="lang-circle" data-pct="99">
+              <div class="lang-ring"><svg viewBox="0 0 52 52"><circle class="l-track" cx="26" cy="26" r="22"/><circle class="l-fill" cx="26" cy="26" r="22"/></svg><div class="l-pct">99%</div></div>
+              <div class="l-name">English</div>
+            </div>
+            <div class="lang-circle" data-pct="100">
+              <div class="lang-ring"><svg viewBox="0 0 52 52"><circle class="l-track" cx="26" cy="26" r="22"/><circle class="l-fill" cx="26" cy="26" r="22"/></svg><div class="l-pct">100%</div></div>
+              <div class="l-name">Mandinka</div>
+            </div>
+            <div class="lang-circle" data-pct="85">
+              <div class="lang-ring"><svg viewBox="0 0 52 52"><circle class="l-track" cx="26" cy="26" r="22"/><circle class="l-fill" cx="26" cy="26" r="22"/></svg><div class="l-pct">85%</div></div>
+              <div class="l-name">Wolof</div>
+            </div>
+            <div class="lang-circle" data-pct="55">
+              <div class="lang-ring"><svg viewBox="0 0 52 52"><circle class="l-track" cx="26" cy="26" r="22"/><circle class="l-fill" cx="26" cy="26" r="22"/></svg><div class="l-pct">55%</div></div>
+              <div class="l-name">French</div>
+            </div>
+          </div>
+
+          <div class="sec-banner" style="margin-top:14px;">Highlights</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:2px;" id="statsGrid">
+            <div class="stat-box" style="background:#161200; border:1px solid rgba(212,146,42,0.15); border-radius:6px; padding:9px 10px; text-align:center; opacity:0; transform:scale(0.88); transition:opacity 0.4s, transform 0.4s;">
+              <div style="font-size:22px; font-weight:900; color:var(--gold); line-height:1;" class="cnum" data-t="9">0</div>
+              <div style="font-size:7.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-top:2px;">Yrs Exp</div>
+            </div>
+            <div class="stat-box" style="background:#161200; border:1px solid rgba(212,146,42,0.15); border-radius:6px; padding:9px 10px; text-align:center; opacity:0; transform:scale(0.88); transition:opacity 0.4s, transform 0.4s;">
+              <div style="font-size:22px; font-weight:900; color:var(--gold); line-height:1;" class="cnum" data-t="24">0</div>
+              <div style="font-size:7.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-top:2px;">Projects</div>
+            </div>
+            <div class="stat-box" style="background:#161200; border:1px solid rgba(212,146,42,0.15); border-radius:6px; padding:9px 10px; text-align:center; opacity:0; transform:scale(0.88); transition:opacity 0.4s, transform 0.4s;">
+              <div style="font-size:22px; font-weight:900; color:var(--gold); line-height:1;" class="cnum" data-t="6">0</div>
+              <div style="font-size:7.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-top:2px;">Certs</div>
+            </div>
+            <div class="stat-box" style="background:#161200; border:1px solid rgba(212,146,42,0.15); border-radius:6px; padding:9px 10px; text-align:center; opacity:0; transform:scale(0.88); transition:opacity 0.4s, transform 0.4s;">
+              <div style="font-size:22px; font-weight:900; color:var(--gold); line-height:1;" class="cnum" data-t="3">0</div>
+              <div style="font-size:7.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-top:2px;">Countries</div>
+            </div>
           </div>
         </div>
-        <div class="tl-item">
-          <div class="tl-years">2014<br>2016</div>
-          <div class="tl-content">
-            <div class="tl-title">UNDP Gambia</div>
-            <div class="tl-desc">Infrastructure consultant for rural development across URR and CRR. Designed flood drainage systems in Basse Santa Su.</div>
-          </div>
-        </div>
+
       </div>
-
-      <!-- LANGUAGES -->
-      <div class="sec-banner" style="margin-top:22px;">Languages</div>
-      <div class="lang-row" id="langRow">
-
-        <svg width="0" height="0" style="position:absolute">
-          <defs>
-            <linearGradient id="langGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%"   stop-color="#b87020"/>
-              <stop offset="100%" stop-color="#f0b84a"/>
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <div class="lang-circle" data-pct="99">
-          <div class="lang-ring"><svg viewBox="0 0 72 72"><circle class="track" cx="36" cy="36" r="30"/><circle class="fill" cx="36" cy="36" r="30"/></svg><div class="lang-pct">99%</div></div>
-          <div class="lang-name">English</div>
-        </div>
-        <div class="lang-circle" data-pct="100">
-          <div class="lang-ring"><svg viewBox="0 0 72 72"><circle class="track" cx="36" cy="36" r="30"/><circle class="fill" cx="36" cy="36" r="30"/></svg><div class="lang-pct">100%</div></div>
-          <div class="lang-name">Mandinka</div>
-        </div>
-        <div class="lang-circle" data-pct="85">
-          <div class="lang-ring"><svg viewBox="0 0 72 72"><circle class="track" cx="36" cy="36" r="30"/><circle class="fill" cx="36" cy="36" r="30"/></svg><div class="lang-pct">85%</div></div>
-          <div class="lang-name">Wolof</div>
-        </div>
-        <div class="lang-circle" data-pct="55">
-          <div class="lang-ring"><svg viewBox="0 0 72 72"><circle class="track" cx="36" cy="36" r="30"/><circle class="fill" cx="36" cy="36" r="30"/></svg><div class="lang-pct">55%</div></div>
-          <div class="lang-name">French</div>
-        </div>
-
-      </div>
-
     </div>
   </div>
 
   <!-- FOOTER -->
   <div class="footer">www.ousmanjallow.gm &nbsp;·&nbsp; Banjul, The Gambia</div>
 
-</div>
+</div><!-- /page -->
+</div><!-- /wrap -->
 
 <button class="print-btn" onclick="window.print()">↓ Save PDF</button>
 
 <script>
-/* ══ INTERSECTION OBSERVER ══ */
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
-}, { threshold: 0.12 });
+/* ══ HELPERS ══ */
+const IO = new IntersectionObserver(e => e.forEach(x => x.isIntersecting && x.target.classList.add('vis')), { threshold: 0.1 });
 
-function staggerObs(sel, base = 0, step = 110) {
+function stagger(sel, base, step) {
   document.querySelectorAll(sel).forEach((el, i) => {
     el.style.transitionDelay = (base + i * step) + 'ms';
-    io.observe(el);
+    IO.observe(el);
   });
 }
 
-staggerObs('.sec-banner',     0,   80);
-staggerObs('.tl-item',        80, 140);
-staggerObs('.left-sec-title', 0,  100);
-staggerObs('.contact-item',  120, 100);
+/* ══ STAGGERED REVEALS ══ */
+stagger('.sec-banner',      0,   70);
+stagger('.tl-item',         80,  110);
+stagger('.l-section-title', 50,  80);
+stagger('.contact-item',    120, 90);
 
 /* ══ SKILL BARS ══ */
-const skillIO = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    e.target.classList.add('vis');
-    const fill = e.target.querySelector('.skill-bar-fill');
-    setTimeout(() => { fill.style.width = e.target.dataset.level + '%'; }, 200);
+const sIO = new IntersectionObserver(e => {
+  e.forEach(x => {
+    if (!x.isIntersecting) return;
+    x.target.classList.add('vis');
+    const fill = x.target.querySelector('.s-bar-fill');
+    setTimeout(() => fill.style.width = x.target.dataset.level + '%', 200);
   });
-}, { threshold: 0.3 });
-
+}, { threshold: 0.2 });
 document.querySelectorAll('.skill-row').forEach((el, i) => {
-  el.style.transitionDelay = (i * 110) + 'ms';
-  skillIO.observe(el);
+  el.style.transitionDelay = (i * 100) + 'ms';
+  sIO.observe(el);
 });
 
 /* ══ LANGUAGE RINGS ══ */
-const CIRC = 2 * Math.PI * 30;
-
-const langIO = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    e.target.classList.add('vis');
-    e.target.querySelectorAll('.lang-circle').forEach((c, i) => {
-      const pct    = parseInt(c.dataset.pct, 10);
-      const fill   = c.querySelector('.fill');
-      const offset = CIRC * (1 - pct / 100);
-      setTimeout(() => { fill.style.strokeDashoffset = offset; }, 300 + i * 180);
+const CIRC = 2 * Math.PI * 22; // r=22 → ~138.2
+const lIO = new IntersectionObserver(e => {
+  e.forEach(x => {
+    if (!x.isIntersecting) return;
+    x.target.classList.add('vis');
+    x.target.querySelectorAll('.lang-circle').forEach((c, i) => {
+      const pct = parseInt(c.dataset.pct);
+      const fill = c.querySelector('.l-fill');
+      setTimeout(() => fill.style.strokeDashoffset = CIRC * (1 - pct / 100), 300 + i * 160);
     });
   });
-}, { threshold: 0.3 });
-langIO.observe(document.getElementById('langRow'));
+}, { threshold: 0.2 });
+lIO.observe(document.getElementById('langRow'));
+
+/* ══ COUNTER NUMBERS ══ */
+const sgIO = new IntersectionObserver(e => {
+  e.forEach(x => {
+    if (!x.isIntersecting) return;
+    x.target.querySelectorAll('.stat-box').forEach((box, i) => {
+      setTimeout(() => {
+        box.style.opacity = '1';
+        box.style.transform = 'scale(1)';
+        const el = box.querySelector('.cnum');
+        const target = parseInt(el.dataset.t);
+        let cur = 0, step = Math.ceil(target / 25);
+        const iv = setInterval(() => {
+          cur = Math.min(cur + step, target);
+          el.textContent = cur;
+          if (cur >= target) { el.textContent = target + '+'; clearInterval(iv); }
+        }, 45);
+      }, 400 + i * 100);
+    });
+  });
+}, { threshold: 0.2 });
+sgIO.observe(document.getElementById('statsGrid'));
 
 /* ══ TYPEWRITER on name ══ */
 const nameEl = document.getElementById('personName');
 const fullName = nameEl.textContent;
 setTimeout(() => {
   nameEl.textContent = '';
-  nameEl.style.cssText = 'opacity:1;transform:translateY(0);animation:none;';
   let i = 0;
   const iv = setInterval(() => {
     nameEl.textContent += fullName[i++];
     if (i >= fullName.length) clearInterval(iv);
-  }, 48);
-}, 1000);
+  }, 55);
+}, 900);
 
-/* ══ SPARKLE on timeline hover ══ */
-const sparkCSS = document.createElement('style');
-sparkCSS.textContent = `
-  @keyframes sparkFly {
-    0%   { transform:translate(-50%,-50%) translate(0,0) scale(1); opacity:1; }
-    100% { transform:translate(-50%,-50%) translate(var(--sx),var(--sy)) scale(0); opacity:0; }
-  }
-`;
-document.head.appendChild(sparkCSS);
+/* ══ SPARKLE on TL hover ══ */
+const sCSS = document.createElement('style');
+sCSS.textContent = `@keyframes spk{0%{opacity:1;transform:translate(-50%,-50%) translate(0,0) scale(1);}100%{opacity:0;transform:translate(-50%,-50%) translate(var(--sx),var(--sy)) scale(0);}}`;
+document.head.appendChild(sCSS);
 
-function spawnSparks(x, y) {
-  for (let i = 0; i < 10; i++) {
-    const sp = document.createElement('div');
-    const angle = (360 / 10) * i;
-    const dist  = 18 + Math.random() * 22;
-    const rad   = angle * Math.PI / 180;
-    sp.style.cssText = `
-      position:fixed; left:${x}px; top:${y}px;
-      width:5px; height:5px; border-radius:50%;
-      background: ${Math.random() > 0.5 ? '#d4922a' : '#f0b84a'};
-      pointer-events:none; z-index:9999;
-      transform:translate(-50%,-50%);
-      --sx:${(Math.cos(rad)*dist).toFixed(1)}px;
-      --sy:${(Math.sin(rad)*dist).toFixed(1)}px;
-      animation: sparkFly 0.55s ease forwards;
-      animation-delay:${(Math.random()*0.05).toFixed(2)}s;
-    `;
-    document.body.appendChild(sp);
-    setTimeout(() => sp.remove(), 650);
-  }
+function sparks(x, y) {
+  ['#d4922a','#f0b84a','#b87020'].forEach((col, ci) => {
+    for (let i = 0; i < 4; i++) {
+      const p = document.createElement('div');
+      const ang = Math.random() * Math.PI * 2;
+      const d = 14 + Math.random() * 18;
+      p.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:4px;height:4px;border-radius:50%;background:${col};pointer-events:none;z-index:9999;--sx:${(Math.cos(ang)*d).toFixed(1)}px;--sy:${(Math.sin(ang)*d).toFixed(1)}px;animation:spk 0.5s ease ${(ci*0.04).toFixed(2)}s forwards;`;
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 600);
+    }
+  });
 }
 
 document.querySelectorAll('.tl-item').forEach(item => {
   item.addEventListener('mouseenter', () => {
     const r = item.getBoundingClientRect();
-    spawnSparks(r.left + 4, r.top + 10);
+    sparks(r.left + 3, r.top + 6);
   });
+});
+
+/* ══ BURST on load ══ */
+const bCSS = document.createElement('style');
+bCSS.textContent = `@keyframes burst{0%{opacity:1;transform:translate(-50%,-50%) scale(1) translate(0,0);}100%{opacity:0;transform:translate(-50%,-50%) scale(0) translate(var(--bx),var(--by));}}`;
+document.head.appendChild(bCSS);
+setTimeout(() => {
+  const cx = window.innerWidth/2, cy = window.innerHeight/2;
+  const cols = ['#d4922a','#f0b84a','#b87020','rgba(255,255,255,0.4)'];
+  for (let i = 0; i < 44; i++) {
+    const p = document.createElement('div');
+    const ang = (Math.PI*2/44)*i, d = 80 + Math.random()*140;
+    p.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;width:${3+Math.random()*5}px;height:${3+Math.random()*5}px;border-radius:50%;background:${cols[i%cols.length]};pointer-events:none;z-index:9999;--bx:${(Math.cos(ang)*d).toFixed(1)}px;--by:${(Math.sin(ang)*d).toFixed(1)}px;animation:burst ${(0.6+Math.random()*0.7).toFixed(2)}s ease ${(Math.random()*0.12).toFixed(2)}s forwards;`;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1500);
+  }
+}, 250);
+
+/* ══ 3D TILT ══ */
+const page = document.getElementById('page');
+let ticking = false;
+document.addEventListener('mousemove', e => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => {
+    const cx = window.innerWidth/2, cy = window.innerHeight/2;
+    const dx = (e.clientX-cx)/cx, dy = (e.clientY-cy)/cy;
+    page.style.transform = `perspective(1100px) rotateY(${dx*2}deg) rotateX(${-dy*1.2}deg)`;
+    ticking = false;
+  });
+});
+document.addEventListener('mouseleave', () => {
+  page.style.transform = 'perspective(1100px) rotateY(0) rotateX(0)';
+  page.style.transition = 'transform 0.7s cubic-bezier(.16,1,.3,1)';
+});
+document.addEventListener('mouseenter', () => {
+  page.style.transition = 'transform 0.1s linear';
 });
 
 /* ══ RIPPLE on contact icons ══ */
-const rippleCSS = document.createElement('style');
-rippleCSS.textContent = `@keyframes rGrow { to { width:56px; height:56px; opacity:0; } }`;
-document.head.appendChild(rippleCSS);
-
-document.querySelectorAll('.contact-icon').forEach(icon => {
-  icon.style.position = 'relative'; icon.style.overflow = 'hidden';
-  icon.addEventListener('click', () => {
+const rCSS = document.createElement('style');
+rCSS.textContent = `@keyframes rg{to{width:48px;height:48px;opacity:0;}}`;
+document.head.appendChild(rCSS);
+document.querySelectorAll('.cicon').forEach(ic => {
+  ic.style.position = 'relative'; ic.style.overflow = 'hidden';
+  ic.addEventListener('click', () => {
     const r = document.createElement('span');
-    r.style.cssText = `position:absolute;border-radius:50%;width:0;height:0;
-      background:rgba(212,146,42,0.35);transform:translate(-50%,-50%);
-      top:50%;left:50%;animation:rGrow 0.4s ease forwards;`;
-    icon.appendChild(r);
-    setTimeout(() => r.remove(), 400);
+    r.style.cssText = `position:absolute;border-radius:50%;width:0;height:0;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(212,146,42,0.3);animation:rg 0.38s ease forwards;`;
+    ic.appendChild(r); setTimeout(() => r.remove(), 400);
   });
-});
-
-/* ══ PARTICLE BURST on page load ══ */
-const burstCSS = document.createElement('style');
-burstCSS.textContent = `@keyframes pBurst { 0%{opacity:1;transform:translate(-50%,-50%) translate(0,0) scale(1);}
-  100%{opacity:0;transform:translate(-50%,-50%) translate(var(--px),var(--py)) scale(0);} }`;
-document.head.appendChild(burstCSS);
-
-setTimeout(() => {
-  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-  const cols = ['#d4922a','#f0b84a','#b87020','#ffffff22','#3a2000'];
-  for (let i = 0; i < 50; i++) {
-    const p   = document.createElement('div');
-    const ang = (Math.PI * 2 / 50) * i + (Math.random() - 0.5) * 0.3;
-    const d   = 100 + Math.random() * 180;
-    p.style.cssText = `
-      position:fixed; left:${cx}px; top:${cy}px;
-      width:${3+Math.random()*5}px; height:${3+Math.random()*5}px;
-      border-radius:50%; background:${cols[i%cols.length]};
-      pointer-events:none; z-index:9999;
-      --px:${(Math.cos(ang)*d).toFixed(1)}px;
-      --py:${(Math.sin(ang)*d).toFixed(1)}px;
-      animation: pBurst ${(0.7+Math.random()*0.7).toFixed(2)}s ease forwards;
-      animation-delay:${(Math.random()*0.15).toFixed(2)}s;
-    `;
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 1600);
-  }
-}, 300);
-
-/* ══ 3D CARD TILT ══ */
-const page = document.getElementById('page');
-document.addEventListener('mousemove', e => {
-  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-  const dx = (e.clientX - cx) / cx, dy = (e.clientY - cy) / cy;
-  page.style.cssText += `transform:perspective(1200px) rotateY(${dx*2.5}deg) rotateX(${-dy*1.5}deg) scale(1.005);
-    transition:transform 0.1s ease;`;
-});
-document.addEventListener('mouseleave', () => {
-  page.style.cssText += `transform:perspective(1200px) rotateY(0) rotateX(0) scale(1);
-    transition:transform 0.8s cubic-bezier(.16,1,.3,1);`;
 });
 </script>
 </body>
