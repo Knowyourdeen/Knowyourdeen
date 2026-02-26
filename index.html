@@ -7,16 +7,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:      #080808;
-    --card:    #101010;
-    --left:    #131313;
-    --border:  #1e1e1e;
-    --gold:    #d4922a;
-    --gold2:   #f0b84a;
-    --amber:   #b87020;
-    --text:    #e2d8c8;
-    --muted:   #6a5c46;
-    --dim:     #3a3020;
+    --bg:     #080808;
+    --card:   #101010;
+    --left:   #131313;
+    --border: #1e1e1e;
+    --gold:   #d4922a;
+    --gold2:  #f0b84a;
+    --amber:  #b87020;
+    --text:   #e2d8c8;
+    --muted:  #6a5c46;
+    --dim:    #3a3020;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,46 +31,36 @@
     justify-content: center;
   }
 
-  /* ── OUTER WRAPPER ── */
   .wrap {
-    width: 100vw;
-    height: 100vh;
+    width: 100vw; height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 10px;
   }
 
-  /* ── PAGE CARD ── */
+  /* PAGE */
   .page {
     width: 100%;
     max-width: 820px;
-    height: min(96vh, 540px);
+    height: min(96vh, 530px);
     background: var(--card);
     position: relative;
     overflow: hidden;
     border: 1px solid rgba(212,146,42,0.18);
-    box-shadow:
-      0 30px 80px rgba(0,0,0,0.95),
-      0 0 60px rgba(212,146,42,0.05),
-      inset 0 0 80px rgba(212,146,42,0.015);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.95), 0 0 60px rgba(212,146,42,0.05);
     display: flex;
     flex-direction: column;
     opacity: 0;
     transform: scale(0.96) translateY(20px);
     animation: pageIn 0.8s cubic-bezier(.16,1,.3,1) 0.1s forwards;
   }
+  @keyframes pageIn { to { opacity:1; transform:scale(1) translateY(0); } }
 
-  @keyframes pageIn {
-    to { opacity:1; transform:scale(1) translateY(0); }
-  }
-
-  /* Glowing border overlay */
   .page::after {
     content: '';
     position: absolute; inset: 0;
-    border: 1px solid transparent;
-    background: linear-gradient(135deg, rgba(212,146,42,0.4), transparent 45%, rgba(212,146,42,0.15) 80%, transparent) border-box;
+    background: linear-gradient(135deg, rgba(212,146,42,0.35), transparent 40%, rgba(212,146,42,0.1) 80%, transparent) border-box;
     -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -78,7 +68,7 @@
     z-index: 30;
   }
 
-  /* ── GEO CORNERS ── */
+  /* GEO CORNERS */
   .geo { position:absolute; overflow:hidden; z-index:1; pointer-events:none; }
   .geo svg { width:100%; height:100%; }
   .geo-tl { top:0; left:0; width:180px; height:200px; }
@@ -86,7 +76,7 @@
   .geo-bl { bottom:0; left:0; width:160px; height:120px; }
   .geo-br { bottom:0; right:0; width:160px; height:120px; }
 
-  /* ── MAIN LAYOUT ── */
+  /* MAIN LAYOUT */
   .layout {
     display: grid;
     grid-template-columns: 200px 1fr;
@@ -96,7 +86,7 @@
     z-index: 2;
   }
 
-  /* ── LEFT COLUMN ── */
+  /* LEFT */
   .left {
     background: var(--left);
     border-right: 1px solid var(--border);
@@ -104,19 +94,18 @@
     flex-direction: column;
     padding: 16px 16px 12px;
     overflow: hidden;
-    gap: 12px;
+    gap: 11px;
   }
 
-  /* Photo + name */
   .profile {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
   }
 
   .photo-outer {
-    width: 80px; height: 80px;
+    width: 82px; height: 82px;
     border-radius: 50%;
     background: conic-gradient(var(--gold), var(--amber), #1a0800, var(--gold));
     padding: 3px;
@@ -125,12 +114,10 @@
     animation: photoIn 0.8s cubic-bezier(.16,1,.3,1) 0.6s both;
     flex-shrink: 0;
   }
-
   @keyframes photoIn {
     from { transform: scale(0) rotate(-80deg); opacity:0; }
-    to   { transform: scale(1) rotate(0);      opacity:1; }
+    to   { transform: scale(1) rotate(0); opacity:1; }
   }
-
   .photo-outer::before {
     content: '';
     position: absolute; inset: -2px;
@@ -151,31 +138,27 @@
   .person-name {
     font-size: 13px; font-weight: 900;
     letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--text); text-align: center;
-    line-height: 1.2;
+    color: var(--text); text-align: center; line-height: 1.2;
   }
   .person-title {
     font-size: 9.5px; font-weight: 700;
     color: var(--gold); text-align: center;
-    letter-spacing: 0.06em;
-    margin-top: -4px;
+    letter-spacing: 0.06em; margin-top: -3px;
   }
 
-  /* divider */
   .ldiv { height: 1px; background: var(--border); width: 100%; flex-shrink: 0; }
 
-  /* Contact */
-  .l-section-title {
+  .l-sec-title {
     font-size: 8.5px; font-weight: 900; letter-spacing: 0.28em;
-    text-transform: uppercase; color: var(--text); margin-bottom: 6px;
+    text-transform: uppercase; color: var(--text); margin-bottom: 7px;
     opacity: 0; transform: translateY(6px);
     transition: opacity 0.4s, transform 0.4s;
   }
-  .l-section-title.vis { opacity:1; transform:translateY(0); }
+  .l-sec-title.vis { opacity:1; transform:translateY(0); }
 
   .contact-item {
     display: flex; align-items: center; gap: 7px;
-    font-size: 9.5px; color: var(--muted); margin-bottom: 5px;
+    font-size: 9.5px; color: var(--muted); margin-bottom: 6px;
     opacity: 0; transform: translateX(-10px);
     transition: opacity 0.4s, transform 0.4s;
   }
@@ -188,14 +171,12 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 10px; flex-shrink: 0;
     transition: transform 0.2s, box-shadow 0.2s;
-    cursor: default;
+    cursor: default; position: relative; overflow: hidden;
   }
   .cicon:hover { transform: scale(1.2); box-shadow: 0 0 10px rgba(212,146,42,0.4); }
 
-  /* Skills */
   .skill-row {
-    display: flex; align-items: center; gap: 7px;
-    margin-bottom: 5px;
+    display: flex; align-items: center; gap: 7px; margin-bottom: 6px;
     opacity: 0; transform: translateX(-8px);
     transition: opacity 0.4s, transform 0.4s;
   }
@@ -210,24 +191,9 @@
     box-shadow: 0 0 6px rgba(212,146,42,0.45);
   }
 
-  /* ── RIGHT COLUMN ── */
-  .right {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+  /* RIGHT */
+  .right { display: flex; flex-direction: column; overflow: hidden; }
 
-  /* ── TOP HEADER STRIP ── */
-  .header-strip {
-    padding: 14px 20px 10px;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    position: relative;
-  }
-
-  .bio { font-size: 10px; color: var(--muted); line-height: 1.65; max-width: 460px; font-style: italic; }
-
-  /* ── CONTENT GRID (3 columns on right) ── */
   .content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -235,17 +201,18 @@
     overflow: hidden;
   }
 
-  .col { padding: 12px 18px; overflow: hidden; }
+  .col { padding: 14px 18px; overflow: hidden; }
   .col:first-child { border-right: 1px solid var(--border); }
 
-  /* Section banners */
   .sec-banner {
     background: linear-gradient(135deg, #1c1000, #2a1800);
     border: 1px solid rgba(212,146,42,0.22);
-    color: var(--gold); font-size: 8.5px; font-weight: 900;
+    color: var(--gold);
+    font-size: 8.5px; font-weight: 900;
     letter-spacing: 0.28em; text-transform: uppercase;
-    padding: 5px 14px; border-radius: 20px; margin-bottom: 10px;
-    position: relative; overflow: hidden; width: fit-content;
+    padding: 5px 14px; border-radius: 20px;
+    margin-bottom: 10px; position: relative; overflow: hidden;
+    width: fit-content;
     opacity: 0; transform: translateX(12px);
     transition: opacity 0.4s, transform 0.4s;
     box-shadow: inset 0 1px 0 rgba(212,146,42,0.1);
@@ -253,43 +220,39 @@
   .sec-banner.vis { opacity:1; transform:translateX(0); }
   .sec-banner::after {
     content:''; position:absolute; top:0; left:-100%; width:50%; height:100%;
-    background:linear-gradient(90deg,transparent,rgba(212,146,42,0.15),transparent);
+    background: linear-gradient(90deg, transparent, rgba(212,146,42,0.15), transparent);
     animation: sheen 4s ease-in-out infinite;
   }
   @keyframes sheen { 0%,100%{left:-100%;} 50%{left:130%;} }
 
-  /* Timeline */
   .timeline { position:relative; padding-left: 14px; }
   .timeline::before {
     content:''; position:absolute; left:4px; top:5px; bottom:5px;
-    width:1px; background:linear-gradient(to bottom, var(--gold), transparent);
-    opacity:0.3;
+    width:1px; background:linear-gradient(to bottom, var(--gold), transparent); opacity:0.3;
   }
 
   .tl-item {
-    position: relative; margin-bottom: 10px;
+    position: relative; margin-bottom: 11px;
     opacity: 0; transform: translateY(10px);
     transition: opacity 0.45s, transform 0.45s;
   }
   .tl-item.vis { opacity:1; transform:translateY(0); }
   .tl-item:last-child { margin-bottom:0; }
-
   .tl-item::before {
     content:''; position:absolute; left:-11px; top:4px;
     width:8px; height:8px; border-radius:50%;
     background:var(--card); border:1.5px solid var(--gold);
     box-shadow: 0 0 6px rgba(212,146,42,0.35);
-    transition: transform 0.25s, background 0.25s;
-    z-index:2;
+    transition: transform 0.25s, background 0.25s; z-index:2;
   }
   .tl-item:hover::before { transform:scale(1.5); background:var(--gold); }
 
   .tl-row { display:flex; justify-content:space-between; align-items:baseline; gap:6px; }
   .tl-title { font-size: 10.5px; font-weight: 800; color: var(--text); line-height:1.3; }
   .tl-yr    { font-size: 8.5px; color: var(--dim); font-weight:700; white-space:nowrap; flex-shrink:0; }
-  .tl-desc  { font-size: 9px; color: var(--muted); line-height:1.6; margin-top:1px; }
+  .tl-desc  { font-size: 9px; color: var(--muted); line-height:1.6; margin-top:2px; }
 
-  /* ── LANGUAGE CIRCLES ── */
+  /* LANGUAGE CIRCLES */
   .lang-row {
     display: flex; gap: 14px; flex-wrap: wrap;
     opacity: 0; transform: translateY(8px);
@@ -297,29 +260,32 @@
   }
   .lang-row.vis { opacity:1; transform:translateY(0); }
 
-  .lang-circle { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .lang-circle { display:flex; flex-direction:column; align-items:center; gap:4px; }
 
-  .lang-ring { position:relative; width:52px; height:52px; }
-  .lang-ring svg { width:52px; height:52px; transform:rotate(-90deg); }
-  .l-track { fill:none; stroke:#1e1e1e; stroke-width:4.5; }
+  .lang-ring { position:relative; width:58px; height:58px; }
+  .lang-ring svg { width:58px; height:58px; transform:rotate(-90deg); }
+  .l-track { fill:none; stroke:#1e1e1e; stroke-width:5; }
   .l-fill {
-    fill:none; stroke:url(#lg); stroke-width:4.5;
+    fill:none; stroke:url(#lg); stroke-width:5;
     stroke-linecap:round;
-    stroke-dasharray: 138;
-    stroke-dashoffset: 138;
+    stroke-dasharray: 151;
+    stroke-dashoffset: 151;
     transition: stroke-dashoffset 1.4s cubic-bezier(.16,1,.3,1);
     filter: drop-shadow(0 0 3px rgba(212,146,42,0.55));
   }
   .l-pct {
-    position:absolute; inset:0; display:flex;
-    align-items:center; justify-content:center;
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
     font-size: 10px; font-weight: 900; color: var(--gold);
   }
-  .l-name { font-size: 8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+  .l-name {
+    font-size: 8.5px; font-weight:700;
+    letter-spacing:0.12em; text-transform:uppercase; color:var(--muted);
+  }
 
-  /* ── FOOTER ── */
+  /* FOOTER */
   .footer {
-    text-align:center; padding: 6px;
+    text-align:center; padding: 7px;
     font-size: 8.5px; letter-spacing:0.2em;
     color: var(--dim); text-transform:uppercase;
     border-top: 1px solid var(--border);
@@ -327,14 +293,12 @@
     position: relative; z-index:2; flex-shrink:0;
   }
 
-  /* ── PRINT BTN ── */
+  /* PRINT BTN */
   .print-btn {
     position:fixed; bottom:20px; right:20px;
     background: linear-gradient(135deg, var(--amber), var(--gold));
-    color: #050200; border:none;
-    padding: 8px 18px;
-    font-family:'Raleway',sans-serif;
-    font-size:9px; font-weight:900;
+    color: #050200; border:none; padding: 8px 18px;
+    font-family:'Raleway',sans-serif; font-size:9px; font-weight:900;
     letter-spacing:0.2em; text-transform:uppercase;
     cursor:pointer; border-radius:20px;
     box-shadow: 0 4px 20px rgba(212,146,42,0.5);
@@ -343,9 +307,9 @@
   .print-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(212,146,42,0.6); }
 
   @media print {
-    html, body { overflow: visible; height: auto; }
-    .wrap { height: auto; padding: 0; }
-    .page { height: auto; min-height: 100vh; }
+    html, body { overflow:visible; height:auto; }
+    .wrap { height:auto; }
+    .page { height:auto; }
     .print-btn { display:none; }
   }
 </style>
@@ -355,42 +319,7 @@
 <div class="wrap">
 <div class="page" id="page">
 
-  <!-- GEO CORNERS -->
-  <div class="geo geo-tl">
-    <svg viewBox="0 0 180 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="0,0 140,0 70,90 0,70"   fill="#1e1000" opacity="0.97"/>
-      <polygon points="0,0 85,0 42,54 0,44"    fill="#130b00" opacity="0.9"/>
-      <polygon points="0,50 55,68 18,160 0,180" fill="#2a1800" opacity="0.65"/>
-      <line x1="0" y1="0" x2="140" y2="0" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
-      <line x1="0" y1="0" x2="0" y2="70"  stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
-    </svg>
-  </div>
-  <div class="geo geo-tr">
-    <svg viewBox="0 0 160 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="50,0 160,0 160,100 85,50"  fill="#1e1000" opacity="0.97"/>
-      <polygon points="100,0 160,0 160,66 128,33" fill="#130b00" opacity="0.9"/>
-      <line x1="50" y1="0"  x2="160" y2="0"  stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
-      <line x1="160" y1="0" x2="160" y2="100" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
-    </svg>
-  </div>
-  <div class="geo geo-bl">
-    <svg viewBox="0 0 160 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="0,55 75,42 58,120 0,120"   fill="#1e1000" opacity="0.97"/>
-      <polygon points="0,90 44,78 36,120 0,120"   fill="#130b00" opacity="0.9"/>
-      <line x1="0" y1="120" x2="58" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
-      <line x1="0" y1="55"  x2="0"  y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
-    </svg>
-  </div>
-  <div class="geo geo-br">
-    <svg viewBox="0 0 160 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="85,42 160,60 160,120 60,120"   fill="#1e1000" opacity="0.97"/>
-      <polygon points="120,78 160,90 160,120 100,120" fill="#130b00" opacity="0.9"/>
-      <line x1="160" y1="60"  x2="160" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
-      <line x1="60"  y1="120" x2="160" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
-    </svg>
-  </div>
-
-  <!-- SVG gradient def -->
+  <!-- SVG gradient -->
   <svg width="0" height="0" style="position:absolute">
     <defs>
       <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -400,10 +329,45 @@
     </defs>
   </svg>
 
+  <!-- GEO CORNERS -->
+  <div class="geo geo-tl">
+    <svg viewBox="0 0 180 200" preserveAspectRatio="none">
+      <polygon points="0,0 140,0 70,90 0,70"    fill="#1e1000" opacity="0.97"/>
+      <polygon points="0,0 85,0 42,54 0,44"     fill="#130b00" opacity="0.9"/>
+      <polygon points="0,50 55,68 18,160 0,180" fill="#2a1800" opacity="0.65"/>
+      <line x1="0" y1="0" x2="140" y2="0" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+      <line x1="0" y1="0" x2="0"   y2="70" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="geo geo-tr">
+    <svg viewBox="0 0 160 140" preserveAspectRatio="none">
+      <polygon points="50,0 160,0 160,100 85,50"  fill="#1e1000" opacity="0.97"/>
+      <polygon points="100,0 160,0 160,66 128,33" fill="#130b00" opacity="0.9"/>
+      <line x1="50"  y1="0"   x2="160" y2="0"   stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+      <line x1="160" y1="0"   x2="160" y2="100" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="geo geo-bl">
+    <svg viewBox="0 0 160 120" preserveAspectRatio="none">
+      <polygon points="0,55 75,42 58,120 0,120"  fill="#1e1000" opacity="0.97"/>
+      <polygon points="0,90 44,78 36,120 0,120"  fill="#130b00" opacity="0.9"/>
+      <line x1="0"  y1="120" x2="58" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+      <line x1="0"  y1="55"  x2="0"  y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+  </div>
+  <div class="geo geo-br">
+    <svg viewBox="0 0 160 120" preserveAspectRatio="none">
+      <polygon points="85,42 160,60 160,120 60,120"    fill="#1e1000" opacity="0.97"/>
+      <polygon points="120,78 160,90 160,120 100,120"  fill="#130b00" opacity="0.9"/>
+      <line x1="160" y1="60"  x2="160" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+      <line x1="60"  y1="120" x2="160" y2="120" stroke="#d4922a" stroke-width="0.7" opacity="0.35"/>
+    </svg>
+  </div>
+
   <!-- LAYOUT -->
   <div class="layout">
 
-    <!-- LEFT -->
+    <!-- LEFT COLUMN -->
     <div class="left">
       <div class="profile">
         <div class="photo-outer">
@@ -418,9 +382,8 @@
 
       <div class="ldiv"></div>
 
-      <!-- CONTACT -->
       <div>
-        <div class="l-section-title">Contact</div>
+        <div class="l-sec-title">Contact</div>
         <div class="contact-item"><div class="cicon">✉</div><span>ousman.jallow@gra.gm</span></div>
         <div class="contact-item"><div class="cicon">📞</div><span>+220 772 3344</span></div>
         <div class="contact-item"><div class="cicon">📍</div><span>Kairaba Ave, Banjul</span></div>
@@ -429,9 +392,8 @@
 
       <div class="ldiv"></div>
 
-      <!-- SKILLS -->
       <div>
-        <div class="l-section-title">Skills</div>
+        <div class="l-sec-title">Skills</div>
         <div class="skill-row" data-level="92"><span class="s-name">AutoCAD</span><div class="s-bar-bg"><div class="s-bar-fill"></div></div></div>
         <div class="skill-row" data-level="85"><span class="s-name">Civil 3D</span><div class="s-bar-bg"><div class="s-bar-fill"></div></div></div>
         <div class="skill-row" data-level="88"><span class="s-name">Project Mgmt</span><div class="s-bar-bg"><div class="s-bar-fill"></div></div></div>
@@ -439,15 +401,8 @@
       </div>
     </div>
 
-    <!-- RIGHT -->
+    <!-- RIGHT COLUMN -->
     <div class="right">
-
-      <!-- BIO STRIP -->
-      <div class="header-strip">
-        <p class="bio">Dedicated civil engineer with 9+ years delivering infrastructure projects across The Gambia — passionate about sustainable development and community resilience.</p>
-      </div>
-
-      <!-- TWO-COLUMN CONTENT -->
       <div class="content-grid">
 
         <!-- COL 1: Education + Experience -->
@@ -468,7 +423,7 @@
             </div>
           </div>
 
-          <div class="sec-banner" style="margin-top:12px;">Experience</div>
+          <div class="sec-banner" style="margin-top:14px;">Experience</div>
           <div class="timeline">
             <div class="tl-item">
               <div class="tl-row"><span class="tl-title">Gambia Roads Authority</span><span class="tl-yr">2019–Now</span></div>
@@ -485,45 +440,37 @@
           </div>
         </div>
 
-        <!-- COL 2: Languages + Stats -->
+        <!-- COL 2: Languages -->
         <div class="col">
           <div class="sec-banner">Languages</div>
           <div class="lang-row" id="langRow">
             <div class="lang-circle" data-pct="99">
-              <div class="lang-ring"><svg viewBox="0 0 52 52"><circle class="l-track" cx="26" cy="26" r="22"/><circle class="l-fill" cx="26" cy="26" r="22"/></svg><div class="l-pct">99%</div></div>
+              <div class="lang-ring">
+                <svg viewBox="0 0 58 58"><circle class="l-track" cx="29" cy="29" r="24"/><circle class="l-fill" cx="29" cy="29" r="24"/></svg>
+                <div class="l-pct">99%</div>
+              </div>
               <div class="l-name">English</div>
             </div>
             <div class="lang-circle" data-pct="100">
-              <div class="lang-ring"><svg viewBox="0 0 52 52"><circle class="l-track" cx="26" cy="26" r="22"/><circle class="l-fill" cx="26" cy="26" r="22"/></svg><div class="l-pct">100%</div></div>
+              <div class="lang-ring">
+                <svg viewBox="0 0 58 58"><circle class="l-track" cx="29" cy="29" r="24"/><circle class="l-fill" cx="29" cy="29" r="24"/></svg>
+                <div class="l-pct">100%</div>
+              </div>
               <div class="l-name">Mandinka</div>
             </div>
             <div class="lang-circle" data-pct="85">
-              <div class="lang-ring"><svg viewBox="0 0 52 52"><circle class="l-track" cx="26" cy="26" r="22"/><circle class="l-fill" cx="26" cy="26" r="22"/></svg><div class="l-pct">85%</div></div>
+              <div class="lang-ring">
+                <svg viewBox="0 0 58 58"><circle class="l-track" cx="29" cy="29" r="24"/><circle class="l-fill" cx="29" cy="29" r="24"/></svg>
+                <div class="l-pct">85%</div>
+              </div>
               <div class="l-name">Wolof</div>
             </div>
             <div class="lang-circle" data-pct="55">
-              <div class="lang-ring"><svg viewBox="0 0 52 52"><circle class="l-track" cx="26" cy="26" r="22"/><circle class="l-fill" cx="26" cy="26" r="22"/></svg><div class="l-pct">55%</div></div>
+              <div class="lang-ring">
+                <svg viewBox="0 0 58 58"><circle class="l-track" cx="29" cy="29" r="24"/><circle class="l-fill" cx="29" cy="29" r="24"/></svg>
+                <div class="l-pct">55%</div>
+              </div>
               <div class="l-name">French</div>
-            </div>
-          </div>
-
-          <div class="sec-banner" style="margin-top:14px;">Highlights</div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:2px;" id="statsGrid">
-            <div class="stat-box" style="background:#161200; border:1px solid rgba(212,146,42,0.15); border-radius:6px; padding:9px 10px; text-align:center; opacity:0; transform:scale(0.88); transition:opacity 0.4s, transform 0.4s;">
-              <div style="font-size:22px; font-weight:900; color:var(--gold); line-height:1;" class="cnum" data-t="9">0</div>
-              <div style="font-size:7.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-top:2px;">Yrs Exp</div>
-            </div>
-            <div class="stat-box" style="background:#161200; border:1px solid rgba(212,146,42,0.15); border-radius:6px; padding:9px 10px; text-align:center; opacity:0; transform:scale(0.88); transition:opacity 0.4s, transform 0.4s;">
-              <div style="font-size:22px; font-weight:900; color:var(--gold); line-height:1;" class="cnum" data-t="24">0</div>
-              <div style="font-size:7.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-top:2px;">Projects</div>
-            </div>
-            <div class="stat-box" style="background:#161200; border:1px solid rgba(212,146,42,0.15); border-radius:6px; padding:9px 10px; text-align:center; opacity:0; transform:scale(0.88); transition:opacity 0.4s, transform 0.4s;">
-              <div style="font-size:22px; font-weight:900; color:var(--gold); line-height:1;" class="cnum" data-t="6">0</div>
-              <div style="font-size:7.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-top:2px;">Certs</div>
-            </div>
-            <div class="stat-box" style="background:#161200; border:1px solid rgba(212,146,42,0.15); border-radius:6px; padding:9px 10px; text-align:center; opacity:0; transform:scale(0.88); transition:opacity 0.4s, transform 0.4s;">
-              <div style="font-size:22px; font-weight:900; color:var(--gold); line-height:1;" class="cnum" data-t="3">0</div>
-              <div style="font-size:7.5px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-top:2px;">Countries</div>
             </div>
           </div>
         </div>
@@ -535,14 +482,17 @@
   <!-- FOOTER -->
   <div class="footer">www.ousmanjallow.gm &nbsp;·&nbsp; Banjul, The Gambia</div>
 
-</div><!-- /page -->
-</div><!-- /wrap -->
+</div>
+</div>
 
 <button class="print-btn" onclick="window.print()">↓ Save PDF</button>
 
 <script>
-/* ══ HELPERS ══ */
-const IO = new IntersectionObserver(e => e.forEach(x => x.isIntersecting && x.target.classList.add('vis')), { threshold: 0.1 });
+/* ══ INTERSECTION OBSERVER ══ */
+const IO = new IntersectionObserver(
+  e => e.forEach(x => x.isIntersecting && x.target.classList.add('vis')),
+  { threshold: 0.1 }
+);
 
 function stagger(sel, base, step) {
   document.querySelectorAll(sel).forEach((el, i) => {
@@ -551,11 +501,10 @@ function stagger(sel, base, step) {
   });
 }
 
-/* ══ STAGGERED REVEALS ══ */
-stagger('.sec-banner',      0,   70);
-stagger('.tl-item',         80,  110);
-stagger('.l-section-title', 50,  80);
-stagger('.contact-item',    120, 90);
+stagger('.sec-banner',    0,   70);
+stagger('.tl-item',       80,  110);
+stagger('.l-sec-title',   50,  80);
+stagger('.contact-item',  120, 90);
 
 /* ══ SKILL BARS ══ */
 const sIO = new IntersectionObserver(e => {
@@ -563,54 +512,37 @@ const sIO = new IntersectionObserver(e => {
     if (!x.isIntersecting) return;
     x.target.classList.add('vis');
     const fill = x.target.querySelector('.s-bar-fill');
-    setTimeout(() => fill.style.width = x.target.dataset.level + '%', 200);
+    setTimeout(() => { fill.style.width = x.target.dataset.level + '%'; }, 200);
   });
 }, { threshold: 0.2 });
+
 document.querySelectorAll('.skill-row').forEach((el, i) => {
   el.style.transitionDelay = (i * 100) + 'ms';
   sIO.observe(el);
 });
 
 /* ══ LANGUAGE RINGS ══ */
-const CIRC = 2 * Math.PI * 22; // r=22 → ~138.2
+const CIRC = 2 * Math.PI * 24; // r=24
 const lIO = new IntersectionObserver(e => {
   e.forEach(x => {
     if (!x.isIntersecting) return;
     x.target.classList.add('vis');
     x.target.querySelectorAll('.lang-circle').forEach((c, i) => {
-      const pct = parseInt(c.dataset.pct);
+      const pct  = parseInt(c.dataset.pct);
       const fill = c.querySelector('.l-fill');
-      setTimeout(() => fill.style.strokeDashoffset = CIRC * (1 - pct / 100), 300 + i * 160);
+      setTimeout(() => {
+        fill.style.strokeDasharray  = CIRC;
+        fill.style.strokeDashoffset = CIRC * (1 - pct / 100);
+      }, 300 + i * 160);
     });
   });
 }, { threshold: 0.2 });
+
 lIO.observe(document.getElementById('langRow'));
 
-/* ══ COUNTER NUMBERS ══ */
-const sgIO = new IntersectionObserver(e => {
-  e.forEach(x => {
-    if (!x.isIntersecting) return;
-    x.target.querySelectorAll('.stat-box').forEach((box, i) => {
-      setTimeout(() => {
-        box.style.opacity = '1';
-        box.style.transform = 'scale(1)';
-        const el = box.querySelector('.cnum');
-        const target = parseInt(el.dataset.t);
-        let cur = 0, step = Math.ceil(target / 25);
-        const iv = setInterval(() => {
-          cur = Math.min(cur + step, target);
-          el.textContent = cur;
-          if (cur >= target) { el.textContent = target + '+'; clearInterval(iv); }
-        }, 45);
-      }, 400 + i * 100);
-    });
-  });
-}, { threshold: 0.2 });
-sgIO.observe(document.getElementById('statsGrid'));
-
 /* ══ TYPEWRITER on name ══ */
-const nameEl = document.getElementById('personName');
-const fullName = nameEl.textContent;
+const nameEl   = document.getElementById('personName');
+const fullName = nameEl.textContent.trim();
 setTimeout(() => {
   nameEl.textContent = '';
   let i = 0;
@@ -620,18 +552,34 @@ setTimeout(() => {
   }, 55);
 }, 900);
 
-/* ══ SPARKLE on TL hover ══ */
-const sCSS = document.createElement('style');
-sCSS.textContent = `@keyframes spk{0%{opacity:1;transform:translate(-50%,-50%) translate(0,0) scale(1);}100%{opacity:0;transform:translate(-50%,-50%) translate(var(--sx),var(--sy)) scale(0);}}`;
-document.head.appendChild(sCSS);
+/* ══ SPARKLE on timeline hover ══ */
+const spkCSS = document.createElement('style');
+spkCSS.textContent = `
+  @keyframes spk {
+    0%   { opacity:1; transform:translate(-50%,-50%) scale(1) translate(0,0); }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(0) translate(var(--sx),var(--sy)); }
+  }`;
+document.head.appendChild(spkCSS);
 
 function sparks(x, y) {
-  ['#d4922a','#f0b84a','#b87020'].forEach((col, ci) => {
+  ['#d4922a', '#f0b84a', '#b87020'].forEach((col, ci) => {
     for (let i = 0; i < 4; i++) {
-      const p = document.createElement('div');
+      const p   = document.createElement('div');
       const ang = Math.random() * Math.PI * 2;
-      const d = 14 + Math.random() * 18;
-      p.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:4px;height:4px;border-radius:50%;background:${col};pointer-events:none;z-index:9999;--sx:${(Math.cos(ang)*d).toFixed(1)}px;--sy:${(Math.sin(ang)*d).toFixed(1)}px;animation:spk 0.5s ease ${(ci*0.04).toFixed(2)}s forwards;`;
+      const d   = 14 + Math.random() * 18;
+      p.style.cssText = [
+        'position:fixed',
+        'left:' + x + 'px',
+        'top:' + y + 'px',
+        'width:4px', 'height:4px',
+        'border-radius:50%',
+        'background:' + col,
+        'pointer-events:none',
+        'z-index:9999',
+        '--sx:' + (Math.cos(ang) * d).toFixed(1) + 'px',
+        '--sy:' + (Math.sin(ang) * d).toFixed(1) + 'px',
+        'animation:spk 0.5s ease ' + (ci * 0.04).toFixed(2) + 's forwards'
+      ].join(';');
       document.body.appendChild(p);
       setTimeout(() => p.remove(), 600);
     }
@@ -645,53 +593,87 @@ document.querySelectorAll('.tl-item').forEach(item => {
   });
 });
 
-/* ══ BURST on load ══ */
-const bCSS = document.createElement('style');
-bCSS.textContent = `@keyframes burst{0%{opacity:1;transform:translate(-50%,-50%) scale(1) translate(0,0);}100%{opacity:0;transform:translate(-50%,-50%) scale(0) translate(var(--bx),var(--by));}}`;
-document.head.appendChild(bCSS);
+/* ══ PARTICLE BURST on load ══ */
+const burstCSS = document.createElement('style');
+burstCSS.textContent = `
+  @keyframes burst {
+    0%   { opacity:1; transform:translate(-50%,-50%) scale(1) translate(0,0); }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(0) translate(var(--bx),var(--by)); }
+  }`;
+document.head.appendChild(burstCSS);
+
 setTimeout(() => {
-  const cx = window.innerWidth/2, cy = window.innerHeight/2;
-  const cols = ['#d4922a','#f0b84a','#b87020','rgba(255,255,255,0.4)'];
+  const cx   = window.innerWidth / 2;
+  const cy   = window.innerHeight / 2;
+  const cols = ['#d4922a', '#f0b84a', '#b87020', 'rgba(255,255,255,0.35)'];
   for (let i = 0; i < 44; i++) {
-    const p = document.createElement('div');
-    const ang = (Math.PI*2/44)*i, d = 80 + Math.random()*140;
-    p.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;width:${3+Math.random()*5}px;height:${3+Math.random()*5}px;border-radius:50%;background:${cols[i%cols.length]};pointer-events:none;z-index:9999;--bx:${(Math.cos(ang)*d).toFixed(1)}px;--by:${(Math.sin(ang)*d).toFixed(1)}px;animation:burst ${(0.6+Math.random()*0.7).toFixed(2)}s ease ${(Math.random()*0.12).toFixed(2)}s forwards;`;
+    const p   = document.createElement('div');
+    const ang = (Math.PI * 2 / 44) * i;
+    const d   = 80 + Math.random() * 140;
+    p.style.cssText = [
+      'position:fixed',
+      'left:' + cx + 'px',
+      'top:' + cy + 'px',
+      'width:' + (3 + Math.random() * 5) + 'px',
+      'height:' + (3 + Math.random() * 5) + 'px',
+      'border-radius:50%',
+      'background:' + cols[i % cols.length],
+      'pointer-events:none',
+      'z-index:9999',
+      '--bx:' + (Math.cos(ang) * d).toFixed(1) + 'px',
+      '--by:' + (Math.sin(ang) * d).toFixed(1) + 'px',
+      'animation:burst ' + (0.6 + Math.random() * 0.7).toFixed(2) + 's ease ' + (Math.random() * 0.12).toFixed(2) + 's forwards'
+    ].join(';');
     document.body.appendChild(p);
     setTimeout(() => p.remove(), 1500);
   }
 }, 250);
 
-/* ══ 3D TILT ══ */
+/* ══ 3D CARD TILT ══ */
 const page = document.getElementById('page');
 let ticking = false;
+
 document.addEventListener('mousemove', e => {
   if (ticking) return;
   ticking = true;
   requestAnimationFrame(() => {
-    const cx = window.innerWidth/2, cy = window.innerHeight/2;
-    const dx = (e.clientX-cx)/cx, dy = (e.clientY-cy)/cy;
-    page.style.transform = `perspective(1100px) rotateY(${dx*2}deg) rotateX(${-dy*1.2}deg)`;
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const dx = (e.clientX - cx) / cx;
+    const dy = (e.clientY - cy) / cy;
+    page.style.transform = 'perspective(1100px) rotateY(' + (dx * 2) + 'deg) rotateX(' + (-dy * 1.2) + 'deg)';
     ticking = false;
   });
 });
+
 document.addEventListener('mouseleave', () => {
   page.style.transform = 'perspective(1100px) rotateY(0) rotateX(0)';
   page.style.transition = 'transform 0.7s cubic-bezier(.16,1,.3,1)';
 });
+
 document.addEventListener('mouseenter', () => {
   page.style.transition = 'transform 0.1s linear';
 });
 
 /* ══ RIPPLE on contact icons ══ */
-const rCSS = document.createElement('style');
-rCSS.textContent = `@keyframes rg{to{width:48px;height:48px;opacity:0;}}`;
-document.head.appendChild(rCSS);
+const rippleCSS = document.createElement('style');
+rippleCSS.textContent = `@keyframes rg { to { width:48px; height:48px; opacity:0; } }`;
+document.head.appendChild(rippleCSS);
+
 document.querySelectorAll('.cicon').forEach(ic => {
-  ic.style.position = 'relative'; ic.style.overflow = 'hidden';
   ic.addEventListener('click', () => {
     const r = document.createElement('span');
-    r.style.cssText = `position:absolute;border-radius:50%;width:0;height:0;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(212,146,42,0.3);animation:rg 0.38s ease forwards;`;
-    ic.appendChild(r); setTimeout(() => r.remove(), 400);
+    r.style.cssText = [
+      'position:absolute',
+      'border-radius:50%',
+      'width:0', 'height:0',
+      'top:50%', 'left:50%',
+      'transform:translate(-50%,-50%)',
+      'background:rgba(212,146,42,0.3)',
+      'animation:rg 0.38s ease forwards'
+    ].join(';');
+    ic.appendChild(r);
+    setTimeout(() => r.remove(), 400);
   });
 });
 </script>
