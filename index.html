@@ -3,702 +3,463 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Breaks Your Fast – TikTok Carousel</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<title>ITC Timetable — Spring 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #141720;
+    --border:    #1e2330;
+    --mon:       #1a3a5c;
+    --mon-light: #2a5a8c;
+    --mon-glow:  #4a9ede;
+    --tue:       #3a1a4a;
+    --tue-light: #6a2a8a;
+    --tue-glow:  #b06ae0;
+    --slot1:     #0f3020;
+    --slot2:     #1a2a10;
+    --slot3:     #30200a;
+    --text:      #e8eaf0;
+    --muted:     #8892a4;
+    --accent:    #f0c060;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #1a1a1a;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
     min-height: 100vh;
-    font-family: 'Lato', sans-serif;
+    padding: 40px 24px 60px;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(74,158,222,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(176,106,224,0.06) 0%, transparent 60%);
   }
 
-  .carousel-wrapper {
-    position: relative;
-    width: 405px;
-    display: flex;
-    flex-direction: column;
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeDown .6s ease both;
   }
 
-  .carousel-viewport {
-    overflow: hidden;
-    border-radius: 20px;
-    width: 405px;
-    height: 720px;
-    flex-shrink: 0;
-  }
-
-  .carousel-track {
-    display: flex;
-    height: 100%;
-    transition: transform 0.55s cubic-bezier(0.77, 0, 0.18, 1);
-  }
-
-  /* ── INTRO SLIDE ── */
-  .slide-intro {
-    min-width: 405px;
-    height: 720px;
-    background: linear-gradient(170deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 26px;
-    position: relative;
-    overflow: hidden;
-    padding: 60px 40px 80px;
-  }
-
-  .slide-intro::before {
-    content: '🌙';
-    position: absolute;
-    top: -30px; right: -20px;
-    font-size: 220px;
-    opacity: 0.06;
-    pointer-events: none;
-    line-height: 1;
-  }
-
-  .intro-badge {
-    background: #f5c518;
-    color: #111;
-    font-family: 'Lato', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
+  .school-label {
+    font-family: 'DM Mono', monospace;
+    font-size: .72rem;
+    letter-spacing: .18em;
     text-transform: uppercase;
-    letter-spacing: 2.5px;
-    padding: 6px 16px;
-    border-radius: 20px;
+    color: var(--muted);
+    margin-bottom: 10px;
   }
 
-  .intro-emoji {
-    font-size: 64px;
-    line-height: 1;
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    letter-spacing: -.01em;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #e8eaf0 30%, #a0b0d0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .intro-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 30px;
-    font-weight: 900;
-    color: #fff;
-    text-align: center;
-    line-height: 1.4;
-    max-width: 320px;
+  h1 em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--accent), #f08030);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .intro-title span {
-    background: #f5c518;
-    color: #111;
-    padding: 0 6px 3px;
-    border-radius: 3px;
+  .semester-badge {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 4px 16px;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: .08em;
   }
 
-  .intro-divider {
-    width: 48px;
-    height: 2px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 2px;
+  /* ── LEGEND ── */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    animation: fadeDown .6s .1s ease both;
   }
 
-  .intro-subtitle {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.85);
-    text-align: center;
-    line-height: 1.5;
-    max-width: 300px;
-  }
-
-  .intro-swipe {
+  .legend-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Lato', sans-serif;
-    font-size: 12px;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-top: 8px;
+    font-size: .8rem;
+    color: var(--muted);
+    font-weight: 500;
   }
 
-  .intro-bottom {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 56px;
-    background: rgba(0,0,0,0.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .intro-bottom-dot {
-    width: 5px; height: 5px;
+  .legend-dot {
+    width: 10px; height: 10px;
     border-radius: 50%;
-    background: #f5c518;
-    opacity: 0.7;
+  }
+  .legend-dot.mon { background: var(--mon-glow); }
+  .legend-dot.tue { background: var(--tue-glow); }
+
+  /* ── GRID WRAPPER ── */
+  .timetable-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    animation: fadeUp .7s .15s ease both;
   }
 
-  .intro-bottom-text {
-    font-family: 'Lato', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.45);
+  /* ── TIME HEADER ROW ── */
+  .time-header {
+    display: grid;
+    grid-template-columns: 110px repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 0 4px;
+  }
+
+  .time-header-cell {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    color: var(--muted);
+    padding: 6px 0;
+  }
+
+  .time-header-cell.slot {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 4px;
+  }
+
+  .slot-time { font-size: .75rem; color: var(--text); font-weight: 500; }
+  .slot-label {
+    font-size: .6rem;
+    letter-spacing: .1em;
     text-transform: uppercase;
-    letter-spacing: 2.5px;
+    color: var(--muted);
+    margin-top: 2px;
   }
 
-  /* ── CONTENT SLIDES (2–6) ── */
-  .slide {
-    min-width: 405px;
-    height: 720px;
-    background: #ffffff;
+  /* ── DAY ROW ── */
+  .day-row {
+    display: grid;
+    grid-template-columns: 110px repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .day-label {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    padding: 0 0 56px 0;
-  }
-
-  .slide-top-bar {
-    width: 100%;
-    height: 5px;
-    background: linear-gradient(90deg, #f5c518, #f0a500);
-    flex-shrink: 0;
-  }
-
-  .slide-header {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 24px 0;
-    flex-shrink: 0;
-  }
-
-  .slide-num-badge {
-    background: #f5c518;
-    color: #111;
-    font-family: 'Lato', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    padding: 4px 12px;
-    border-radius: 20px;
-  }
-
-  .slide-counter {
-    font-family: 'Playfair Display', serif;
-    font-size: 13px;
-    color: #bbb;
-    letter-spacing: 2px;
-  }
-
-  /* First sentence – ABOVE image */
-  .slide-lead {
-    text-align: center;
-    padding: 18px 28px 0;
-    flex-shrink: 0;
-    z-index: 1;
-  }
-
-  .slide-lead p {
-    font-family: 'Playfair Display', serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: #111;
-    line-height: 1.5;
-  }
-
-  .slide-lead p em {
-    font-style: normal;
-    background: #f5c518;
-    padding: 0 4px 2px;
-    border-radius: 3px;
-  }
-
-  /* Image */
-  .slide-img-wrap {
-    display: flex;
     justify-content: center;
-    padding: 18px 0 0;
-    flex-shrink: 0;
+    align-items: flex-end;
+    padding-right: 14px;
+    gap: 4px;
   }
 
-  .profile-img {
-    width: 195px;
-    height: 195px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 5px solid #f5c518;
-    box-shadow: 0 8px 40px rgba(245, 197, 24, 0.3);
-    background: #e8e8e0;
-  }
-
-  /* Detail text – below image */
-  .slide-detail {
-    text-align: center;
-    padding: 16px 32px 0;
-    flex: 1;
-    display: flex;
-    align-items: center;
-  }
-
-  .slide-detail p {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: #111;
-    line-height: 1.5;
-  }
-
-  .slide-brand {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 56px;
-    background: #111;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .slide-brand-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: #f5c518;
-  }
-
-  .slide-brand-text {
-    font-family: 'Lato', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.7);
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-  }
-
-  .slide-deco {
-    position: absolute;
-    bottom: 50px; right: -20px;
-    font-size: 160px;
-    opacity: 0.03;
-    pointer-events: none;
+  .day-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
     line-height: 1;
   }
 
-  /* ── WAVE SLIDE ── */
-  .slide-wave {
-    min-width: 405px;
-    height: 720px;
+  .day-name.mon { color: var(--mon-glow); }
+  .day-name.tue { color: var(--tue-glow); }
+
+  .day-line {
+    width: 28px; height: 2px; border-radius: 2px;
+  }
+  .day-line.mon { background: var(--mon-glow); }
+  .day-line.tue { background: var(--tue-glow); }
+
+  /* ── CARD ── */
+  .card {
+    position: relative;
+    border-radius: 14px;
+    padding: 16px 18px;
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+    cursor: default;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+  }
+
+  .card.empty {
+    background: transparent;
+    border: 1px dashed var(--border);
+    opacity: .3;
+  }
+
+  /* Monday cards */
+  .card.mon {
+    background: linear-gradient(135deg, var(--mon) 0%, #0e2840 100%);
+    border: 1px solid var(--mon-light);
+    box-shadow: 0 2px 16px rgba(74,158,222,.12), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .card.mon:hover {
+    box-shadow: 0 8px 28px rgba(74,158,222,.22);
+  }
+  .card.mon::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--mon-glow), transparent);
+  }
+
+  /* Tuesday cards */
+  .card.tue {
+    background: linear-gradient(135deg, var(--tue) 0%, #200a30 100%);
+    border: 1px solid var(--tue-light);
+    box-shadow: 0 2px 16px rgba(176,106,224,.12), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .card.tue:hover {
+    box-shadow: 0 8px 28px rgba(176,106,224,.22);
+  }
+  .card.tue::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--tue-glow), transparent);
+  }
+
+  .card-code {
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem;
+    letter-spacing: .12em;
+    font-weight: 500;
+    margin-bottom: 6px;
+    opacity: .8;
+  }
+  .card.mon .card-code { color: var(--mon-glow); }
+  .card.tue .card-code { color: var(--tue-glow); }
+
+  .card-title {
+    font-size: .88rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 10px;
+    color: #f0f2f8;
+  }
+
+  .card-meta {
     display: flex;
     flex-direction: column;
+    gap: 3px;
+  }
+
+  .meta-row {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 22px;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(160deg, #0ab0f0 0%, #0077c8 55%, #004f99 100%);
-    padding: 60px 40px 80px;
+    gap: 6px;
+    font-size: .72rem;
+    color: var(--muted);
   }
 
-  .slide-wave::before {
-    content: '🌙';
-    position: absolute;
-    top: -30px; right: -20px;
-    font-size: 200px;
-    opacity: 0.07;
-    pointer-events: none;
-    line-height: 1;
-  }
-
-  .slide-wave::after {
-    content: '✦ ✦ ✦';
-    position: absolute;
-    bottom: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255,255,255,0.15);
-    font-size: 12px;
-    letter-spacing: 12px;
-  }
-
-  .wave-slide-number {
-    position: absolute;
-    top: 22px; right: 24px;
-    font-family: 'Playfair Display', serif;
-    font-size: 13px;
-    color: rgba(255,255,255,0.35);
-    letter-spacing: 2px;
-  }
-
-  .stars-deco {
-    position: absolute;
-    top: 30px; left: 24px;
-    font-size: 20px;
-    opacity: 0.25;
-    letter-spacing: 6px;
-    pointer-events: none;
-  }
-
-  .wave-img {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid rgba(255,255,255,0.6);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
-    background: rgba(255,255,255,0.15);
+  .meta-icon {
+    width: 14px; height: 14px;
+    opacity: .7;
     flex-shrink: 0;
   }
 
-  .wave-heading {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px;
-    font-weight: 900;
-    color: #fff;
+  .meta-row span { line-height: 1.2; }
+
+  /* ── FOOTER ── */
+  footer {
     text-align: center;
-    line-height: 1.5;
-    max-width: 300px;
+    margin-top: 52px;
+    font-size: .72rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: .06em;
+    animation: fadeUp .6s .3s ease both;
   }
 
-  .wave-heading span {
-    background: #f5c518;
-    color: #111;
-    padding: 0 6px 3px;
-    border-radius: 3px;
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  .wave-divider {
-    width: 48px;
-    height: 2px;
-    background: rgba(255,255,255,0.3);
-    border-radius: 2px;
+  /* Stagger cards */
+  .day-row:nth-child(2) .card { animation: fadeUp .5s .2s ease both; }
+  .day-row:nth-child(3) .card { animation: fadeUp .5s .35s ease both; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    .time-header, .day-row {
+      grid-template-columns: 70px repeat(3, 1fr);
+    }
+    .card-title { font-size: .8rem; }
+    .card { padding: 12px 12px; }
+    .day-name { font-size: .95rem; }
+    .day-label { padding-right: 8px; }
   }
-
-  .wave-wordmark {
-    font-family: 'Lato', sans-serif;
-    font-weight: 900;
-    font-size: 36px;
-    color: #fff;
-    letter-spacing: -0.5px;
-  }
-
-  .wave-number {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #fff;
-    border-radius: 50px;
-    padding: 16px 32px;
-    color: #0077c8;
-    font-family: 'Lato', sans-serif;
-    font-size: 24px;
-    font-weight: 900;
-    letter-spacing: 1.5px;
-    text-decoration: none;
-    box-shadow: 0 6px 28px rgba(0,0,0,0.2);
-    transition: transform 0.15s, box-shadow 0.15s;
-  }
-
-  .wave-number:hover {
-    transform: scale(1.04);
-    box-shadow: 0 8px 36px rgba(0,0,0,0.28);
-  }
-
-  .wave-number svg { flex-shrink: 0; }
-
-  .wave-msg {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.9);
-    text-align: center;
-    line-height: 1.5;
-    max-width: 300px;
-  }
-
-  .wave-bottom-strip {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 56px;
-    background: rgba(0,0,0,0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .wave-bottom-dot {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: #f5c518;
-    opacity: 0.7;
-  }
-
-  .wave-bottom-text {
-    font-family: 'Lato', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-  }
-
-  /* ── Navigation ── */
-  .nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 20px;
-  }
-
-  .nav-btn {
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    background: #2a2a2a;
-    border: 2px solid #444;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s, transform 0.15s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-
-  .nav-btn:hover { background: #f5c518; border-color: #f5c518; transform: scale(1.08); }
-  .nav-btn:hover svg { stroke: #111 !important; }
-
-  .dots { display: flex; gap: 8px; }
-
-  .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #444;
-    cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
-  }
-
-  .dot.active { background: #f5c518; transform: scale(1.3); }
 </style>
 </head>
 <body>
 
-<div class="carousel-wrapper">
-  <div class="carousel-viewport">
-    <div class="carousel-track" id="track">
+<header>
+  <div class="school-label">School of Information Technology &amp; Communication</div>
+  <h1>Class <em>Timetable</em></h1>
+  <div class="semester-badge">Spring Semester · 2026</div>
+</header>
 
-      <!-- SLIDE 1 – INTRO -->
-      <div class="slide-intro">
-        <div class="intro-badge">Ramadan Knowledge</div>
-        <div class="intro-emoji">☪️</div>
-        <h1 class="intro-title"><span>5 Things</span> That Does Not But Break Fast</h1>
-        <div class="intro-divider"></div>
-        <div class="intro-swipe">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          
-        </div>
-        <div class="intro-bottom">
-          <div class="intro-bottom-dot"></div>
-          <span class="intro-bottom-text">Barakah Charity · The Gambia</span>
-          <div class="intro-bottom-dot"></div>
-        </div>
-      </div>
-
-      <!-- SLIDE 2 – Sexual Intercourse -->
-      <div class="slide">
-        <div class="slide-top-bar"></div>
-        <div class="slide-header">
-          <span class="slide-num-badge">01 of 05</span>
-          <span class="slide-counter">02 / 06</span>
-        </div>
-        <div class="slide-lead">
-          <p><em>Sexual intercourse</em></p>
-        </div>
-        <div class="slide-img-wrap">
-          <img class="profile-img" src="https://islamic-relief.org/wp-content/uploads/2022/05/Guardian-Kenya-3.webp" alt="Slide 3">
-        </div>
-        <span class="slide-deco">🌙</span>
-        <div class="slide-brand">
-          <div class="slide-brand-dot"></div>
-          <span class="slide-brand-text">Barakah Charity · The Gambia</span>
-          <div class="slide-brand-dot"></div>
-        </div>
-      </div>
-
-      <!-- SLIDE 3 – Wave Donation -->
-      <div class="slide-wave">
-        <span class="wave-slide-number">03 / 07</span>
-        <span class="stars-deco">✦ ✦</span>
-
-        <p class="wave-heading">
-          Support a family this<br><span>blessed Ramadan</span> 🌙
-        </p>
-
-        <img class="wave-img" src="https://africabusinesscommunities.com/Images/Key%20Logos/wave.png" alt="Wave">
-
-        <div class="wave-divider"></div>
-
-        <span class="wave-wordmark">Wave</span>
-
-        <a class="wave-number" href="tel:+2204032368">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0077c8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.1 2.18 2 2 0 012.08 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
-          </svg>
-          +220 403 2368
-        </a>
-
-        <p class="wave-msg">Please support a family in need in this blessed holy month of Ramadan. Every dalasi makes a difference.</p>
-
-        <div class="wave-bottom-strip">
-          <div class="wave-bottom-dot"></div>
-          <span class="wave-bottom-text">Barakah Charity · The Gambia</span>
-          <div class="wave-bottom-dot"></div>
-        </div>
-      </div>
-
-      <!-- SLIDE 4 – Intentional Vomiting -->
-      <div class="slide">
-        <div class="slide-top-bar"></div>
-        <div class="slide-header">
-          <span class="slide-num-badge">03 of 05</span>
-          <span class="slide-counter">04 / 06</span>
-        </div>
-        <div class="slide-lead">
-          <p><em>Intentional vomiting</em></p>
-        </div>
-        <div class="slide-img-wrap">
-          <img class="profile-img" src="https://media.gettyimages.com/id/2077627094/video/muslims-living-in-tent-cities-in-somali-welcome-arrival-of-ramadan-in-poverty.jpg?s=640x640&k=20&c=8E_5OFyk2p7t7kRmyP2bzHBUsW9hooo0mZrwCs_cxN4=" alt="Slide 4">
-        </div>
-        <span class="slide-deco">🌙</span>
-        <div class="slide-brand">
-          <div class="slide-brand-dot"></div>
-          <span class="slide-brand-text">Barakah Charity · The Gambia</span>
-          <div class="slide-brand-dot"></div>
-        </div>
-      </div>
-
-      <!-- SLIDE 5 – Menstruation -->
-      <div class="slide">
-        <div class="slide-top-bar"></div>
-        <div class="slide-header">
-          <span class="slide-num-badge">04 of 05</span>
-          <span class="slide-counter">05 / 06</span>
-        </div>
-        <div class="slide-lead">
-          <p><em>Menstruation or postpartum bleeding</em></p>
-        </div>
-        <div class="slide-img-wrap">
-          <img class="profile-img" src="https://en.people.cn/NMediaFile/2021/0416/FOREIGN202104160823000523869427834.jpg" alt="Slide 5">
-        </div>
-        <span class="slide-deco">🌙</span>
-        <div class="slide-brand">
-          <div class="slide-brand-dot"></div>
-          <span class="slide-brand-text">Barakah Charity · The Gambia</span>
-          <div class="slide-brand-dot"></div>
-        </div>
-      </div>
-
-      <!-- SLIDE 6 – Apostasy -->
-      <div class="slide">
-        <div class="slide-top-bar"></div>
-        <div class="slide-header">
-          <span class="slide-num-badge">05 of 05</span>
-          <span class="slide-counter">06 / 06</span>
-        </div>
-        <div class="slide-lead">
-          <p><em>Apostasy</em></p>
-        </div>
-        <div class="slide-img-wrap">
-          <img class="profile-img" src="https://africabusinesscommunities.com/Images/Key%20Logos/wave.png" alt="Slide 6">
-        </div>
-        <span class="slide-deco">🌙</span>
-        <div class="slide-brand">
-          <div class="slide-brand-dot"></div>
-          <span class="slide-brand-text">Barakah Charity · The Gambia</span>
-          <div class="slide-brand-dot"></div>
-        </div>
-      </div>
-
-      <!-- SLIDE 7 – Eating or Drinking -->
-      <div class="slide">
-        <div class="slide-top-bar"></div>
-        <div class="slide-header">
-          <span class="slide-num-badge">05 of 05</span>
-          <span class="slide-counter">07 / 07</span>
-        </div>
-        <div class="slide-lead">
-          <p><em>Eating or drinking intentionally</em></p>
-        </div>
-        <div class="slide-img-wrap">
-          <img class="profile-img" src="https://img.freepik.com/premium-photo/poor-african-large-family-against-backdrop-collapsing-house_524824-2643.jpg" alt="Eating or drinking">
-        </div>
-        <span class="slide-deco">🌙</span>
-        <div class="slide-brand">
-          <div class="slide-brand-dot"></div>
-          <span class="slide-brand-text">Barakah Charity · The Gambia</span>
-          <div class="slide-brand-dot"></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Navigation -->
-  <div class="nav">
-    <button class="nav-btn" id="prev" aria-label="Previous">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-    </button>
-    <div class="dots">
-      <div class="dot active" data-idx="0"></div>
-      <div class="dot" data-idx="1"></div>
-      <div class="dot" data-idx="2"></div>
-      <div class="dot" data-idx="3"></div>
-      <div class="dot" data-idx="4"></div>
-      <div class="dot" data-idx="5"></div>
-      <div class="dot" data-idx="6"></div>
-    </div>
-    <button class="nav-btn" id="next" aria-label="Next">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </button>
-  </div>
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot mon"></span> Monday</div>
+  <div class="legend-item"><span class="legend-dot tue"></span> Tuesday</div>
 </div>
 
-<script>
-  const track = document.getElementById('track');
-  const dots = document.querySelectorAll('.dot');
-  let current = 0;
-  const total = 7;
-  const slideWidth = 405;
+<div class="timetable-wrap">
 
-  function goTo(idx) {
-    current = (idx + total) % total;
-    track.style.transform = `translateX(-${current * slideWidth}px)`;
-    dots.forEach((d, i) => d.classList.toggle('active', i === current));
-  }
+  <!-- Time header -->
+  <div class="time-header">
+    <div class="time-header-cell"></div>
+    <div class="time-header-cell slot">
+      <div class="slot-time">08:30 – 11:00</div>
+      <div class="slot-label">Morning</div>
+    </div>
+    <div class="time-header-cell slot">
+      <div class="slot-time">11:30 – 14:00</div>
+      <div class="slot-label">Midday</div>
+    </div>
+    <div class="time-header-cell slot">
+      <div class="slot-time">14:30 – 17:00</div>
+      <div class="slot-label">Afternoon</div>
+    </div>
+  </div>
 
-  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
-  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
-  dots.forEach(d => d.addEventListener('click', () => goTo(+d.dataset.idx)));
+  <!-- MONDAY -->
+  <div class="day-row">
+    <div class="day-label">
+      <div class="day-name mon">Mon</div>
+      <div class="day-line mon"></div>
+    </div>
 
-  let startX = 0;
-  track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; });
-  track.addEventListener('touchend', e => {
-    const diff = startX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
-  });
-</script>
+    <!-- MON 08:30 -->
+    <div class="card mon">
+      <div class="card-code">INS 311</div>
+      <div class="card-title">Data Engineering</div>
+      <div class="card-meta">
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
+          <span>Assan Jahateh</span>
+        </div>
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span>Lecture Room 1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MON 11:30 -->
+    <div class="card mon">
+      <div class="card-code">INS 414</div>
+      <div class="card-title">Information Security &amp; Auditing</div>
+      <div class="card-meta">
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
+          <span>Ahmed Amer El-Hashemite</span>
+        </div>
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span>Lecture Room 1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MON 14:30 -->
+    <div class="card mon">
+      <div class="card-code">INS 401</div>
+      <div class="card-title">Business Continuity &amp; Recovery Planning</div>
+      <div class="card-meta">
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
+          <span>Anthony Aikhomu Ogunbor</span>
+        </div>
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span>Lecture Room 7</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TUESDAY -->
+  <div class="day-row">
+    <div class="day-label">
+      <div class="day-name tue">Tue</div>
+      <div class="day-line tue"></div>
+    </div>
+
+    <!-- TUE 08:30 -->
+    <div class="card tue">
+      <div class="card-code">INS 314</div>
+      <div class="card-title">Access Control Systems &amp; Methodology</div>
+      <div class="card-meta">
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
+          <span>Ahmed Amer El-Hashemite</span>
+        </div>
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span>Lecture Room 1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUE 11:30 -->
+    <div class="card tue">
+      <div class="card-code">INS 403</div>
+      <div class="card-title">Computer Forensics</div>
+      <div class="card-meta">
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
+          <span>Mbemba Hydara</span>
+        </div>
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span>Lecture Room 7</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUE 14:30 -->
+    <div class="card tue">
+      <div class="card-code">INS 418</div>
+      <div class="card-title">Geographic Information Systems</div>
+      <div class="card-meta">
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
+          <span>Anthony Aikhomu Ogunbor</span>
+        </div>
+        <div class="meta-row">
+          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span>Lecture Room 1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.timetable-wrap -->
+
+<footer>ITC · School of Information Technology &amp; Communication · Spring 2026</footer>
+
 </body>
 </html>
