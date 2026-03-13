@@ -3,463 +3,3121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ITC Timetable — Spring 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<title>Folio — CV Builder & Smart Job Match</title>
+<meta name="description" content="Build your CV and discover matching jobs with a swipe. Powered by AI-style matching.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-  :root {
-    --bg:        #0d0f14;
-    --surface:   #141720;
-    --border:    #1e2330;
-    --mon:       #1a3a5c;
-    --mon-light: #2a5a8c;
-    --mon-glow:  #4a9ede;
-    --tue:       #3a1a4a;
-    --tue-light: #6a2a8a;
-    --tue-glow:  #b06ae0;
-    --slot1:     #0f3020;
-    --slot2:     #1a2a10;
-    --slot3:     #30200a;
-    --text:      #e8eaf0;
-    --muted:     #8892a4;
-    --accent:    #f0c060;
-  }
+/* ============================================================
+   FOLIO — CV BUILDER + SMART JOB MATCH
+   Design System: Editorial Luxury + Swipe UI
+   ============================================================ */
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── CSS Variables ─────────────────────────────────────── */
+:root {
+  --ivory:#F9F6F0; --ivory-dark:#F0EBE1; --cream:#EDE8DF;
+  --charcoal:#1C1C1E; --charcoal-2:#2C2C2E; --charcoal-3:#3C3C3E;
+  --gold:#B8973A; --gold-light:#D4AF5A; --gold-pale:#F0E4B8;
+  --muted:#8A8580; --border:#D8D0C4;
+  --shadow-sm:0 1px 3px rgba(28,28,30,0.06);
+  --shadow-md:0 4px 20px rgba(28,28,30,0.10);
+  --shadow-lg:0 12px 48px rgba(28,28,30,0.14);
+  --radius:10px; --radius-lg:18px;
+  --font-display:'Playfair Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --transition:0.22s cubic-bezier(0.4,0,0.2,1);
+  --accent:#B8973A; --accent-rgb:184,151,58;
+  /* Job match colors */
+  --match-high:#22C55E; --match-mid:#F59E0B; --match-low:#94A3B8;
+  --swipe-like:#22C55E; --swipe-skip:#EF4444;
+}
+[data-theme="dark"] {
+  --ivory:#1A1A1B; --ivory-dark:#141414; --cream:#222222;
+  --charcoal:#F0EBE1; --charcoal-2:#D8D3C8; --charcoal-3:#A8A39A;
+  --muted:#6A6560; --border:#383832;
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg:0 12px 48px rgba(0,0,0,0.5);
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Outfit', sans-serif;
-    min-height: 100vh;
-    padding: 40px 24px 60px;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(74,158,222,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(176,106,224,0.06) 0%, transparent 60%);
-  }
+/* ── Reset ──────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--ivory);color:var(--charcoal);line-height:1.6;-webkit-font-smoothing:antialiased;transition:background var(--transition),color var(--transition)}
+img{display:block;max-width:100%} a{color:inherit;text-decoration:none}
 
-  /* ── HEADER ── */
-  header {
-    text-align: center;
-    margin-bottom: 48px;
-    animation: fadeDown .6s ease both;
-  }
+/* ── Typography ────────────────────────────────────────── */
+.display-xl{font-family:var(--font-display);font-size:clamp(2.8rem,7vw,5.5rem);font-weight:700;line-height:1.05;letter-spacing:-0.02em}
+.display-lg{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,3rem);font-weight:600;line-height:1.1}
+.label{font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
 
-  .school-label {
-    font-family: 'DM Mono', monospace;
-    font-size: .72rem;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
+/* ── Layout ─────────────────────────────────────────────── */
+.container{max-width:1200px;margin:0 auto;padding:0 2rem}
+.section{padding:6rem 0}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem}
 
-  h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(2rem, 5vw, 3.4rem);
-    letter-spacing: -.01em;
-    line-height: 1.1;
-    background: linear-gradient(135deg, #e8eaf0 30%, #a0b0d0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* ── Buttons ────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.85rem 2rem;border-radius:50px;font-family:var(--font-body);font-size:0.95rem;font-weight:500;cursor:pointer;border:none;transition:all var(--transition);white-space:nowrap}
+.btn-primary{background:var(--charcoal);color:var(--ivory)}
+.btn-primary:hover{background:var(--charcoal-2);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-gold:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 6px 24px rgba(var(--accent-rgb),0.35)}
+.btn-outline{background:transparent;color:var(--charcoal);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--charcoal);background:var(--cream)}
+.btn-ghost{background:transparent;color:var(--charcoal);padding:0.5rem 1rem}
+.btn-ghost:hover{background:var(--cream)}
+.btn-green{background:var(--swipe-like);color:#fff}
+.btn-green:hover{background:#16A34A;transform:translateY(-2px)}
+.btn-red{background:var(--swipe-skip);color:#fff}
+.btn-red:hover{background:#DC2626;transform:translateY(-2px)}
+.btn-sm{padding:0.6rem 1.4rem;font-size:0.85rem}
+.btn-lg{padding:1.1rem 2.6rem;font-size:1.05rem}
 
-  h1 em {
-    font-style: italic;
-    background: linear-gradient(135deg, var(--accent), #f08030);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* ── Form ───────────────────────────────────────────────── */
+.form-group{display:flex;flex-direction:column;gap:0.45rem}
+.form-label{font-size:0.82rem;font-weight:500;color:var(--charcoal-3);letter-spacing:0.02em}
+.form-input,.form-textarea{width:100%;padding:0.85rem 1rem;background:var(--ivory);border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:0.95rem;color:var(--charcoal);transition:all var(--transition);outline:none}
+.form-input:focus,.form-textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.12)}
+.form-textarea{resize:vertical;min-height:90px}
+.form-hint{font-size:0.78rem;color:var(--muted)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 
-  .semester-badge {
-    display: inline-block;
-    margin-top: 14px;
-    padding: 4px 16px;
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    font-size: .78rem;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: .08em;
-  }
+/* ── Progress ───────────────────────────────────────────── */
+.progress-track{height:3px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:3px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1)}
+.range-input{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--border);border-radius:4px;outline:none}
+.range-input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer}
 
-  /* ── LEGEND ── */
-  .legend {
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-    margin-bottom: 36px;
-    flex-wrap: wrap;
-    animation: fadeDown .6s .1s ease both;
-  }
+/* ── Toast ──────────────────────────────────────────────── */
+#toast{position:fixed;bottom:2rem;right:2rem;padding:0.9rem 1.6rem;background:var(--charcoal);color:var(--ivory);border-radius:var(--radius);font-size:0.9rem;font-weight:500;box-shadow:var(--shadow-lg);transform:translateY(120%);opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);z-index:9999;max-width:320px}
+#toast.show{transform:translateY(0);opacity:1}
 
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: .8rem;
-    color: var(--muted);
-    font-weight: 500;
-  }
+/* ── Pages ──────────────────────────────────────────────── */
+.page{display:none}
+.page.active{display:block}
 
-  .legend-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-  }
-  .legend-dot.mon { background: var(--mon-glow); }
-  .legend-dot.tue { background: var(--tue-glow); }
+/* ── Reveal ─────────────────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s ease,transform 0.7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:0.1s}
+.reveal-delay-2{transition-delay:0.2s}
+.reveal-delay-3{transition-delay:0.3s}
 
-  /* ── GRID WRAPPER ── */
-  .timetable-wrap {
-    max-width: 1000px;
-    margin: 0 auto;
-    animation: fadeUp .7s .15s ease both;
-  }
+/* ── Badge ──────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;padding:0.28rem 0.75rem;background:var(--cream);border:1px solid var(--border);border-radius:50px;font-size:0.72rem;font-weight:500;color:var(--charcoal-2)}
+.badge-gold{background:var(--gold-pale);border-color:var(--gold-light);color:var(--gold)}
+.badge-green{background:#DCFCE7;border-color:#86EFAC;color:#166534}
 
-  /* ── TIME HEADER ROW ── */
-  .time-header {
-    display: grid;
-    grid-template-columns: 110px repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 10px;
-    padding: 0 4px;
-  }
+/* ══════════════════════════════════════════════════════════
+   NAV
+   ══════════════════════════════════════════════════════ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 0;transition:all var(--transition)}
+.nav.scrolled{background:var(--ivory);box-shadow:var(--shadow-sm);padding:0.8rem 0}
+.nav-inner{display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:var(--font-display);font-size:1.35rem;font-weight:700;color:var(--charcoal);display:flex;align-items:center;gap:0.5rem;cursor:pointer}
+.nav-logo span{color:var(--gold)}
+.nav-links{display:flex;align-items:center;gap:0.5rem;list-style:none}
+.nav-links a{padding:0.5rem 1rem;font-size:0.92rem;font-weight:450;color:var(--charcoal-3);border-radius:50px;transition:all var(--transition);cursor:pointer}
+.nav-links a:hover{color:var(--charcoal);background:var(--cream)}
+.nav-actions{display:flex;align-items:center;gap:0.75rem}
+.theme-toggle{background:none;border:1.5px solid var(--border);border-radius:50px;width:44px;height:24px;cursor:pointer;position:relative;transition:all var(--transition)}
+.theme-toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--charcoal);transition:all var(--transition)}
+[data-theme="dark"] .theme-toggle::after{transform:translateX(20px);background:var(--gold)}
+@media(max-width:768px){.nav-links{display:none}}
 
-  .time-header-cell {
-    text-align: center;
-    font-family: 'DM Mono', monospace;
-    font-size: .7rem;
-    letter-spacing: .12em;
-    color: var(--muted);
-    padding: 6px 0;
-  }
+/* ══════════════════════════════════════════════════════════
+   LANDING
+   ══════════════════════════════════════════════════════ */
+.hero{min-height:100vh;display:flex;align-items:center;padding:8rem 0 5rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;right:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(var(--accent-rgb),0.08) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+.hero-content{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;padding:0.35rem 1rem;background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:50px;margin-bottom:1.8rem;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold)}
+.hero-title{margin-bottom:1.5rem}
+.hero-title em{font-style:italic;color:var(--gold)}
+.hero-subtitle{font-size:1.05rem;color:var(--muted);line-height:1.7;max-width:480px;margin-bottom:2.5rem}
+.hero-actions{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.hero-stats{display:flex;gap:2.5rem;margin-top:3rem;padding-top:2.5rem;border-top:1px solid var(--border)}
+.stat-number{font-family:var(--font-display);font-size:1.8rem;font-weight:700}
+.stat-label{font-size:0.82rem;color:var(--muted);margin-top:0.2rem}
+.hero-visual{position:relative;display:flex;justify-content:center;align-items:center}
+.hero-card-stack{position:relative;width:360px;height:480px}
+.hero-card-bg{position:absolute;background:var(--cream);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-lg)}
+.hero-card-bg:nth-child(1){inset:0;transform:rotate(4deg) translateX(18px) translateY(-10px);background:var(--gold-pale);border-color:var(--gold-light)}
+.hero-card-bg:nth-child(2){inset:0;transform:rotate(-2deg) translateX(-10px) translateY(5px);background:var(--cream)}
+.hero-card-main{position:absolute;inset:0;background:var(--ivory);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-lg);overflow:hidden}
+.hcm-header{background:var(--charcoal);padding:1.4rem;color:var(--ivory)}
+.hcm-avatar{width:48px;height:48px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:#fff;margin-bottom:0.7rem}
+.hcm-name{font-family:var(--font-display);font-size:1.1rem;font-weight:600;margin-bottom:0.2rem}
+.hcm-title{font-size:0.72rem;color:var(--gold-light);font-family:var(--font-mono)}
+.hcm-body{padding:1.1rem}
+.hcm-sl{font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem}
+.hcm-skill{display:flex;align-items:center;gap:0.6rem;font-size:0.75rem;margin-bottom:0.4rem}
+.hcm-skill-bar{flex:1;height:3px;background:var(--border);border-radius:3px;overflow:hidden}
+.hcm-skill-fill{height:100%;background:var(--gold);border-radius:3px}
+.hcm-exp-item{padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.75rem}
+.hcm-exp-title{font-weight:600;color:var(--charcoal)}
+.hcm-exp-company{color:var(--muted);font-size:0.68rem}
+.floating-badge{position:absolute;background:var(--ivory);border:1px solid var(--border);border-radius:10px;padding:0.55rem 0.9rem;box-shadow:var(--shadow-md);font-size:0.78rem;font-weight:500;display:flex;align-items:center;gap:0.4rem;white-space:nowrap;animation:float 3s ease-in-out infinite}
+.floating-badge:nth-child(5){top:12px;left:-55px;animation-delay:0s}
+.floating-badge:nth-child(6){bottom:80px;right:-45px;animation-delay:1.5s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.features-section{background:var(--ivory-dark)}
+.section-header{text-align:center;margin-bottom:4rem}
+.section-header .label{margin-bottom:1rem;display:block}
+.section-header h2{margin-bottom:1rem}
+.section-header p{color:var(--muted);max-width:520px;margin:0 auto;font-size:1rem}
+.feature-card{background:var(--ivory);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;transition:all var(--transition);position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),transparent);opacity:0;transition:opacity var(--transition)}
+.feature-card:hover::before{opacity:1}
+.feature-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-md)}
+.feature-icon{width:48px;height:48px;background:var(--cream);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1.2rem;color:var(--gold)}
+.feature-card h3{font-family:var(--font-display);font-size:1.1rem;font-weight:600;margin-bottom:0.5rem}
+.feature-card p{font-size:0.88rem;color:var(--muted);line-height:1.6}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;position:relative}
+.steps-grid::before{content:'';position:absolute;top:27px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--border),var(--border),transparent)}
+.step-item{text-align:center;position:relative;z-index:1}
+.step-number{width:54px;height:54px;border-radius:50%;background:var(--ivory);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.1rem;font-weight:700;margin:0 auto 1rem;color:var(--gold);transition:all var(--transition)}
+.step-item:hover .step-number{background:var(--gold);color:#fff;border-color:var(--gold);transform:scale(1.1)}
+.step-item h3{font-size:0.9rem;font-weight:600;margin-bottom:0.4rem}
+.step-item p{font-size:0.8rem;color:var(--muted);line-height:1.5}
+.templates-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem}
+.template-card{border-radius:var(--radius-lg);overflow:hidden;border:2px solid var(--border);transition:all var(--transition);cursor:pointer}
+.template-card:hover{border-color:var(--gold);transform:translateY(-5px);box-shadow:var(--shadow-lg)}
+.template-preview{aspect-ratio:3/4;position:relative;overflow:hidden}
+.template-preview-inner{position:absolute;inset:0;padding:1.1rem;font-size:0.5rem}
+.tp-header{background:var(--charcoal);padding:0.75rem;margin:-1.1rem -1.1rem 0.8rem;color:#fff}
+.tp-name{font-family:var(--font-display);font-size:0.85rem;font-weight:700;margin-bottom:0.15rem}
+.tp-role{font-size:0.48rem;color:var(--gold-light)}
+.template-minimal{background:#FAFAFA}
+.tm-name{font-family:var(--font-display);font-size:0.85rem;font-weight:700;padding-bottom:0.4rem;border-bottom:1px solid #ddd;margin-bottom:0.4rem}
+.template-creative{background:#1C1C1E;color:#F0EBE1}
+.tc-name{font-family:var(--font-display);font-size:0.85rem;font-weight:700}
+.tc-accent{color:var(--gold)}
+.template-meta{padding:1rem;background:var(--ivory-dark);display:flex;justify-content:space-between;align-items:center}
+.template-meta h3{font-size:0.9rem;font-weight:600}
+.cta-banner{background:var(--charcoal);border-radius:var(--radius-lg);padding:4rem;text-align:center;color:var(--ivory);position:relative;overflow:hidden}
+.cta-banner::before{content:'';position:absolute;top:-50%;left:-20%;width:60%;height:200%;background:radial-gradient(ellipse,rgba(var(--accent-rgb),0.15),transparent 70%);pointer-events:none}
+.cta-banner h2{font-family:var(--font-display);font-size:2.4rem;font-weight:700;margin-bottom:1rem;color:var(--ivory)}
+.cta-banner p{color:var(--muted);font-size:1rem;margin-bottom:2rem}
+.footer{background:var(--charcoal-2);color:var(--cream);padding:4rem 0 2rem}
+[data-theme="dark"] .footer{background:#0E0E0F}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;padding-bottom:3rem;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:2rem}
+.footer-logo{font-family:var(--font-display);font-size:1.25rem;font-weight:700;color:var(--ivory)}
+.footer-logo span{color:var(--gold)}
+.footer-col h4{font-size:0.78rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:1rem}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:0.6rem}
+.footer-col a{font-size:0.85rem;color:rgba(255,255,255,0.55);transition:color var(--transition);cursor:pointer}
+.footer-col a:hover{color:var(--gold)}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;color:rgba(255,255,255,0.3)}
 
-  .time-header-cell.slot {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 4px;
-  }
+/* ══════════════════════════════════════════════════════════
+   BUILDER
+   ══════════════════════════════════════════════════════ */
+.builder-page{min-height:100vh;background:var(--ivory);padding:6rem 0 4rem}
+.builder-header{text-align:center;margin-bottom:3rem}
+.builder-header h1{font-family:var(--font-display);font-size:2rem;font-weight:700;margin-bottom:0.4rem}
+.builder-header p{color:var(--muted);font-size:0.9rem}
+.steps-progress{max-width:700px;margin:0 auto 3rem;padding:0 1rem}
+.steps-labels{display:flex;justify-content:space-between;margin-bottom:0.6rem;gap:0.3rem}
+.step-label{flex:1;text-align:center;font-size:0.68rem;font-weight:500;color:var(--muted);transition:color var(--transition);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step-label.active{color:var(--gold);font-weight:600}
+.step-label.done{color:var(--charcoal-3)}
+.steps-dots{display:flex;align-items:center;margin-bottom:0.8rem}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--ivory);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;color:var(--muted);transition:all var(--transition);flex-shrink:0;z-index:1}
+.step-dot.active{border-color:var(--gold);background:var(--gold);color:#fff;box-shadow:0 0 0 4px rgba(var(--accent-rgb),0.18)}
+.step-dot.done{border-color:var(--gold);background:var(--gold-pale);color:var(--gold)}
+.step-connector{flex:1;height:2px;background:var(--border);transition:background 0.5s ease}
+.step-connector.done{background:var(--gold-light)}
+.step-info{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted)}
+.builder-card{max-width:700px;margin:0 auto;background:var(--ivory);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden}
+.builder-card-header{padding:2rem 2.5rem 1.5rem;border-bottom:1px solid var(--border);background:var(--ivory-dark)}
+.builder-card-header h2{font-family:var(--font-display);font-size:1.45rem;font-weight:600;margin-bottom:0.3rem}
+.builder-card-header p{font-size:0.85rem;color:var(--muted)}
+.step-badge{display:inline-block;padding:0.2rem 0.7rem;background:var(--gold-pale);color:var(--gold);border-radius:50px;font-size:0.68rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.7rem}
+.builder-form{padding:2.5rem;display:none;flex-direction:column;gap:1.5rem}
+.builder-form.active{display:flex}
+.builder-actions{padding:1.5rem 2.5rem;border-top:1px solid var(--border);background:var(--ivory-dark);display:flex;justify-content:space-between;align-items:center}
+.builder-save-note{font-size:0.75rem;color:var(--muted);display:flex;align-items:center;gap:0.4rem}
+.entries-container{display:flex;flex-direction:column;gap:1rem}
+.entry-item{background:var(--ivory-dark);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;position:relative;transition:all var(--transition);animation:slideIn 0.25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.entry-item:hover{border-color:var(--gold-light)}
+.entry-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.entry-item-title{font-size:0.82rem;font-weight:600;color:var(--charcoal-2)}
+.entry-remove{background:none;border:1px solid var(--border);border-radius:6px;padding:0.25rem 0.6rem;cursor:pointer;color:var(--muted);font-size:0.72rem;transition:all var(--transition);display:flex;align-items:center;gap:0.3rem}
+.entry-remove:hover{border-color:#e74c3c;color:#e74c3c;background:rgba(231,76,60,0.05)}
+.entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.entry-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem}
+.add-entry-btn{display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:0.75rem;border:2px dashed var(--border);border-radius:var(--radius);background:transparent;color:var(--muted);font-family:var(--font-body);font-size:0.85rem;font-weight:500;cursor:pointer;transition:all var(--transition);width:100%}
+.add-entry-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-pale)}
+.skill-level-btns{display:flex;gap:0.4rem;flex-wrap:wrap}
+.skill-level-btn{padding:0.28rem 0.75rem;border:1.5px solid var(--border);border-radius:50px;font-size:0.72rem;font-weight:500;cursor:pointer;background:var(--ivory);color:var(--muted);transition:all var(--transition)}
+.skill-level-btn.active{border-color:var(--gold);background:var(--gold-pale);color:var(--gold)}
+.image-upload-area{border:2px dashed var(--border);border-radius:var(--radius);padding:1.8rem;text-align:center;cursor:pointer;transition:all var(--transition);position:relative}
+.image-upload-area:hover{border-color:var(--gold);background:var(--gold-pale)}
+.image-upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.image-preview{width:72px;height:72px;border-radius:50%;object-fit:cover;margin:0 auto 0.5rem;border:2px solid var(--border);display:none}
+.image-upload-icon{font-size:1.6rem;margin-bottom:0.4rem}
+.image-upload-text{font-size:0.8rem;color:var(--muted)}
 
-  .slot-time { font-size: .75rem; color: var(--text); font-weight: 500; }
-  .slot-label {
-    font-size: .6rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 2px;
-  }
+/* ══════════════════════════════════════════════════════════
+   PREVIEW PAGE
+   ══════════════════════════════════════════════════════ */
+.preview-page{min-height:100vh;background:var(--cream);padding:6rem 0 4rem}
+.preview-layout{display:grid;grid-template-columns:280px 1fr;gap:2rem;align-items:start}
+.custom-panel{background:var(--ivory);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.4rem;position:sticky;top:6rem;max-height:calc(100vh - 8rem);overflow-y:auto}
+.custom-panel::-webkit-scrollbar{width:4px}
+.custom-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.panel-section{margin-bottom:1.8rem}
+.panel-section-title{font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.9rem}
+.template-options{display:flex;flex-direction:column;gap:0.4rem}
+.template-option{display:flex;align-items:center;gap:0.7rem;padding:0.7rem;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all var(--transition);background:transparent;width:100%;font-family:var(--font-body)}
+.template-option:hover{border-color:var(--gold-light)}
+.template-option.active{border-color:var(--gold);background:var(--gold-pale)}
+.template-option-swatch{width:34px;height:34px;border-radius:6px;flex-shrink:0;overflow:hidden;border:1px solid var(--border)}
+.t-swatch-pro{background:linear-gradient(135deg,#1C1C1E 50%,#B8973A 50%)}
+.t-swatch-min{background:linear-gradient(135deg,#FAFAFA 50%,#333 50%)}
+.t-swatch-cre{background:linear-gradient(135deg,#0F0F0F 50%,#B8973A 50%)}
+.template-option-label{font-size:0.82rem;font-weight:500;text-align:left}
+.template-option-desc{font-size:0.7rem;color:var(--muted)}
+.color-swatches{display:flex;gap:0.5rem;flex-wrap:wrap}
+.color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all var(--transition)}
+.color-swatch:hover,.color-swatch.active{border-color:var(--charcoal);transform:scale(1.2)}
+.font-options{display:flex;flex-direction:column;gap:0.4rem}
+.font-option{padding:0.5rem 0.75rem;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.82rem;transition:all var(--transition);background:transparent;text-align:left;width:100%}
+.font-option.active{border-color:var(--gold);background:var(--gold-pale);color:var(--gold);font-weight:600}
+.panel-actions{display:flex;flex-direction:column;gap:0.7rem;margin-top:1.4rem}
 
-  /* ── DAY ROW ── */
-  .day-row {
-    display: grid;
-    grid-template-columns: 110px repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 10px;
-  }
+/* ── CV Document ──────────────────────────────────────── */
+.cv-document{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden;max-width:800px;margin:0 auto;transition:all 0.3s ease}
+.cv-section{margin-bottom:1.8rem}
+.cv-section-title{font-size:0.65rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--cv-accent,#B8973A);margin-bottom:0.7rem;display:flex;align-items:center;gap:0.5rem}
+.cv-section-title::after{content:'';flex:1;height:1px;background:#eee}
+.cv-bio{font-size:0.86rem;color:#555;line-height:1.7}
+.cv-exp-item{margin-bottom:1.3rem}
+.cv-exp-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.2rem}
+.cv-exp-title{font-weight:700;font-size:0.9rem}
+.cv-exp-duration{font-size:0.72rem;color:#888;font-family:var(--font-mono)}
+.cv-exp-company{font-size:0.8rem;color:var(--cv-accent,#B8973A);font-weight:500;margin-bottom:0.35rem}
+.cv-exp-desc{font-size:0.8rem;color:#666;line-height:1.6}
+.cv-edu-item{margin-bottom:0.9rem}
+.cv-edu-degree{font-weight:700;font-size:0.86rem}
+.cv-edu-inst{font-size:0.8rem;color:#888}
+.cv-edu-year{font-size:0.72rem;color:var(--cv-accent,#B8973A);font-family:var(--font-mono)}
+.cv-project-item{margin-bottom:1.1rem;padding-bottom:1.1rem;border-bottom:1px solid #f0f0f0}
+.cv-project-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.cv-project-title{font-weight:700;font-size:0.86rem;margin-bottom:0.25rem}
+.cv-project-desc{font-size:0.78rem;color:#666;margin-bottom:0.35rem;line-height:1.55}
+.cv-project-tech{display:flex;flex-wrap:wrap;gap:0.25rem;margin-bottom:0.35rem}
+.cv-project-tech span{font-size:0.65rem;padding:0.12rem 0.45rem;background:var(--cv-accent-pale,#F0E4B8);color:var(--cv-accent,#B8973A);border-radius:50px}
+.cv-project-links{display:flex;gap:0.7rem}
+.cv-project-links a{font-size:0.73rem;color:var(--cv-accent,#B8973A)}
+.cv-skill-item{margin-bottom:0.7rem}
+.cv-skill-name{font-size:0.8rem;font-weight:500;margin-bottom:0.22rem;display:flex;justify-content:space-between}
+.cv-skill-bar{height:3px;background:#e0e0e0;border-radius:3px;overflow:hidden}
+.cv-skill-fill{height:100%;background:var(--cv-accent,#B8973A);border-radius:3px}
+.cv-contact-sidebar{display:flex;flex-direction:column;gap:0.55rem}
+.cv-contact-row{font-size:0.76rem;color:#666;display:flex;align-items:flex-start;gap:0.5rem;line-height:1.4}
+.ci{font-size:0.82rem;color:var(--cv-accent,#B8973A);flex-shrink:0;margin-top:1px}
+.cv-contacts{display:flex;flex-wrap:wrap;gap:0.6rem 1.3rem}
+.cv-contact-item{font-size:0.75rem}
+/* Professional template */
+.tpl-professional .cv-header{background:var(--cv-accent,#1C1C1E);color:#fff;padding:2.2rem 2.8rem;display:grid;grid-template-columns:auto 1fr;gap:1.8rem;align-items:center}
+.tpl-professional .cv-photo{width:82px;height:82px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.2)}
+.tpl-professional .cv-photo-placeholder{width:82px;height:82px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:rgba(255,255,255,0.8);border:3px solid rgba(255,255,255,0.2)}
+.tpl-professional .cv-name{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;margin-bottom:0.25rem}
+.tpl-professional .cv-job-title{font-size:0.88rem;color:var(--cv-accent-light,#D4AF5A);margin-bottom:0.7rem;font-family:var(--font-mono)}
+.tpl-professional .cv-contact-item{font-size:0.76rem;opacity:0.8}
+.tpl-professional .cv-body{display:grid;grid-template-columns:1fr 260px}
+.tpl-professional .cv-main{padding:2.2rem 2.8rem}
+.tpl-professional .cv-sidebar{padding:2.2rem 1.8rem;background:#F7F5F2;border-left:1px solid #eee}
+/* Minimal template */
+.tpl-minimal .cv-header{padding:2.8rem 3.2rem 2rem;border-bottom:2px solid #111;display:flex;align-items:flex-end;justify-content:space-between}
+.tpl-minimal .cv-name{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:#111;letter-spacing:-0.02em;margin-bottom:0.2rem}
+.tpl-minimal .cv-job-title{font-size:0.84rem;color:var(--cv-accent,#B8973A);font-family:var(--font-mono);letter-spacing:0.06em}
+.tpl-minimal .cv-contacts{flex-direction:column;text-align:right;gap:0.25rem}
+.tpl-minimal .cv-body{padding:2.2rem 3.2rem}
+.tpl-minimal .cv-section-title{font-size:0.67rem;font-weight:700;letter-spacing:0.2em;color:#999;padding-bottom:0.4rem;border-bottom:1px solid #eee}
+.tpl-minimal .cv-section-title::after{display:none}
+.tpl-minimal .cv-layout-cols{display:grid;grid-template-columns:1fr 1fr;gap:2.8rem}
+.tpl-minimal .cv-skill-item{display:flex;align-items:center;justify-content:space-between;padding:0.38rem 0;border-bottom:1px dotted #eee}
+.tpl-minimal .cv-skill-name{font-size:0.8rem;margin-bottom:0}
+.tpl-minimal .cv-skill-level{font-size:0.7rem;color:var(--cv-accent,#B8973A);font-family:var(--font-mono)}
+/* Creative template */
+.tpl-creative{background:#1C1C1E;color:#F0EBE1}
+.tpl-creative .cv-header{padding:2.8rem;display:grid;grid-template-columns:1fr auto;align-items:end;gap:2rem;border-bottom:1px solid rgba(255,255,255,0.08)}
+.tpl-creative .cv-name{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:700;color:#F0EBE1;line-height:1;margin-bottom:0.45rem}
+.tpl-creative .cv-job-title{font-size:0.78rem;color:var(--cv-accent,#B8973A);font-family:var(--font-mono);letter-spacing:0.12em;text-transform:uppercase}
+.tpl-creative .cv-photo,.tpl-creative .cv-photo-placeholder{width:95px;height:95px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,0.1)}
+.tpl-creative .cv-photo-placeholder{background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.8rem;font-weight:700;color:rgba(255,255,255,0.5)}
+.tpl-creative .cv-body{display:grid;grid-template-columns:1fr 240px}
+.tpl-creative .cv-main{padding:2rem 2.5rem}
+.tpl-creative .cv-sidebar{background:rgba(255,255,255,0.03);border-left:1px solid rgba(255,255,255,0.07);padding:2rem 1.5rem}
+.tpl-creative .cv-section-title{color:var(--cv-accent,#B8973A)}
+.tpl-creative .cv-section-title::after{background:rgba(255,255,255,0.07)}
+.tpl-creative .cv-bio{color:rgba(240,235,225,0.65)}
+.tpl-creative .cv-exp-title{color:#F0EBE1}
+.tpl-creative .cv-exp-company{color:var(--cv-accent,#B8973A)}
+.tpl-creative .cv-exp-desc{color:rgba(240,235,225,0.55)}
+.tpl-creative .cv-exp-duration{color:rgba(240,235,225,0.35)}
+.tpl-creative .cv-skill-bar{background:rgba(255,255,255,0.08)}
+.tpl-creative .cv-contact-row{color:rgba(240,235,225,0.55)}
+.tpl-creative .cv-edu-inst{color:rgba(240,235,225,0.45)}
+.tpl-creative .cv-edu-degree{color:#F0EBE1}
+.tpl-creative .cv-edu-year{color:var(--cv-accent,#B8973A)}
+.tpl-creative .cv-project-item{border-color:rgba(255,255,255,0.05)}
+.tpl-creative .cv-project-title{color:#F0EBE1}
+.tpl-creative .cv-project-desc{color:rgba(240,235,225,0.55)}
+.tpl-creative .cv-project-tech span{background:rgba(255,255,255,0.06);color:var(--cv-accent,#B8973A)}
+.tpl-creative .cv-project-links a{color:var(--cv-accent,#B8973A)}
+.tpl-creative .cv-skill-name{color:rgba(240,235,225,0.85)}
+.tpl-creative .cv-contacts{gap:0.5rem 1.2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.07);margin-top:0.8rem}
+.tpl-creative .cv-contact-item{font-size:0.73rem;opacity:0.55}
+/* Spacing variants */
+.cv-document.spacing-compact .cv-main{padding:1.5rem 2rem!important}
+.cv-document.spacing-compact .cv-section{margin-bottom:1.2rem}
+.cv-document.spacing-spacious .cv-main{padding:3.5rem 4rem!important}
+.cv-document.spacing-spacious .cv-section{margin-bottom:2.8rem}
+.cv-document.font-sans .cv-name,.cv-document.font-sans .cv-section-title{font-family:'DM Sans',sans-serif!important}
+.cv-document.font-mono-accent .cv-job-title,.cv-document.font-mono-accent .cv-exp-duration{font-family:'DM Mono',monospace}
 
-  .day-label {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-end;
-    padding-right: 14px;
-    gap: 4px;
-  }
+/* ══════════════════════════════════════════════════════════
+   ███████╗███╗   ███╗ █████╗ ██████╗ ████████╗    ██╗ ██████╗ ██████╗ ███████╗
+   ██╔════╝████╗ ████║██╔══██╗██╔══██╗╚══██╔══╝    ██║██╔═══██╗██╔══██╗██╔════╝
+   ███████╗██╔████╔██║███████║██████╔╝   ██║       ██║██║   ██║██████╔╝███████╗
+   ╚════██║██║╚██╔╝██║██╔══██║██╔══██╗   ██║       ██║██║   ██║██╔══██╗╚════██║
+   ███████║██║ ╚═╝ ██║██║  ██║██║  ██║   ██║       ██║╚██████╔╝██████╔╝███████║
+   SMART JOB MATCH — SWIPE UI
+   ══════════════════════════════════════════════════════ */
 
-  .day-name {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.15rem;
-    line-height: 1;
-  }
+/* ── Job Match Entry Page ───────────────────────────────── */
+.jobs-entry-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0F0F14 0%, #1A1A24 50%, #0F1420 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem 4rem;
+  position: relative;
+  overflow: hidden;
+}
+.jobs-entry-page::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -20%;
+  width: 80vw; height: 80vw;
+  background: radial-gradient(circle, rgba(184,151,58,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+.jobs-entry-page::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  left: -10%;
+  width: 60vw; height: 60vw;
+  background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+.jobs-entry-content {
+  text-align: center;
+  max-width: 600px;
+  position: relative;
+  z-index: 1;
+}
+.jobs-entry-icon {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  font-size: 2rem;
+  box-shadow: 0 8px 32px rgba(184,151,58,0.4);
+}
+.jobs-entry-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  color: #F0EBE1;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+}
+.jobs-entry-title em { color: var(--gold); font-style: italic; }
+.jobs-entry-sub {
+  font-size: 1.05rem;
+  color: rgba(240,235,225,0.55);
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+.match-preview-grid {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+.match-preview-chip {
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50px;
+  font-size: 0.82rem;
+  color: rgba(240,235,225,0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.match-preview-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.jobs-entry-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius);
+  color: rgba(240,235,225,0.6);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  margin-top: 1.5rem;
+}
+.filter-toggle:hover { background: rgba(255,255,255,0.09); color: rgba(240,235,225,0.9); }
+.toggle-switch {
+  width: 36px; height: 20px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.3s;
+}
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.3s;
+}
+.toggle-switch.on { background: var(--gold); }
+.toggle-switch.on::after { transform: translateX(16px); }
 
-  .day-name.mon { color: var(--mon-glow); }
-  .day-name.tue { color: var(--tue-glow); }
+/* ── Swipe Page ─────────────────────────────────────────── */
+.swipe-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0F0F14 0%, #1A1A24 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5rem 1rem 2rem;
+  position: relative;
+}
+.swipe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 1.5rem;
+}
+.swipe-header-left { display: flex; align-items: center; gap: 0.75rem; }
+.swipe-logo-small {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #F0EBE1;
+}
+.swipe-logo-small span { color: var(--gold); }
+.swipe-counter {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: rgba(240,235,225,0.4);
+  letter-spacing: 0.1em;
+}
+.swipe-saved-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50px;
+  color: rgba(240,235,225,0.7);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.swipe-saved-btn:hover { background: rgba(255,255,255,0.12); color: #F0EBE1; }
+.swipe-saved-count {
+  background: var(--gold);
+  color: #fff;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .day-line {
-    width: 28px; height: 2px; border-radius: 2px;
-  }
-  .day-line.mon { background: var(--mon-glow); }
-  .day-line.tue { background: var(--tue-glow); }
+/* ── Swipe Deck ─────────────────────────────────────────── */
+.swipe-deck {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 580px;
+  margin-bottom: 2rem;
+}
+.swipe-deck-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(240,235,225,0.35);
+  text-align: center;
+  gap: 1rem;
+}
+.swipe-deck-empty .empty-icon { font-size: 3rem; }
+.swipe-deck-empty p { font-size: 0.9rem; line-height: 1.5; }
 
-  /* ── CARD ── */
-  .card {
-    position: relative;
-    border-radius: 14px;
-    padding: 16px 18px;
-    overflow: hidden;
-    transition: transform .2s ease, box-shadow .2s ease;
-    cursor: default;
-  }
+/* ── Job Card ───────────────────────────────────────────── */
+.job-card {
+  position: absolute;
+  inset: 0;
+  background: #1E1E2A;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  transform-origin: center bottom;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  transition: box-shadow 0.3s ease;
+  will-change: transform;
+}
+.job-card:active { cursor: grabbing; }
+/* Stacked cards behind the main card */
+.job-card:nth-child(2) {
+  transform: scale(0.95) translateY(12px);
+  z-index: 1;
+  pointer-events: none;
+}
+.job-card:nth-child(3) {
+  transform: scale(0.9) translateY(24px);
+  z-index: 0;
+  pointer-events: none;
+}
+.job-card:nth-child(1) { z-index: 10; }
 
-  .card:hover {
-    transform: translateY(-3px);
-  }
+/* Card header gradient */
+.job-card-header {
+  padding: 1.8rem 1.8rem 1.4rem;
+  position: relative;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.job-card-company-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.job-card-logo {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+}
+.job-card-company { font-size: 0.85rem; color: rgba(240,235,225,0.55); }
+.job-card-location { font-size: 0.75rem; color: rgba(240,235,225,0.35); margin-top:0.15rem; display: flex; align-items: center; gap: 0.3rem; }
+.job-card-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #F0EBE1;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+}
+.job-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.job-card-salary {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--gold);
+  padding: 0.25rem 0.7rem;
+  background: rgba(184,151,58,0.12);
+  border: 1px solid rgba(184,151,58,0.25);
+  border-radius: 50px;
+}
+.job-card-type {
+  font-size: 0.72rem;
+  color: rgba(240,235,225,0.45);
+  padding: 0.25rem 0.65rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 50px;
+}
 
-  .card.empty {
-    background: transparent;
-    border: 1px dashed var(--border);
-    opacity: .3;
-  }
+/* Match score badge */
+.match-score-badge {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0,0,0,0.35);
+  border-radius: 14px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+}
+.match-score-pct {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.match-score-label {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+  margin-top: 0.2rem;
+}
+.match-high { color: var(--match-high); }
+.match-mid  { color: var(--match-mid); }
+.match-low  { color: var(--match-low); }
 
-  /* Monday cards */
-  .card.mon {
-    background: linear-gradient(135deg, var(--mon) 0%, #0e2840 100%);
-    border: 1px solid var(--mon-light);
-    box-shadow: 0 2px 16px rgba(74,158,222,.12), inset 0 1px 0 rgba(255,255,255,.06);
-  }
-  .card.mon:hover {
-    box-shadow: 0 8px 28px rgba(74,158,222,.22);
-  }
-  .card.mon::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--mon-glow), transparent);
-  }
+/* Card body */
+.job-card-body {
+  padding: 1.4rem 1.8rem;
+  overflow-y: auto;
+  max-height: 260px;
+}
+.job-card-body::-webkit-scrollbar { width: 3px; }
+.job-card-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+.job-card-desc {
+  font-size: 0.85rem;
+  color: rgba(240,235,225,0.55);
+  line-height: 1.65;
+  margin-bottom: 1.2rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.job-card-skills-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240,235,225,0.3);
+  margin-bottom: 0.6rem;
+}
+.job-card-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.job-card-skill {
+  font-size: 0.72rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 50px;
+  font-weight: 500;
+}
+.job-card-skill.matched {
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.3);
+  color: #86EFAC;
+}
+.job-card-skill.unmatched {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(240,235,225,0.4);
+}
 
-  /* Tuesday cards */
-  .card.tue {
-    background: linear-gradient(135deg, var(--tue) 0%, #200a30 100%);
-    border: 1px solid var(--tue-light);
-    box-shadow: 0 2px 16px rgba(176,106,224,.12), inset 0 1px 0 rgba(255,255,255,.06);
-  }
-  .card.tue:hover {
-    box-shadow: 0 8px 28px rgba(176,106,224,.22);
-  }
-  .card.tue::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--tue-glow), transparent);
-  }
+/* Swipe overlays */
+.swipe-overlay {
+  position: absolute;
+  top: 2rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border: 3px solid;
+  opacity: 0;
+  transform: rotate(-12deg);
+  pointer-events: none;
+  transition: opacity 0.1s;
+  z-index: 20;
+}
+.swipe-overlay-like {
+  left: 1.5rem;
+  color: var(--swipe-like);
+  border-color: var(--swipe-like);
+  background: rgba(34,197,94,0.08);
+  transform: rotate(-12deg);
+}
+.swipe-overlay-skip {
+  right: 1.5rem;
+  color: var(--swipe-skip);
+  border-color: var(--swipe-skip);
+  background: rgba(239,68,68,0.08);
+  transform: rotate(12deg);
+}
 
-  .card-code {
-    font-family: 'DM Mono', monospace;
-    font-size: .68rem;
-    letter-spacing: .12em;
-    font-weight: 500;
-    margin-bottom: 6px;
-    opacity: .8;
-  }
-  .card.mon .card-code { color: var(--mon-glow); }
-  .card.tue .card-code { color: var(--tue-glow); }
+/* ── Swipe Action Buttons ───────────────────────────────── */
+.swipe-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.swipe-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.swipe-btn:hover { transform: scale(1.12); box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+.swipe-btn:active { transform: scale(0.94); }
+.swipe-btn-skip {
+  background: #1E2030;
+  border: 2px solid rgba(239,68,68,0.35);
+  color: #EF4444;
+}
+.swipe-btn-skip:hover { background: rgba(239,68,68,0.12); border-color: #EF4444; }
+.swipe-btn-details {
+  width: 50px; height: 50px;
+  background: #1E2030;
+  border: 2px solid rgba(255,255,255,0.1);
+  color: rgba(240,235,225,0.5);
+  font-size: 1.1rem;
+}
+.swipe-btn-details:hover { border-color: rgba(255,255,255,0.3); color: #F0EBE1; }
+.swipe-btn-save {
+  background: #1E2030;
+  border: 2px solid rgba(34,197,94,0.35);
+  color: #22C55E;
+}
+.swipe-btn-save:hover { background: rgba(34,197,94,0.12); border-color: #22C55E; }
 
-  .card-title {
-    font-size: .88rem;
-    font-weight: 700;
-    line-height: 1.3;
-    margin-bottom: 10px;
-    color: #f0f2f8;
-  }
+.swipe-hint {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: rgba(240,235,225,0.2);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
 
-  .card-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
+/* ── Job Details Modal ──────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.modal-sheet {
+  background: #1E1E2A;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 2rem;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-sheet::-webkit-scrollbar { width: 4px; }
+.modal-sheet::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius:4px; }
+.modal-drag-handle {
+  width: 40px; height: 4px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  margin: 0 auto 1.5rem;
+}
+.modal-header { margin-bottom: 1.5rem; }
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #F0EBE1;
+  margin-bottom: 0.4rem;
+}
+.modal-company { font-size: 0.9rem; color: rgba(240,235,225,0.5); margin-bottom: 0.75rem; }
+.modal-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.modal-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240,235,225,0.3);
+  margin-bottom: 0.75rem;
+  margin-top: 1.5rem;
+}
+.modal-desc { font-size: 0.88rem; color: rgba(240,235,225,0.6); line-height: 1.7; }
+.modal-skills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.modal-actions { display: flex; gap: 1rem; margin-top: 2rem; }
+.modal-apply-btn {
+  flex: 1;
+  padding: 1rem;
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.modal-apply-btn:hover { background: var(--gold-light); transform: translateY(-2px); }
+.modal-save-btn {
+  padding: 1rem 1.5rem;
+  background: rgba(34,197,94,0.1);
+  border: 1.5px solid rgba(34,197,94,0.3);
+  border-radius: var(--radius);
+  color: #22C55E;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.modal-save-btn:hover { background: rgba(34,197,94,0.18); }
 
-  .meta-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: .72rem;
-    color: var(--muted);
-  }
+/* ── Saved Jobs Page ────────────────────────────────────── */
+.saved-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0F0F14 0%, #1A1A24 100%);
+  padding: 6rem 0 4rem;
+}
+.saved-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 0 1rem;
+}
+.saved-header h1 {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #F0EBE1;
+  margin-bottom: 0.5rem;
+}
+.saved-header p { font-size: 0.95rem; color: rgba(240,235,225,0.4); }
+.saved-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+.saved-stat {
+  text-align: center;
+  padding: 1rem 1.5rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+}
+.saved-stat-num {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+.saved-stat-label { font-size: 0.75rem; color: rgba(240,235,225,0.35); margin-top: 0.2rem; }
+.saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+  padding: 0 1rem;
+}
+.saved-job-card {
+  background: #1E1E2A;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  transition: all var(--transition);
+  animation: cardIn 0.35s ease;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.saved-job-card:hover {
+  border-color: rgba(255,255,255,0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+}
+.saved-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.saved-card-logo {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.saved-card-info { flex: 1; min-width: 0; }
+.saved-card-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #F0EBE1;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.saved-card-company { font-size: 0.82rem; color: rgba(240,235,225,0.45); }
+.saved-card-location { font-size: 0.75rem; color: rgba(240,235,225,0.3); margin-top: 0.15rem; }
+.saved-card-match {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 50px;
+  flex-shrink: 0;
+}
+.saved-card-skills { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1.2rem; }
+.saved-card-skill {
+  font-size: 0.68rem;
+  padding: 0.18rem 0.55rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(240,235,225,0.45);
+  border-radius: 50px;
+}
+.saved-card-actions { display: flex; gap: 0.75rem; }
+.saved-apply-btn {
+  flex: 1;
+  padding: 0.7rem;
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+}
+.saved-apply-btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+.saved-remove-btn {
+  padding: 0.7rem 0.9rem;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: var(--radius);
+  color: #EF4444;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.saved-remove-btn:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); }
+.saved-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: rgba(240,235,225,0.25);
+  grid-column: 1 / -1;
+}
+.saved-empty .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+.saved-empty h3 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: rgba(240,235,225,0.4); }
+.saved-empty p { font-size: 0.9rem; margin-bottom: 1.5rem; }
 
-  .meta-icon {
-    width: 14px; height: 14px;
-    opacity: .7;
-    flex-shrink: 0;
-  }
+/* ── Print ──────────────────────────────────────────────── */
+@media print{.nav,.custom-panel{display:none!important}.preview-page{padding:0;background:#fff}.preview-layout{display:block}.cv-document{box-shadow:none;border-radius:0;max-width:100%}}
 
-  .meta-row span { line-height: 1.2; }
+/* ── Responsive ─────────────────────────────────────────── */
+@media(max-width:900px){
+  .preview-layout{grid-template-columns:1fr}
+  .custom-panel{position:static;max-height:none}
+  .tpl-professional .cv-body,.tpl-creative .cv-body{grid-template-columns:1fr}
+  .tpl-minimal .cv-layout-cols{grid-template-columns:1fr;gap:1.5rem}
+}
+@media(max-width:768px){
+  .container{padding:0 1.25rem} .section{padding:4rem 0}
+  .grid-3,.templates-grid{grid-template-columns:1fr}
+  .hero-content{grid-template-columns:1fr;text-align:center}
+  .hero-visual{display:none}
+  .hero-stats{justify-content:center} .hero-actions{justify-content:center}
+  .hero-subtitle{margin:0 auto 2.5rem}
+  .steps-grid{grid-template-columns:1fr 1fr}
+  .steps-grid::before{display:none}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:2rem}
+  .footer-bottom{flex-direction:column;gap:0.5rem;text-align:center}
+  .cta-banner{padding:2.5rem 1.5rem} .cta-banner h2{font-size:1.8rem}
+  .builder-form{padding:1.5rem} .builder-card-header{padding:1.5rem}
+  .builder-actions{padding:1.25rem 1.5rem}
+  .form-row,.entry-grid,.entry-grid-3{grid-template-columns:1fr}
+  .tpl-professional .cv-header,.tpl-creative .cv-header{grid-template-columns:1fr}
+  .tpl-minimal .cv-header{flex-direction:column;align-items:flex-start;gap:1rem}
+  .tpl-minimal .cv-contacts{text-align:left}
+  .swipe-deck{height:520px}
+  .saved-grid{grid-template-columns:1fr}
+  .match-preview-grid{gap:0.6rem}
+}
 
-  /* ── FOOTER ── */
-  footer {
-    text-align: center;
-    margin-top: 52px;
-    font-size: .72rem;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    letter-spacing: .06em;
-    animation: fadeUp .6s .3s ease both;
-  }
+/* ══════════════════════════════════════════════════════════
+   LOCATION SEARCH + REAL API STYLES
+   ══════════════════════════════════════════════════════ */
 
-  /* ── ANIMATIONS ── */
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+/* ── Location Search Panel ──────────────────────────────── */
+.location-panel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 1.4rem;
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 480px;
+}
+.location-panel-title {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240,235,225,0.35);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.location-search-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+.location-input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: #F0EBE1;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  outline: none;
+  transition: all var(--transition);
+}
+.location-input::placeholder { color: rgba(240,235,225,0.3); }
+.location-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,151,58,0.15); }
+.location-detect-btn {
+  padding: 0.75rem 0.85rem;
+  background: rgba(184,151,58,0.12);
+  border: 1.5px solid rgba(184,151,58,0.3);
+  border-radius: 10px;
+  color: var(--gold);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.location-detect-btn:hover { background: rgba(184,151,58,0.22); }
+.location-detect-btn.loading { opacity: 0.6; cursor: wait; }
 
-  /* Stagger cards */
-  .day-row:nth-child(2) .card { animation: fadeUp .5s .2s ease both; }
-  .day-row:nth-child(3) .card { animation: fadeUp .5s .35s ease both; }
+/* Location suggestions dropdown */
+.location-suggestions {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+.location-suggestions-list {
+  background: #1A1A28;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  display: none;
+}
+.location-suggestions-list.open { display: block; }
+.location-suggestion-item {
+  padding: 0.7rem 1rem;
+  font-size: 0.85rem;
+  color: rgba(240,235,225,0.7);
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.location-suggestion-item:last-child { border-bottom: none; }
+.location-suggestion-item:hover { background: rgba(255,255,255,0.06); color: #F0EBE1; }
+.location-suggestion-item .loc-icon { font-size: 0.85rem; opacity: 0.6; flex-shrink: 0; }
+.location-suggestion-item .loc-name { flex: 1; }
+.location-suggestion-item .loc-country { font-size: 0.72rem; color: rgba(240,235,225,0.3); }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 680px) {
-    .time-header, .day-row {
-      grid-template-columns: 70px repeat(3, 1fr);
-    }
-    .card-title { font-size: .8rem; }
-    .card { padding: 12px 12px; }
-    .day-name { font-size: .95rem; }
-    .day-label { padding-right: 8px; }
-  }
+/* Selected location badge */
+.location-selected {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 50px;
+  font-size: 0.82rem;
+  color: #86EFAC;
+  margin-bottom: 0.75rem;
+}
+.location-selected.visible { display: inline-flex; }
+.location-clear-btn {
+  background: none;
+  border: none;
+  color: rgba(134,239,172,0.6);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  margin-left: 0.25rem;
+}
+.location-clear-btn:hover { color: #86EFAC; }
+
+/* Job type filters */
+.job-type-filters {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+.job-type-chip {
+  padding: 0.32rem 0.75rem;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  color: rgba(240,235,225,0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.job-type-chip.active {
+  border-color: var(--gold);
+  background: rgba(184,151,58,0.12);
+  color: var(--gold-light);
+}
+
+/* ── API Loading State ──────────────────────────────────── */
+.api-loading {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: rgba(240,235,225,0.4);
+  text-align: center;
+}
+.api-loading.visible { display: flex; }
+.api-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.api-loading-text { font-size: 0.85rem; }
+.api-loading-sub  { font-size: 0.75rem; color: rgba(240,235,225,0.25); }
+
+/* ── Job source badge on cards ──────────────────────────── */
+.job-source-badge {
+  position: absolute;
+  bottom: 1rem; right: 1.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  opacity: 0.55;
+}
+.job-source-live {
+  background: rgba(34,197,94,0.15);
+  color: #86EFAC;
+  border: 1px solid rgba(34,197,94,0.2);
+}
+.job-source-mock {
+  background: rgba(255,255,255,0.06);
+  color: rgba(240,235,225,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ── No results state ───────────────────────────────────── */
+.no-results-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #1E1E2A;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  text-align: center;
+  padding: 2rem;
+  gap: 0.75rem;
+}
+.no-results-card .nr-icon { font-size: 2.5rem; }
+.no-results-card h3 { font-family: var(--font-display); font-size: 1.2rem; color: rgba(240,235,225,0.7); }
+.no-results-card p { font-size: 0.83rem; color: rgba(240,235,225,0.35); line-height: 1.5; }
+
+/* ── Swipe page location indicator ─────────────────────── */
+.swipe-location-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  color: rgba(240,235,225,0.5);
+  margin-bottom: 1rem;
+}
+.swipe-location-bar .loc-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--match-high);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
 </style>
 </head>
 <body>
+<!-- ═══════════════════════════════════════════════════════
+     NAVIGATION
+     ════════════════════════════════════════════════════ -->
+<nav class="nav" id="main-nav">
+  <div class="container nav-inner">
+    <div class="nav-logo" onclick="navigateTo('page-landing')">
+      <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="7" fill="currentColor" opacity="0.1"/>
+        <path d="M7 8h14M7 14h9M7 20h11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="21" cy="20" r="3" fill="#B8973A"/>
+      </svg>
+      Folio<span>.</span>
+    </div>
+    <ul class="nav-links">
+      <li><a onclick="navigateTo('page-landing');setTimeout(()=>scrollToEl('features'),300)">Features</a></li>
+      <li><a onclick="navigateTo('page-landing');setTimeout(()=>scrollToEl('templates'),300)">Templates</a></li>
+      <li><a onclick="navigateTo('page-jobs-entry')" style="color:var(--gold)">✦ Job Match</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"></button>
+      <button class="btn btn-primary btn-sm" onclick="startBuilder()">Create CV</button>
+    </div>
+  </div>
+</nav>
 
-<header>
-  <div class="school-label">School of Information Technology &amp; Communication</div>
-  <h1>Class <em>Timetable</em></h1>
-  <div class="semester-badge">Spring Semester · 2026</div>
-</header>
+<div id="toast"></div>
 
-<div class="legend">
-  <div class="legend-item"><span class="legend-dot mon"></span> Monday</div>
-  <div class="legend-item"><span class="legend-dot tue"></span> Tuesday</div>
+<!-- ═══════════════════════════════════════════════════════
+     PAGE 1 — LANDING
+     ════════════════════════════════════════════════════ -->
+<div class="page active" id="page-landing">
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div>
+          <div class="hero-eyebrow reveal">✦ CV Builder + Smart Job Match</div>
+          <h1 class="display-xl hero-title reveal reveal-delay-1">Build CV.<br><em>Find Jobs.</em></h1>
+          <p class="hero-subtitle reveal reveal-delay-2">Create a professional resume in minutes, then discover perfectly matched jobs with a Tinder-style swipe experience. Your career starts here.</p>
+          <div class="hero-actions reveal reveal-delay-2">
+            <button class="btn btn-primary btn-lg" onclick="startBuilder()">
+              Build My CV
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="btn btn-gold btn-lg" onclick="navigateTo('page-jobs-entry')">✦ Try Job Match</button>
+          </div>
+          <div class="hero-stats reveal reveal-delay-3">
+            <div><div class="stat-number">3</div><div class="stat-label">CV Templates</div></div>
+            <div><div class="stat-number">50+</div><div class="stat-label">Job Listings</div></div>
+            <div><div class="stat-number">AI</div><div class="stat-label">Match Engine</div></div>
+          </div>
+        </div>
+        <div class="hero-visual reveal reveal-delay-2">
+          <div class="hero-card-stack">
+            <div class="hero-card-bg"></div>
+            <div class="hero-card-bg"></div>
+            <div class="hero-card-main">
+              <div class="hcm-header">
+                <div class="hcm-avatar">JD</div>
+                <div class="hcm-name">Jane Doe</div>
+                <div class="hcm-title">Senior Product Designer</div>
+              </div>
+              <div class="hcm-body">
+                <div class="hcm-sl">Skills</div>
+                <div class="hcm-skill"><span style="font-size:0.72rem;width:75px">Figma</span><div class="hcm-skill-bar"><div class="hcm-skill-fill" style="width:95%"></div></div></div>
+                <div class="hcm-skill"><span style="font-size:0.72rem;width:75px">React</span><div class="hcm-skill-bar"><div class="hcm-skill-fill" style="width:75%"></div></div></div>
+                <div class="hcm-skill"><span style="font-size:0.72rem;width:75px">CSS/SCSS</span><div class="hcm-skill-bar"><div class="hcm-skill-fill" style="width:85%"></div></div></div>
+                <div class="hcm-sl" style="margin-top:0.8rem">Experience</div>
+                <div class="hcm-exp-item"><div class="hcm-exp-title">Lead Designer</div><div class="hcm-exp-company">Acme Corp · 2022–Now</div></div>
+                <div class="hcm-exp-item"><div class="hcm-exp-title">UI Designer</div><div class="hcm-exp-company">Startup Inc · 2019–22</div></div>
+              </div>
+            </div>
+            <div class="floating-badge">✓ ATS-Friendly</div>
+            <div class="floating-badge">✦ 94% Job Match</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section features-section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="label">What You Get</span>
+        <h2 class="display-lg reveal">Your Complete Career<br>Toolkit</h2>
+        <p class="reveal reveal-delay-1">From building your resume to finding your dream job — all in one place.</p>
+      </div>
+      <div class="grid-3">
+        <div class="feature-card reveal">
+          <div class="feature-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>CV Generator</h3>
+          <p>6-step questionnaire generates a beautiful, ATS-optimized resume instantly with 3 professional templates.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon" style="color:#22C55E"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>Smart Job Match</h3>
+          <p>Our algorithm scores every job against your CV — skills, experience, projects. Swipe to discover your matches.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>Instant PDF Export</h3>
+          <p>Download your polished resume as a high-quality PDF with one click. Print-ready and recruiter-friendly.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon" style="color:#F59E0B"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>Swipe to Save</h3>
+          <p>Tinder-style job discovery. Swipe right to save a job, left to skip. Your saved jobs persist across sessions.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>Auto-Save Everything</h3>
+          <p>Your CV data and saved jobs are stored locally. Pick up exactly where you left off, every time.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-icon" style="color:#6366F1"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>70%+ Filter Mode</h3>
+          <p>Enable "High Match Only" to see only jobs where you score above 70%. Focus on your best opportunities.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <span class="label">The Journey</span>
+        <h2 class="display-lg reveal">From CV to Dream Job<br>in 4 Steps</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="step-item reveal"><div class="step-number">1</div><h3>Build Your CV</h3><p>Complete our guided 6-step form. Skills, experience, projects — all captured perfectly.</p></div>
+        <div class="step-item reveal reveal-delay-1"><div class="step-number">2</div><h3>Generate & Customize</h3><p>Pick a template, tweak colors and fonts. Download as PDF whenever you're ready.</p></div>
+        <div class="step-item reveal reveal-delay-2"><div class="step-number">3</div><h3>Discover Job Matches</h3><p>Our engine scores 50+ jobs against your CV. See your match percentage on every card.</p></div>
+        <div class="step-item reveal reveal-delay-3"><div class="step-number">4</div><h3>Swipe & Apply</h3><p>Swipe right to save jobs you love. Apply directly with one tap from your saved list.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section features-section" id="templates">
+    <div class="container">
+      <div class="section-header">
+        <span class="label">Templates</span>
+        <h2 class="display-lg reveal">Three Distinctive Styles</h2>
+        <p class="reveal reveal-delay-1">Professional, Minimal, or Creative — pick the one that fits your field.</p>
+      </div>
+      <div class="templates-grid">
+        <div class="template-card reveal" onclick="startBuilderWithTemplate('professional')">
+          <div class="template-preview">
+            <div class="template-preview-inner" style="background:#fff">
+              <div class="tp-header"><div class="tp-name">Alexandra Chen</div><div class="tp-role">Software Engineer</div></div>
+              <div style="padding:0.6rem;font-size:0.52rem"><div style="color:#B8973A;font-weight:700;letter-spacing:0.1em;margin-bottom:0.25rem">EXPERIENCE</div><div style="font-weight:600;margin-bottom:0.08rem">Senior Developer · 2022–Now</div><div style="color:#888;margin-bottom:0.35rem">Google Inc.</div><div style="color:#B8973A;font-weight:700;letter-spacing:0.1em;margin-bottom:0.25rem">SKILLS</div><div style="display:flex;flex-wrap:wrap;gap:0.2rem"><span style="background:#F0E4B8;color:#B8973A;padding:0.1rem 0.35rem;border-radius:3px;font-size:0.44rem">React</span><span style="background:#F0E4B8;color:#B8973A;padding:0.1rem 0.35rem;border-radius:3px;font-size:0.44rem">Node.js</span><span style="background:#F0E4B8;color:#B8973A;padding:0.1rem 0.35rem;border-radius:3px;font-size:0.44rem">TypeScript</span></div></div>
+            </div>
+          </div>
+          <div class="template-meta"><div><h3>Professional</h3><div style="font-size:0.75rem;color:var(--muted)">Classic two-column</div></div><span class="badge badge-gold">Popular</span></div>
+        </div>
+        <div class="template-card reveal reveal-delay-1" onclick="startBuilderWithTemplate('minimal')">
+          <div class="template-preview">
+            <div class="template-preview-inner template-minimal">
+              <div class="tm-name">Marcus Johnson</div>
+              <div style="font-size:0.48rem;color:#B8973A;margin-bottom:0.7rem">Product Designer</div>
+              <div style="font-size:0.46rem;color:#888;margin-bottom:0.5rem"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="543c3138383b143935263721277a3d3b">[email&#160;protected]</a> · San Francisco</div>
+              <div style="border-bottom:1px solid #ddd;padding-bottom:0.25rem;margin-bottom:0.35rem;font-weight:700;font-size:0.5rem;letter-spacing:0.1em">PROFILE</div>
+              <div style="font-size:0.46rem;color:#666;line-height:1.5;margin-bottom:0.5rem">Passionate designer crafting user-centered digital experiences.</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem"><div><div style="font-weight:700;font-size:0.46rem;margin-bottom:0.2rem">EXPERIENCE</div><div style="font-size:0.46rem;font-weight:600">Lead Designer</div><div style="font-size:0.42rem;color:#888">Acme · 2022</div></div><div><div style="font-weight:700;font-size:0.46rem;margin-bottom:0.2rem">SKILLS</div><div style="font-size:0.42rem;color:#555">Figma · Sketch</div></div></div>
+            </div>
+          </div>
+          <div class="template-meta"><div><h3>Minimal</h3><div style="font-size:0.75rem;color:var(--muted)">Clean, text-focused</div></div><span class="badge">Modern</span></div>
+        </div>
+        <div class="template-card reveal reveal-delay-2" onclick="startBuilderWithTemplate('creative')">
+          <div class="template-preview">
+            <div class="template-preview-inner template-creative">
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:0.5rem;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:0.5rem">
+                <div><div class="tc-name">Sofia Rivera</div><div class="tc-accent" style="font-size:0.46rem;letter-spacing:0.12em">CREATIVE DIRECTOR</div></div>
+                <div style="width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.1)"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 0.8fr;gap:0.5rem"><div><div class="tc-accent" style="font-size:0.42rem;letter-spacing:0.14em;margin-bottom:0.2rem">EXPERIENCE</div><div style="font-size:0.48rem;font-weight:600">Creative Dir.</div><div class="tc-accent" style="font-size:0.42rem">Brand Co · 2023</div></div><div><div class="tc-accent" style="font-size:0.42rem;letter-spacing:0.14em;margin-bottom:0.2rem">SKILLS</div><div style="font-size:0.42rem;opacity:0.7">Adobe Suite</div><div style="font-size:0.42rem;opacity:0.7">Branding</div></div></div>
+            </div>
+          </div>
+          <div class="template-meta"><div><h3>Creative</h3><div style="font-size:0.75rem;color:var(--muted)">Dark editorial</div></div><span class="badge">Bold</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cta-banner reveal">
+        <span class="label" style="color:var(--gold);display:block;margin-bottom:1rem">Start Your Journey</span>
+        <h2>Build CV. Swipe Jobs.<br>Get Hired.</h2>
+        <p>The complete career platform — free, fast, and beautifully designed</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-gold btn-lg" onclick="startBuilder()">Build My CV</button>
+          <button class="btn btn-outline btn-lg" style="color:var(--ivory);border-color:rgba(255,255,255,0.25)" onclick="navigateTo('page-jobs-entry')">✦ Explore Jobs</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div><div class="footer-logo">Folio<span>.</span></div><p style="font-size:0.85rem;color:rgba(255,255,255,0.4);margin-top:0.8rem;line-height:1.6;max-width:260px">Build your CV and discover matching jobs with a swipe.</p></div>
+        <div class="footer-col"><h4>Product</h4><ul><li><a onclick="startBuilder()">Create CV</a></li><li><a onclick="navigateTo('page-jobs-entry')">Job Match</a></li><li><a onclick="navigateTo('page-saved')">Saved Jobs</a></li></ul></div>
+        <div class="footer-col"><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Blog</a></li></ul></div>
+        <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">Cookies</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><span>© 2024 Folio. All rights reserved.</span><span>Built with care ♥</span></div>
+    </div>
+  </footer>
 </div>
 
-<div class="timetable-wrap">
-
-  <!-- Time header -->
-  <div class="time-header">
-    <div class="time-header-cell"></div>
-    <div class="time-header-cell slot">
-      <div class="slot-time">08:30 – 11:00</div>
-      <div class="slot-label">Morning</div>
-    </div>
-    <div class="time-header-cell slot">
-      <div class="slot-time">11:30 – 14:00</div>
-      <div class="slot-label">Midday</div>
-    </div>
-    <div class="time-header-cell slot">
-      <div class="slot-time">14:30 – 17:00</div>
-      <div class="slot-label">Afternoon</div>
-    </div>
-  </div>
-
-  <!-- MONDAY -->
-  <div class="day-row">
-    <div class="day-label">
-      <div class="day-name mon">Mon</div>
-      <div class="day-line mon"></div>
-    </div>
-
-    <!-- MON 08:30 -->
-    <div class="card mon">
-      <div class="card-code">INS 311</div>
-      <div class="card-title">Data Engineering</div>
-      <div class="card-meta">
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
-          <span>Assan Jahateh</span>
-        </div>
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <span>Lecture Room 1</span>
-        </div>
+<!-- ═══════════════════════════════════════════════════════
+     PAGE 2 — BUILDER
+     ════════════════════════════════════════════════════ -->
+<div class="page" id="page-builder">
+  <div class="builder-page">
+    <div class="container">
+      <div class="builder-header">
+        <button class="btn btn-ghost btn-sm" style="margin-bottom:1rem" onclick="navigateTo('page-landing')">← Back to Home</button>
+        <h1>Build Your CV</h1>
+        <p>Fill in each section step by step. Your progress is saved automatically.</p>
       </div>
-    </div>
-
-    <!-- MON 11:30 -->
-    <div class="card mon">
-      <div class="card-code">INS 414</div>
-      <div class="card-title">Information Security &amp; Auditing</div>
-      <div class="card-meta">
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
-          <span>Ahmed Amer El-Hashemite</span>
+      <div class="steps-progress">
+        <div class="steps-labels">
+          <span class="step-label active" id="lbl-1">Personal</span>
+          <span class="step-label" id="lbl-2">Skills</span>
+          <span class="step-label" id="lbl-3">Experience</span>
+          <span class="step-label" id="lbl-4">Education</span>
+          <span class="step-label" id="lbl-5">Projects</span>
+          <span class="step-label" id="lbl-6">Contact</span>
         </div>
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <span>Lecture Room 1</span>
+        <div class="steps-dots">
+          <div class="step-dot active" id="dot-1">1</div><div class="step-connector" id="conn-1"></div>
+          <div class="step-dot" id="dot-2">2</div><div class="step-connector" id="conn-2"></div>
+          <div class="step-dot" id="dot-3">3</div><div class="step-connector" id="conn-3"></div>
+          <div class="step-dot" id="dot-4">4</div><div class="step-connector" id="conn-4"></div>
+          <div class="step-dot" id="dot-5">5</div><div class="step-connector" id="conn-5"></div>
+          <div class="step-dot" id="dot-6">6</div>
         </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+        <div class="step-info"><span id="step-counter">Step 1 of 6</span><span id="step-pct">0% complete</span></div>
       </div>
-    </div>
-
-    <!-- MON 14:30 -->
-    <div class="card mon">
-      <div class="card-code">INS 401</div>
-      <div class="card-title">Business Continuity &amp; Recovery Planning</div>
-      <div class="card-meta">
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
-          <span>Anthony Aikhomu Ogunbor</span>
+      <div class="builder-card">
+        <div class="builder-card-header">
+          <div class="step-badge" id="step-badge">Step 1 — Personal Information</div>
+          <h2 id="card-step-title">Personal Information</h2>
+          <p id="card-step-desc">Your name, title, and a short professional summary</p>
         </div>
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <span>Lecture Room 7</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TUESDAY -->
-  <div class="day-row">
-    <div class="day-label">
-      <div class="day-name tue">Tue</div>
-      <div class="day-line tue"></div>
-    </div>
-
-    <!-- TUE 08:30 -->
-    <div class="card tue">
-      <div class="card-code">INS 314</div>
-      <div class="card-title">Access Control Systems &amp; Methodology</div>
-      <div class="card-meta">
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
-          <span>Ahmed Amer El-Hashemite</span>
-        </div>
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <span>Lecture Room 1</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- TUE 11:30 -->
-    <div class="card tue">
-      <div class="card-code">INS 403</div>
-      <div class="card-title">Computer Forensics</div>
-      <div class="card-meta">
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
-          <span>Mbemba Hydara</span>
-        </div>
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <span>Lecture Room 7</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- TUE 14:30 -->
-    <div class="card tue">
-      <div class="card-code">INS 418</div>
-      <div class="card-title">Geographic Information Systems</div>
-      <div class="card-meta">
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/></svg>
-          <span>Anthony Aikhomu Ogunbor</span>
-        </div>
-        <div class="meta-row">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <span>Lecture Room 1</span>
+        <!-- Step 1 -->
+        <form class="builder-form active" id="form-step-1" onsubmit="return false;">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="p-name" class="form-input" placeholder="e.g. Jane Doe"></div>
+            <div class="form-group"><label class="form-label">Professional Title *</label><input type="text" id="p-title" class="form-input" placeholder="e.g. Senior Developer"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Location</label><input type="text" id="p-location" class="form-input" placeholder="e.g. San Francisco, CA"></div>
+          <div class="form-group"><label class="form-label">Professional Summary</label><textarea id="p-bio" class="form-textarea" rows="4" placeholder="Write 2–3 sentences about your experience, skills, and goals..."></textarea><span class="form-hint">Appears at the top of your CV. Keep it concise and impactful.</span></div>
+          <div class="form-group"><label class="form-label">Profile Photo (optional)</label>
+            <div class="image-upload-area"><input type="file" id="photo-input" accept="image/*"><img id="photo-preview" class="image-preview" src="" alt=""><div id="upload-icon" class="image-upload-icon">📷</div><div id="upload-text" class="image-upload-text">Click to upload · JPG, PNG</div></div>
+          </div>
+        </form>
+        <!-- Step 2 -->
+        <form class="builder-form" id="form-step-2" onsubmit="return false;">
+          <div class="entries-container" id="skills-container"></div>
+          <button type="button" class="add-entry-btn" onclick="addSkillEntry()">+ Add Another Skill</button>
+        </form>
+        <!-- Step 3 -->
+        <form class="builder-form" id="form-step-3" onsubmit="return false;">
+          <div class="entries-container" id="experience-container"></div>
+          <button type="button" class="add-entry-btn" onclick="addExperienceEntry()">+ Add Another Position</button>
+        </form>
+        <!-- Step 4 -->
+        <form class="builder-form" id="form-step-4" onsubmit="return false;">
+          <div class="entries-container" id="education-container"></div>
+          <button type="button" class="add-entry-btn" onclick="addEducationEntry()">+ Add Another Degree</button>
+        </form>
+        <!-- Step 5 -->
+        <form class="builder-form" id="form-step-5" onsubmit="return false;">
+          <div class="entries-container" id="projects-container"></div>
+          <button type="button" class="add-entry-btn" onclick="addProjectEntry()">+ Add Another Project</button>
+        </form>
+        <!-- Step 6 -->
+        <form class="builder-form" id="form-step-6" onsubmit="return false;">
+          <div class="form-group"><label class="form-label">Email Address *</label><input type="email" id="c-email" class="form-input" placeholder="jane@example.com"></div>
+          <div class="form-group"><label class="form-label">LinkedIn URL</label><input type="text" id="c-linkedin" class="form-input" placeholder="linkedin.com/in/janedoe"></div>
+          <div class="form-group"><label class="form-label">GitHub URL</label><input type="text" id="c-github" class="form-input" placeholder="github.com/janedoe"></div>
+          <div class="form-group"><label class="form-label">Personal Website</label><input type="url" id="c-website" class="form-input" placeholder="https://janedoe.dev"></div>
+          <div style="background:var(--gold-pale);border:1px solid var(--gold-light);border-radius:var(--radius);padding:1rem;font-size:0.88rem;color:var(--charcoal-2)">
+            <strong>🎉 Almost done!</strong> Generate your CV then find matching jobs with our Smart Job Match feature.
+          </div>
+        </form>
+        <div class="builder-actions">
+          <button class="btn btn-outline btn-sm" id="btn-back" onclick="prevStep()" style="visibility:hidden">← Back</button>
+          <div class="builder-save-note">✓ Auto-saved</div>
+          <button class="btn btn-gold" id="btn-next" onclick="nextStep()">Next →</button>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-</div><!-- /.timetable-wrap -->
+<!-- ═══════════════════════════════════════════════════════
+     PAGE 3 — CV PREVIEW
+     ════════════════════════════════════════════════════ -->
+<div class="page" id="page-preview">
+  <div class="preview-page">
+    <div class="container">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem">
+        <button class="btn btn-ghost btn-sm" onclick="editCV()">← Edit CV</button>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="editCV()">✏ Edit</button>
+          <button class="btn btn-gold btn-sm" onclick="downloadCV()">⬇ Download PDF</button>
+          <button class="btn btn-green btn-sm" onclick="navigateTo('page-jobs-entry')">✦ Find Jobs For Me</button>
+        </div>
+      </div>
+      <div class="preview-layout">
+        <aside class="custom-panel">
+          <h3 style="font-family:var(--font-display);font-size:1.05rem;font-weight:600;margin-bottom:1.4rem">Customize</h3>
+          <div class="panel-section">
+            <div class="panel-section-title">Template</div>
+            <div class="template-options" id="template-options">
+              <button class="template-option active" data-template="professional"><div class="template-option-swatch t-swatch-pro"></div><div><div class="template-option-label">Professional</div><div class="template-option-desc">Classic two-column</div></div></button>
+              <button class="template-option" data-template="minimal"><div class="template-option-swatch t-swatch-min"></div><div><div class="template-option-label">Minimal</div><div class="template-option-desc">Clean and simple</div></div></button>
+              <button class="template-option" data-template="creative"><div class="template-option-swatch t-swatch-cre"></div><div><div class="template-option-label">Creative</div><div class="template-option-desc">Bold dark theme</div></div></button>
+            </div>
+          </div>
+          <div class="panel-section"><div class="panel-section-title">Accent Color</div><div class="color-swatches" id="color-swatches"></div></div>
+          <div class="panel-section">
+            <div class="panel-section-title">Font Style</div>
+            <div class="font-options">
+              <button class="font-option active" data-font="serif-sans" style="font-family:'Playfair Display',serif">Playfair × DM Sans</button>
+              <button class="font-option" data-font="sans" style="font-family:'DM Sans',sans-serif">DM Sans (all sans)</button>
+              <button class="font-option" data-font="mono-accent" style="font-family:'DM Mono',monospace">Mono Accent</button>
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-section-title">Layout Spacing</div>
+            <input type="range" id="spacing-slider" class="range-input" min="1" max="3" step="1" value="2">
+            <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);margin-top:0.3rem"><span>Compact</span><span>Normal</span><span>Spacious</span></div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn btn-gold" onclick="downloadCV()" style="width:100%">⬇ Download PDF</button>
+            <button class="btn btn-green" onclick="navigateTo('page-jobs-entry')" style="width:100%">✦ Find Matching Jobs</button>
+            <button class="btn btn-outline" onclick="editCV()" style="width:100%">← Edit Details</button>
+            <button class="btn btn-ghost btn-sm" style="width:100%;color:var(--muted)" onclick="if(confirm('Clear all data?'))clearStorage(),navigateTo('page-landing')">Start Over</button>
+          </div>
+        </aside>
+        <div>
+          <div id="cv-document" class="cv-document tpl-professional">
+            <div style="padding:4rem;text-align:center;color:var(--muted)"><div style="font-size:2rem;margin-bottom:1rem">📄</div><div style="font-family:var(--font-display);font-size:1.2rem;margin-bottom:0.5rem">Your CV will appear here</div><div style="font-size:0.88rem">Complete the builder to generate your CV</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-<footer>ITC · School of Information Technology &amp; Communication · Spring 2026</footer>
+<!-- ═══════════════════════════════════════════════════════
+     PAGE 4 — JOB MATCH ENTRY
+     ════════════════════════════════════════════════════ -->
+<div class="page" id="page-jobs-entry">
+  <div class="jobs-entry-page">
+    <div class="jobs-entry-content">
+      <div class="jobs-entry-icon">✦</div>
+      <h1 class="jobs-entry-title">Smart<br><em>Job Match</em></h1>
+      <p class="jobs-entry-sub">Real jobs, scored against your CV. Search by location or detect where you are — then swipe to discover your matches.</p>
 
+      <!-- CV Skills chips -->
+      <div class="match-preview-grid" id="match-chips">
+        <div class="match-preview-chip"><span class="dot"></span>Loading your skills...</div>
+      </div>
+
+      <!-- ── Location Search Panel ─────────────────────── -->
+      <div class="location-panel">
+        <div class="location-panel-title">
+          <span>◎</span> Search jobs near a location
+        </div>
+
+        <!-- Search row -->
+        <div class="location-search-row">
+          <input
+            type="text"
+            id="location-input"
+            class="location-input"
+            placeholder="City, country or 'Remote'..."
+            oninput="onLocationInput(this.value)"
+            onkeydown="onLocationKeydown(event)"
+            autocomplete="off"
+          >
+          <button class="location-detect-btn" id="detect-btn" onclick="detectMyLocation()" title="Use my location">
+            <span id="detect-icon">◎</span> Detect
+          </button>
+        </div>
+
+        <!-- Suggestions dropdown -->
+        <div class="location-suggestions">
+          <div class="location-suggestions-list" id="location-suggestions-list"></div>
+        </div>
+
+        <!-- Selected location badge -->
+        <div class="location-selected" id="location-selected-badge">
+          <span>◎</span>
+          <span id="location-selected-text"></span>
+          <button class="location-clear-btn" onclick="clearLocation()" title="Clear location">✕</button>
+        </div>
+
+        <!-- Job type filter chips -->
+        <div class="job-type-filters" id="job-type-filters">
+          <button class="job-type-chip active" data-type="all" onclick="selectJobType(this,'all')">All Types</button>
+          <button class="job-type-chip" data-type="full_time" onclick="selectJobType(this,'full_time')">Full-time</button>
+          <button class="job-type-chip" data-type="contract" onclick="selectJobType(this,'contract')">Contract</button>
+          <button class="job-type-chip" data-type="internship" onclick="selectJobType(this,'internship')">Internship</button>
+          <button class="job-type-chip" data-type="remote" onclick="selectJobType(this,'remote')">Remote Only</button>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="jobs-entry-actions" style="margin-top:1.5rem">
+        <button class="btn btn-gold btn-lg" onclick="startJobMatch()">
+          Find My Jobs
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="btn btn-outline btn-lg" style="border-color:rgba(255,255,255,0.2);color:rgba(240,235,225,0.7)" onclick="navigateTo('page-saved')">♥ Saved Jobs</button>
+      </div>
+
+      <!-- Toggles row -->
+      <div style="margin-top:1.2rem;display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center">
+        <button class="filter-toggle" id="filter-toggle-btn" onclick="toggleHighMatchFilter()">
+          <div class="toggle-switch" id="filter-toggle-sw"></div>
+          <span id="filter-toggle-label">Show only 70%+ matches</span>
+        </button>
+        <button class="filter-toggle" id="api-toggle-btn" onclick="toggleApiSource()">
+          <div class="toggle-switch" id="api-toggle-sw"></div>
+          <span id="api-toggle-label">Use live job listings</span>
+        </button>
+      </div>
+
+      <!-- API loading indicator -->
+      <div class="api-loading" id="api-loading">
+        <div class="api-spinner"></div>
+        <div class="api-loading-text">Fetching live jobs...</div>
+        <div class="api-loading-sub" id="api-loading-sub">Searching real job boards for your skills</div>
+      </div>
+
+      <p style="margin-top:1.2rem;font-size:0.78rem;color:rgba(240,235,225,0.25)">
+        <a onclick="startBuilder()" style="color:rgba(240,235,225,0.4);cursor:pointer;text-decoration:underline">No CV yet? Build one first</a>
+        &nbsp;·&nbsp;
+        <a onclick="loadDemoCV();navigateTo('page-jobs-entry');" style="color:var(--gold);cursor:pointer">Use demo CV</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE 5 — SWIPE JOBS
+     ════════════════════════════════════════════════════ -->
+<div class="page" id="page-swipe">
+  <div class="swipe-page">
+    <div class="swipe-header">
+      <div class="swipe-header-left">
+        <div class="swipe-logo-small">Folio<span>.</span></div>
+        <span class="swipe-counter" id="swipe-counter">0 / 0 jobs</span>
+      </div>
+      <div style="display:flex;gap:0.75rem;align-items:center">
+        <button class="swipe-saved-btn" onclick="navigateTo('page-saved')">
+          ♥ Saved <span class="swipe-saved-count" id="saved-count-badge">0</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" style="color:rgba(240,235,225,0.4);font-size:0.78rem" onclick="navigateTo('page-jobs-entry')">← Back</button>
+      </div>
+    </div>
+
+    <!-- The swipe deck -->
+    <div class="swipe-deck" id="swipe-deck">
+      <div class="swipe-deck-empty">
+        <div class="empty-icon">🎉</div>
+        <p>You've seen all jobs!<br>Check your saved list or go back to browse again.</p>
+        <button class="btn btn-gold" style="margin-top:1rem" onclick="resetSwipe()">Start Over</button>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="swipe-actions">
+      <button class="swipe-btn swipe-btn-skip" onclick="swipeCard('left')" title="Skip job">✕</button>
+      <button class="swipe-btn swipe-btn-details" onclick="openDetails()" title="View details">↑</button>
+      <button class="swipe-btn swipe-btn-save" onclick="swipeCard('right')" title="Save job">♥</button>
+    </div>
+    <div class="swipe-hint">← Skip &nbsp;·&nbsp; ↑ Details &nbsp;·&nbsp; Save →</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE 6 — SAVED JOBS
+     ════════════════════════════════════════════════════ -->
+<div class="page" id="page-saved">
+  <div class="saved-page">
+    <div class="container">
+      <div style="margin-bottom:2rem">
+        <button class="btn btn-ghost btn-sm" style="color:rgba(240,235,225,0.5)" onclick="navigateTo('page-jobs-entry')">← Back to Job Match</button>
+      </div>
+      <div class="saved-header">
+        <h1>Saved Jobs</h1>
+        <p>Jobs you've liked — ready to apply whenever you are</p>
+        <div class="saved-stats" id="saved-stats">
+          <div class="saved-stat"><div class="saved-stat-num" id="saved-total">0</div><div class="saved-stat-label">Saved</div></div>
+          <div class="saved-stat"><div class="saved-stat-num" id="saved-avg-match">—</div><div class="saved-stat-label">Avg Match</div></div>
+          <div class="saved-stat"><div class="saved-stat-num" id="saved-top-match">—</div><div class="saved-stat-label">Top Match</div></div>
+        </div>
+      </div>
+      <div class="saved-grid" id="saved-grid">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JOB DETAILS MODAL
+     ════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="job-modal" onclick="handleModalClick(event)">
+  <div class="modal-sheet" id="modal-sheet">
+    <div class="modal-drag-handle"></div>
+    <div class="modal-header">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem">
+        <div id="modal-logo" class="job-card-logo" style="width:52px;height:52px;border-radius:14px;font-size:1.2rem"></div>
+        <div style="display:flex;gap:0.5rem">
+          <span id="modal-match" class="match-score-badge" style="position:static"></span>
+        </div>
+      </div>
+      <div class="modal-title" id="modal-title">Job Title</div>
+      <div class="modal-company" id="modal-company">Company · Location</div>
+      <div class="modal-meta" id="modal-meta"></div>
+    </div>
+    <div class="modal-section-title">About the Role</div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-section-title">Required Skills</div>
+    <div class="modal-skills" id="modal-skills"></div>
+    <div class="modal-actions">
+      <a class="modal-apply-btn" id="modal-apply-link" href="#" target="_blank" rel="noopener">Apply Now ↗</a>
+      <button class="modal-save-btn" id="modal-save-btn" onclick="saveFromModal()">♥ Save</button>
+    </div>
+  </div>
+</div>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ═══════════════════════════════════════════════════════════════════
+//  FOLIO — COMPLETE APPLICATION SCRIPT
+//  Sections:
+//   1. APP STATE & STORAGE
+//   2. NAVIGATION & THEME
+//   3. CV BUILDER (steps, dynamic entries, photo)
+//   4. CV RENDERER (3 templates)
+//   5. JOB DATA (50 mock jobs)
+//   6. JOB MATCHER (scoring algorithm)
+//   7. SWIPE ENGINE (pointer/touch events + animations)
+//   8. SAVED JOBS
+//   9. INIT
+// ═══════════════════════════════════════════════════════════════════
+
+/* ──────────────────────────────────────────────────────────
+   1. APP STATE & STORAGE
+   ────────────────────────────────────────────────────────── */
+const AppState = {
+  currentPage: 'page-landing',
+  currentStep: 1, totalSteps: 6,
+  theme: localStorage.getItem('cv-theme') || 'light',
+  cvData: {
+    personal: { fullName:'', title:'', location:'', bio:'', photo:null },
+    skills: [], experience: [], education: [], projects: [],
+    contact: { email:'', linkedin:'', github:'', website:'' }
+  },
+  customization: { template:'professional', primaryColor:'#B8973A', fontStyle:'serif-sans', spacing:'normal' },
+  // Job Match state
+  jobQueue: [],        // matched & sorted jobs to swipe through
+  currentJobIdx: 0,    // index in jobQueue of the current top card
+  savedJobs: [],       // jobs the user swiped right on
+  seenJobIds: new Set(),// ids of all seen jobs (so we don't repeat)
+  highMatchOnly: false, // filter toggle: only show 70%+
+  currentModalJob: null // job currently open in modal
+};
+
+function saveToStorage() {
+  try {
+    localStorage.setItem('cv-data', JSON.stringify(AppState.cvData));
+    localStorage.setItem('cv-custom', JSON.stringify(AppState.customization));
+    localStorage.setItem('cv-step', AppState.currentStep);
+    localStorage.setItem('folio-saved-jobs', JSON.stringify(AppState.savedJobs));
+    showToast('Progress saved ✓', 1800);
+  } catch(e) { console.warn('Storage save failed', e); }
+}
+
+function loadFromStorage() {
+  try {
+    const d = localStorage.getItem('cv-data');
+    const c = localStorage.getItem('cv-custom');
+    const s = localStorage.getItem('cv-step');
+    const j = localStorage.getItem('folio-saved-jobs');
+    if(d) Object.assign(AppState.cvData, JSON.parse(d));
+    if(c) Object.assign(AppState.customization, JSON.parse(c));
+    if(s) AppState.currentStep = parseInt(s, 10);
+    if(j) AppState.savedJobs = JSON.parse(j);
+  } catch(e) { console.warn('Storage load failed', e); }
+}
+
+function clearStorage() {
+  ['cv-data','cv-custom','cv-step','folio-saved-jobs'].forEach(k => localStorage.removeItem(k));
+}
+
+/* ──────────────────────────────────────────────────────────
+   2. NAVIGATION & THEME & UTILITIES
+   ────────────────────────────────────────────────────────── */
+function navigateTo(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pg = document.getElementById(id);
+  if(pg) { pg.classList.add('active'); AppState.currentPage = id; window.scrollTo({top:0,behavior:'smooth'}); }
+  // Page-specific setup
+  if(id === 'page-jobs-entry') initJobsEntryPage();
+  if(id === 'page-saved')      renderSavedJobs();
+}
+
+function scrollToEl(id) {
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth'});
+}
+
+function applyTheme(t) {
+  AppState.theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('cv-theme', t);
+}
+function toggleTheme() { applyTheme(AppState.theme === 'light' ? 'dark' : 'light'); }
+
+let _toastTimer = null;
+function showToast(msg, dur=3000) {
+  const el = document.getElementById('toast');
+  if(!el) return;
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function initReveal() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
+function initNav() {
+  const nav = document.getElementById('main-nav');
+  if(!nav) return;
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40), {passive:true});
+}
+
+// Escape HTML to prevent XSS
+function esc(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+function val(id) { const e=document.getElementById(id); return e ? e.value.trim() : ''; }
+function setVal(id, v) { const e=document.getElementById(id); if(e&&v!==undefined) e.value=v; }
+function skillLevelToPct(l) { return {Beginner:30,Basic:45,Intermediate:60,Advanced:80,Expert:100}[l]||70; }
+function getInitials(n) { return (n||'?').split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2); }
+function ensureHttps(u) { return (!u)?'':(u.startsWith('http')?u:'https://'+u); }
+
+/* ──────────────────────────────────────────────────────────
+   3. CV BUILDER — STEP MANAGEMENT
+   ────────────────────────────────────────────────────────── */
+const STEP_TITLES = ['Personal Information','Skills','Work Experience','Education','Projects','Contact & Links'];
+const STEP_DESCS  = [
+  'Your name, title, and a short professional summary',
+  'Add your key skills with proficiency levels',
+  'List your professional experience',
+  'Your educational background',
+  'Showcase your projects and work',
+  'How employers can reach you'
+];
+
+function updateProgressUI() {
+  const s = AppState.currentStep, total = AppState.totalSteps;
+  const pct = Math.round(((s-1)/(total-1))*100);
+  const el = id => document.getElementById(id);
+  const fill = el('progress-fill'); if(fill) fill.style.width = pct+'%';
+  const ctr = el('step-counter'); if(ctr) ctr.textContent = `Step ${s} of ${total}`;
+  const pe  = el('step-pct');     if(pe)  pe.textContent  = pct+'% complete';
+  for(let i=1;i<=total;i++) {
+    const dot=el(`dot-${i}`), conn=el(`conn-${i}`), lbl=el(`lbl-${i}`);
+    if(dot) {
+      dot.classList.toggle('active', i===s);
+      dot.classList.toggle('done', i<s);
+      dot.innerHTML = i<s ? `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>` : String(i);
+    }
+    if(conn) conn.classList.toggle('done', i<s);
+    if(lbl)  { lbl.classList.toggle('active', i===s); lbl.classList.toggle('done', i<s); }
+  }
+  document.querySelectorAll('.builder-form').forEach(f => f.classList.remove('active'));
+  const af = el(`form-step-${s}`); if(af) af.classList.add('active');
+  const te=el('card-step-title'); if(te) te.textContent=STEP_TITLES[s-1];
+  const de=el('card-step-desc');  if(de) de.textContent=STEP_DESCS[s-1];
+  const be=el('step-badge');      if(be) be.textContent=`Step ${s} — ${STEP_TITLES[s-1]}`;
+  const bb=el('btn-back');        if(bb) bb.style.visibility = s===1?'hidden':'visible';
+  const nb=el('btn-next');
+  if(nb) nb.innerHTML = s===total ? 'Generate CV →' : 'Next →';
+}
+
+function goToStep(n) {
+  AppState.currentStep = Math.max(1, Math.min(AppState.totalSteps, n));
+  collectCurrentStepData(); updateProgressUI();
+  const card = document.querySelector('.builder-card');
+  if(card) card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function nextStep() {
+  collectCurrentStepData();
+  if(AppState.currentStep < AppState.totalSteps) goToStep(AppState.currentStep+1);
+  else { saveToStorage(); generateCV(); }
+}
+function prevStep() { collectCurrentStepData(); if(AppState.currentStep>1) goToStep(AppState.currentStep-1); }
+
+// Collect all form fields into AppState
+function collectCurrentStepData() {
+  const s = AppState.currentStep;
+  if(s===1) AppState.cvData.personal = { fullName:val('p-name'), title:val('p-title'), location:val('p-location'), bio:val('p-bio'), photo:AppState.cvData.personal.photo };
+  if(s===2) AppState.cvData.skills = Array.from(document.querySelectorAll('#skills-container .entry-item')).map(item=>({ name:item.querySelector('[data-field="skill-name"]')?.value.trim()||'', level:item.querySelector('[data-active-level]')?.dataset.activeLevel||'Intermediate' })).filter(s=>s.name);
+  if(s===3) AppState.cvData.experience = Array.from(document.querySelectorAll('#experience-container .entry-item')).map(item=>({ jobTitle:item.querySelector('[data-field="job-title"]')?.value.trim()||'', company:item.querySelector('[data-field="company"]')?.value.trim()||'', duration:item.querySelector('[data-field="duration"]')?.value.trim()||'', description:item.querySelector('[data-field="exp-desc"]')?.value.trim()||'' })).filter(e=>e.jobTitle);
+  if(s===4) AppState.cvData.education = Array.from(document.querySelectorAll('#education-container .entry-item')).map(item=>({ institution:item.querySelector('[data-field="institution"]')?.value.trim()||'', degree:item.querySelector('[data-field="degree"]')?.value.trim()||'', year:item.querySelector('[data-field="edu-year"]')?.value.trim()||'' })).filter(e=>e.institution);
+  if(s===5) AppState.cvData.projects = Array.from(document.querySelectorAll('#projects-container .entry-item')).map(item=>({ title:item.querySelector('[data-field="proj-title"]')?.value.trim()||'', description:item.querySelector('[data-field="proj-desc"]')?.value.trim()||'', technologies:item.querySelector('[data-field="proj-tech"]')?.value.trim()||'', github:item.querySelector('[data-field="proj-github"]')?.value.trim()||'', demo:item.querySelector('[data-field="proj-demo"]')?.value.trim()||'' })).filter(p=>p.title);
+  if(s===6) AppState.cvData.contact = { email:val('c-email'), linkedin:val('c-linkedin'), github:val('c-github'), website:val('c-website') };
+}
+
+// Populate forms from AppState (for when user returns)
+function populateFromState() {
+  setVal('p-name',     AppState.cvData.personal.fullName);
+  setVal('p-title',    AppState.cvData.personal.title);
+  setVal('p-location', AppState.cvData.personal.location);
+  setVal('p-bio',      AppState.cvData.personal.bio);
+  if(AppState.cvData.personal.photo) showPhotoPreview(AppState.cvData.personal.photo);
+  if(AppState.cvData.skills.length)     { document.getElementById('skills-container').innerHTML='';     AppState.cvData.skills.forEach(s=>addSkillEntry(s)); }
+  if(AppState.cvData.experience.length) { document.getElementById('experience-container').innerHTML=''; AppState.cvData.experience.forEach(e=>addExperienceEntry(e)); }
+  if(AppState.cvData.education.length)  { document.getElementById('education-container').innerHTML='';  AppState.cvData.education.forEach(e=>addEducationEntry(e)); }
+  if(AppState.cvData.projects.length)   { document.getElementById('projects-container').innerHTML='';   AppState.cvData.projects.forEach(p=>addProjectEntry(p)); }
+  setVal('c-email',    AppState.cvData.contact.email);
+  setVal('c-linkedin', AppState.cvData.contact.linkedin);
+  setVal('c-github',   AppState.cvData.contact.github);
+  setVal('c-website',  AppState.cvData.contact.website);
+}
+
+// Dynamic entry creators
+function addSkillEntry(data={}) {
+  const c = document.getElementById('skills-container');
+  const levels = ['Beginner','Basic','Intermediate','Advanced','Expert'];
+  const active = data.level||'Intermediate';
+  const idx = c.children.length+1;
+  const el = document.createElement('div'); el.className='entry-item';
+  el.innerHTML=`<div class="entry-item-header"><span class="entry-item-title">Skill #${idx}</span><button class="entry-remove" onclick="removeEntry(this)">✕ Remove</button></div>
+    <div class="entry-grid">
+      <div class="form-group"><label class="form-label">Skill Name</label><input type="text" class="form-input" data-field="skill-name" placeholder="e.g. JavaScript" value="${esc(data.name||'')}"></div>
+      <div class="form-group"><label class="form-label">Level</label><div class="skill-level-btns">${levels.map(l=>`<button type="button" class="skill-level-btn${l===active?' active':''}" ${l===active?`data-active-level="${l}"`:''}  onclick="selectSkillLevel(this,'${l}')">${l}</button>`).join('')}</div></div>
+    </div>`;
+  c.appendChild(el);
+}
+
+function selectSkillLevel(btn, level) {
+  btn.closest('.skill-level-btns').querySelectorAll('.skill-level-btn').forEach(b=>{ b.classList.remove('active'); delete b.dataset.activeLevel; });
+  btn.classList.add('active'); btn.dataset.activeLevel = level;
+}
+
+function addExperienceEntry(data={}) {
+  const c = document.getElementById('experience-container');
+  const idx = c.children.length+1;
+  const el = document.createElement('div'); el.className='entry-item';
+  el.innerHTML=`<div class="entry-item-header"><span class="entry-item-title">Experience #${idx}</span><button class="entry-remove" onclick="removeEntry(this)">✕ Remove</button></div>
+    <div class="entry-grid">
+      <div class="form-group"><label class="form-label">Job Title *</label><input type="text" class="form-input" data-field="job-title" placeholder="e.g. Senior Developer" value="${esc(data.jobTitle||'')}"></div>
+      <div class="form-group"><label class="form-label">Company *</label><input type="text" class="form-input" data-field="company" placeholder="e.g. Google" value="${esc(data.company||'')}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Duration</label><input type="text" class="form-input" data-field="duration" placeholder="e.g. Jan 2021 – Present" value="${esc(data.duration||'')}"></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" data-field="exp-desc" placeholder="Describe responsibilities and achievements...">${esc(data.description||'')}</textarea></div>`;
+  c.appendChild(el);
+}
+
+function addEducationEntry(data={}) {
+  const c = document.getElementById('education-container');
+  const idx = c.children.length+1;
+  const el = document.createElement('div'); el.className='entry-item';
+  el.innerHTML=`<div class="entry-item-header"><span class="entry-item-title">Education #${idx}</span><button class="entry-remove" onclick="removeEntry(this)">✕ Remove</button></div>
+    <div class="entry-grid-3">
+      <div class="form-group"><label class="form-label">Institution *</label><input type="text" class="form-input" data-field="institution" placeholder="e.g. MIT" value="${esc(data.institution||'')}"></div>
+      <div class="form-group"><label class="form-label">Degree</label><input type="text" class="form-input" data-field="degree" placeholder="e.g. B.Sc CS" value="${esc(data.degree||'')}"></div>
+      <div class="form-group"><label class="form-label">Year</label><input type="text" class="form-input" data-field="edu-year" placeholder="e.g. 2019–2023" value="${esc(data.year||'')}"></div>
+    </div>`;
+  c.appendChild(el);
+}
+
+function addProjectEntry(data={}) {
+  const c = document.getElementById('projects-container');
+  const idx = c.children.length+1;
+  const el = document.createElement('div'); el.className='entry-item';
+  el.innerHTML=`<div class="entry-item-header"><span class="entry-item-title">Project #${idx}</span><button class="entry-remove" onclick="removeEntry(this)">✕ Remove</button></div>
+    <div class="entry-grid">
+      <div class="form-group"><label class="form-label">Project Title *</label><input type="text" class="form-input" data-field="proj-title" placeholder="e.g. E-Commerce App" value="${esc(data.title||'')}"></div>
+      <div class="form-group"><label class="form-label">Technologies</label><input type="text" class="form-input" data-field="proj-tech" placeholder="e.g. React, Node.js" value="${esc(data.technologies||'')}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" data-field="proj-desc" placeholder="What does this project do?">${esc(data.description||'')}</textarea></div>
+    <div class="entry-grid">
+      <div class="form-group"><label class="form-label">GitHub URL</label><input type="url" class="form-input" data-field="proj-github" placeholder="https://github.com/..." value="${esc(data.github||'')}"></div>
+      <div class="form-group"><label class="form-label">Live Demo URL</label><input type="url" class="form-input" data-field="proj-demo" placeholder="https://..." value="${esc(data.demo||'')}"></div>
+    </div>`;
+  c.appendChild(el);
+}
+
+function removeEntry(btn) {
+  const item = btn.closest('.entry-item');
+  item.style.opacity='0'; item.style.transform='translateX(-8px)';
+  setTimeout(()=>item.remove(), 220);
+}
+
+function showPhotoPreview(src) {
+  const pr=document.getElementById('photo-preview'), ic=document.getElementById('upload-icon'), tx=document.getElementById('upload-text');
+  if(pr){pr.src=src;pr.style.display='block';} if(ic)ic.style.display='none'; if(tx)tx.textContent='Click to change photo';
+}
+
+function startBuilder() {
+  navigateTo('page-builder');
+  AppState.currentStep = 1; updateProgressUI(); populateFromState();
+  const pi = document.getElementById('photo-input');
+  if(pi && !pi._listenerAdded) {
+    pi._listenerAdded = true;
+    pi.addEventListener('change', e => {
+      const file = e.target.files[0]; if(!file) return;
+      const r = new FileReader();
+      r.onload = ev => { AppState.cvData.personal.photo=ev.target.result; showPhotoPreview(ev.target.result); };
+      r.readAsDataURL(file);
+    });
+  }
+  if(!AppState.cvData.skills.length)     addSkillEntry();
+  if(!AppState.cvData.experience.length) addExperienceEntry();
+  if(!AppState.cvData.education.length)  addEducationEntry();
+  if(!AppState.cvData.projects.length)   addProjectEntry();
+}
+
+function startBuilderWithTemplate(tpl) { AppState.customization.template=tpl; startBuilder(); }
+function generateCV() { navigateTo('page-preview'); renderCV(); renderCustomizationPanel(); }
+function editCV() { navigateTo('page-builder'); updateProgressUI(); }
+
+// Auto-save on input in builder
+document.addEventListener('input', e => {
+  if(e.target.closest('.builder-form')) {
+    clearTimeout(window._ast);
+    window._ast = setTimeout(()=>{ collectCurrentStepData(); localStorage.setItem('cv-data', JSON.stringify(AppState.cvData)); }, 1200);
+  }
+});
+
+/* ──────────────────────────────────────────────────────────
+   4. CV RENDERER (3 templates)
+   ────────────────────────────────────────────────────────── */
+const COLOR_PRESETS = [
+  {name:'Gold',hex:'#B8973A'},{name:'Slate',hex:'#2C5F7A'},{name:'Sage',hex:'#4A7B6F'},
+  {name:'Rose',hex:'#A04060'},{name:'Plum',hex:'#6B4F82'},{name:'Coral',hex:'#C25B3E'},
+  {name:'Navy',hex:'#2A3F6B'},{name:'Forest',hex:'#3A6042'}
+];
+
+function renderCustomizationPanel() {
+  document.querySelectorAll('.template-option').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.template===AppState.customization.template);
+    opt.onclick = () => { AppState.customization.template=opt.dataset.template; document.querySelectorAll('.template-option').forEach(o=>o.classList.remove('active')); opt.classList.add('active'); renderCV(); localStorage.setItem('cv-custom',JSON.stringify(AppState.customization)); };
+  });
+  const sc = document.getElementById('color-swatches');
+  if(sc) sc.innerHTML = COLOR_PRESETS.map(c=>`<button class="color-swatch${c.hex===AppState.customization.primaryColor?' active':''}" style="background:${c.hex}" title="${c.name}" onclick="setAccentColor('${c.hex}',this)"></button>`).join('')+`<input type="color" value="${AppState.customization.primaryColor}" style="width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid var(--border);padding:1px" oninput="setAccentColor(this.value,this)">`;
+  document.querySelectorAll('.font-option').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.font===AppState.customization.fontStyle);
+    opt.onclick=()=>{ AppState.customization.fontStyle=opt.dataset.font; document.querySelectorAll('.font-option').forEach(o=>o.classList.remove('active')); opt.classList.add('active'); applyFontStyle(); localStorage.setItem('cv-custom',JSON.stringify(AppState.customization)); };
+  });
+  const ss=document.getElementById('spacing-slider');
+  if(ss){ ss.value={compact:1,normal:2,spacious:3}[AppState.customization.spacing]||2; ss.oninput=e=>{ AppState.customization.spacing={1:'compact',2:'normal',3:'spacious'}[e.target.value]; applySpacing(); localStorage.setItem('cv-custom',JSON.stringify(AppState.customization)); }; }
+  applyAccentColor(AppState.customization.primaryColor); applyFontStyle(); applySpacing();
+}
+
+function setAccentColor(hex, el) {
+  AppState.customization.primaryColor=hex;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+  if(el&&el.classList&&el.classList.contains('color-swatch')) el.classList.add('active');
+  applyAccentColor(hex); localStorage.setItem('cv-custom',JSON.stringify(AppState.customization)); renderCV();
+}
+function applyAccentColor(hex) {
+  document.documentElement.style.setProperty('--accent', hex);
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  document.documentElement.style.setProperty('--accent-rgb',`${r},${g},${b}`);
+}
+function applyFontStyle() { const cv=document.getElementById('cv-document'); if(!cv)return; cv.classList.remove('font-serif-sans','font-sans','font-mono-accent'); cv.classList.add(`font-${AppState.customization.fontStyle}`); }
+function applySpacing()   { const cv=document.getElementById('cv-document'); if(!cv)return; cv.classList.remove('spacing-compact','spacing-normal','spacing-spacious'); cv.classList.add(`spacing-${AppState.customization.spacing}`); }
+
+function lightenColor(hex,amt) { const n=parseInt(hex.replace('#',''),16); return '#'+[Math.min(255,(n>>16)+amt),Math.min(255,((n>>8)&0xff)+amt),Math.min(255,(n&0xff)+amt)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+function renderCV() {
+  const cv=document.getElementById('cv-document'); if(!cv) return;
+  const tpl=AppState.customization.template, accent=AppState.customization.primaryColor, data=AppState.cvData;
+  cv.style.setProperty('--cv-accent', accent);
+  cv.style.setProperty('--cv-accent-light', lightenColor(accent,20));
+  cv.style.setProperty('--cv-accent-pale',  lightenColor(accent,80));
+  cv.className='cv-document'; cv.classList.add(`tpl-${tpl}`);
+  applyFontStyle(); applySpacing();
+  if(tpl==='professional') cv.innerHTML = renderProfessional(data);
+  if(tpl==='minimal')      cv.innerHTML = renderMinimal(data);
+  if(tpl==='creative')     cv.innerHTML = renderCreative(data);
+}
+
+// Section builders
+function buildSkillsHTML(skills) { return skills.map(s=>`<div class="cv-skill-item"><div class="cv-skill-name"><span>${esc(s.name)}</span><span style="font-size:0.68rem;opacity:0.55">${esc(s.level)}</span></div><div class="cv-skill-bar"><div class="cv-skill-fill" style="width:${skillLevelToPct(s.level)}%"></div></div></div>`).join(''); }
+function buildExpHTML(exp) { return exp.map(e=>`<div class="cv-exp-item"><div class="cv-exp-header"><span class="cv-exp-title">${esc(e.jobTitle)}</span><span class="cv-exp-duration">${esc(e.duration)}</span></div><div class="cv-exp-company">${esc(e.company)}</div>${e.description?`<div class="cv-exp-desc">${esc(e.description)}</div>`:''}</div>`).join(''); }
+function buildEduHTML(edu) { return edu.map(e=>`<div class="cv-edu-item"><div class="cv-edu-degree">${esc(e.degree)}</div><div class="cv-edu-inst">${esc(e.institution)}</div><div class="cv-edu-year">${esc(e.year)}</div></div>`).join(''); }
+function buildProjHTML(projects) { return projects.map(p=>{ const tech=p.technologies?p.technologies.split(',').map(t=>`<span>${esc(t.trim())}</span>`).join(''):'' ; const links=[p.github?`<a href="${esc(ensureHttps(p.github))}" target="_blank">⬡ GitHub</a>`:'',p.demo?`<a href="${esc(ensureHttps(p.demo))}" target="_blank">↗ Demo</a>`:''].filter(Boolean).join(''); return `<div class="cv-project-item"><div class="cv-project-title">${esc(p.title)}</div>${p.description?`<div class="cv-project-desc">${esc(p.description)}</div>`:''}${tech?`<div class="cv-project-tech">${tech}</div>`:''}${links?`<div class="cv-project-links">${links}</div>`:''}</div>`; }).join(''); }
+function buildContactSidebar(c,loc) { return [c.email&&`<div class="cv-contact-row"><span class="ci">✉</span>${esc(c.email)}</div>`,loc&&`<div class="cv-contact-row"><span class="ci">◎</span>${esc(loc)}</div>`,c.linkedin&&`<div class="cv-contact-row"><span class="ci">in</span>${esc(c.linkedin)}</div>`,c.github&&`<div class="cv-contact-row"><span class="ci">⬡</span>${esc(c.github)}</div>`,c.website&&`<div class="cv-contact-row"><span class="ci">↗</span>${esc(c.website)}</div>`].filter(Boolean).join(''); }
+function buildContactInline(c,loc) { return [c.email&&`<span class="cv-contact-item">✉ ${esc(c.email)}</span>`,loc&&`<span class="cv-contact-item">◎ ${esc(loc)}</span>`,c.linkedin&&`<span class="cv-contact-item">in ${esc(c.linkedin)}</span>`,c.github&&`<span class="cv-contact-item">⬡ ${esc(c.github)}</span>`,c.website&&`<span class="cv-contact-item">↗ ${esc(c.website)}</span>`].filter(Boolean).join(''); }
+
+function renderProfessional(data) {
+  const p=data.personal, photo=p.photo?`<img class="cv-photo" src="${p.photo}" alt="">`:`<div class="cv-photo-placeholder">${getInitials(p.fullName)}</div>`;
+  return `<div class="cv-header">${photo}<div><div class="cv-name">${esc(p.fullName)||'Your Name'}</div><div class="cv-job-title">${esc(p.title)||'Professional Title'}</div><div class="cv-contacts">${buildContactInline(data.contact,p.location)}</div></div></div>
+    <div class="cv-body">
+      <div class="cv-main">
+        ${p.bio?`<div class="cv-section"><div class="cv-section-title">Summary</div><div class="cv-bio">${esc(p.bio)}</div></div>`:''}
+        ${data.experience.length?`<div class="cv-section"><div class="cv-section-title">Experience</div>${buildExpHTML(data.experience)}</div>`:''}
+        ${data.projects.length?`<div class="cv-section"><div class="cv-section-title">Projects</div>${buildProjHTML(data.projects)}</div>`:''}
+        ${data.education.length?`<div class="cv-section"><div class="cv-section-title">Education</div>${buildEduHTML(data.education)}</div>`:''}
+      </div>
+      <div class="cv-sidebar">
+        ${data.skills.length?`<div class="cv-section"><div class="cv-section-title">Skills</div>${buildSkillsHTML(data.skills)}</div>`:''}
+        ${data.contact.email?`<div class="cv-section"><div class="cv-section-title">Contact</div><div class="cv-contact-sidebar">${buildContactSidebar(data.contact,p.location)}</div></div>`:''}
+      </div>
+    </div>`;
+}
+
+function renderMinimal(data) {
+  const p=data.personal, skillsMin=data.skills.map(s=>`<div class="cv-skill-item"><span class="cv-skill-name">${esc(s.name)}</span><span class="cv-skill-level">${esc(s.level)}</span></div>`).join('');
+  return `<div class="cv-header"><div><div class="cv-name">${esc(p.fullName)||'Your Name'}</div><div class="cv-job-title">${esc(p.title)||'Title'}</div></div>
+    <div class="cv-contacts">${[data.contact.email&&`<span class="cv-contact-item">${esc(data.contact.email)}</span>`,p.location&&`<span class="cv-contact-item">${esc(p.location)}</span>`,data.contact.linkedin&&`<span class="cv-contact-item">${esc(data.contact.linkedin)}</span>`].filter(Boolean).join('')}</div></div>
+    <div class="cv-body"><div class="cv-layout-cols">
+      <div>${p.bio?`<div class="cv-section"><div class="cv-section-title">Profile</div><div class="cv-bio">${esc(p.bio)}</div></div>`:''}${data.experience.length?`<div class="cv-section"><div class="cv-section-title">Experience</div>${buildExpHTML(data.experience)}</div>`:''}${data.projects.length?`<div class="cv-section"><div class="cv-section-title">Projects</div>${buildProjHTML(data.projects)}</div>`:''}</div>
+      <div>${data.skills.length?`<div class="cv-section"><div class="cv-section-title">Skills</div>${skillsMin}</div>`:''}${data.education.length?`<div class="cv-section"><div class="cv-section-title">Education</div>${buildEduHTML(data.education)}</div>`:''}${data.contact.email?`<div class="cv-section"><div class="cv-section-title">Links</div><div class="cv-contact-sidebar">${buildContactSidebar(data.contact,'')}</div></div>`:''}</div>
+    </div></div>`;
+}
+
+function renderCreative(data) {
+  const p=data.personal, photo=p.photo?`<img src="${p.photo}" alt="" style="width:90px;height:90px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,0.1)">`:`<div class="cv-photo-placeholder">${getInitials(p.fullName)}</div>`;
+  return `<div class="cv-header"><div><div class="cv-name">${esc(p.fullName)||'Your Name'}</div><div class="cv-job-title">${esc(p.title)||'Title'}</div><div class="cv-contacts">${buildContactInline(data.contact,p.location)}</div></div>${photo}</div>
+    <div class="cv-body">
+      <div class="cv-main">${p.bio?`<div class="cv-section"><div class="cv-section-title">About</div><div class="cv-bio">${esc(p.bio)}</div></div>`:''}${data.experience.length?`<div class="cv-section"><div class="cv-section-title">Experience</div>${buildExpHTML(data.experience)}</div>`:''}${data.projects.length?`<div class="cv-section"><div class="cv-section-title">Projects</div>${buildProjHTML(data.projects)}</div>`:''}</div>
+      <div class="cv-sidebar">${data.skills.length?`<div class="cv-section"><div class="cv-section-title">Skills</div>${buildSkillsHTML(data.skills)}</div>`:''}${data.education.length?`<div class="cv-section"><div class="cv-section-title">Education</div>${buildEduHTML(data.education)}</div>`:''}${data.contact.email?`<div class="cv-section"><div class="cv-section-title">Contact</div><div class="cv-contact-sidebar">${buildContactSidebar(data.contact,p.location)}</div></div>`:''}</div>
+    </div>`;
+}
+
+function downloadCV() {
+  const el=document.getElementById('cv-document'); if(!el) return;
+  showToast('Preparing PDF…');
+  if(typeof html2pdf!=='undefined') {
+    const name=(AppState.cvData.personal.fullName||'CV').replace(/\s+/g,'_');
+    html2pdf().set({margin:[10,10,10,10],filename:`${name}_CV.pdf`,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(el).save().then(()=>showToast('PDF downloaded! ✓'));
+  } else { window.print(); }
+}
+
+function previewDemo() { loadDemoCV(); navigateTo('page-preview'); renderCV(); renderCustomizationPanel(); }
+function loadDemoCV() {
+  AppState.cvData = {
+    personal:{ fullName:'Alexandra Chen', title:'Senior Full-Stack Engineer', location:'San Francisco, CA', bio:'Software engineer with 7+ years building scalable web apps. Passionate about clean code and great UX.', photo:null },
+    skills:[{name:'JavaScript',level:'Expert'},{name:'React',level:'Expert'},{name:'Node.js',level:'Advanced'},{name:'TypeScript',level:'Advanced'},{name:'Python',level:'Intermediate'},{name:'Docker',level:'Intermediate'},{name:'PostgreSQL',level:'Intermediate'},{name:'GraphQL',level:'Basic'}],
+    experience:[{jobTitle:'Senior Software Engineer',company:'Google',duration:'Jan 2022 – Present',description:'Lead development of core infrastructure serving 50M+ users.'},{jobTitle:'Full-Stack Developer',company:'Stripe',duration:'Mar 2019 – Dec 2021',description:'Built payment APIs handling $500M in annual transactions.'}],
+    education:[{institution:'MIT',degree:'B.Sc Computer Science',year:'2015–2019'}],
+    projects:[{title:'OpenDash',description:'Real-time analytics dashboard for SMBs.',technologies:'React, D3.js, Node.js, PostgreSQL',github:'https://github.com/achen/opendash',demo:'https://opendash.dev'}],
+    contact:{email:'alex@example.com',linkedin:'linkedin.com/in/alexchen',github:'github.com/alexchen',website:'alexchen.dev'}
+  };
+}
+
+/* ──────────────────────────────────────────────────────────
+   5. LOCATION SEARCH ENGINE
+   Uses Nominatim (OpenStreetMap) — free, no API key needed.
+   ────────────────────────────────────────────────────────── */
+
+// Location state
+const LocationState = {
+  query: '',
+  selected: null,    // { name, lat, lon, country }
+  suggestions: [],
+  jobType: 'all',
+  useRealApi: false  // toggle: false = mock data, true = live API
+};
+
+let _locationDebounce = null;
+
+/** onLocationInput — debounced search for location suggestions */
+function onLocationInput(value) {
+  LocationState.query = value;
+  clearTimeout(_locationDebounce);
+  if(value.length < 2) { hideSuggestions(); return; }
+  _locationDebounce = setTimeout(() => fetchLocationSuggestions(value), 350);
+}
+
+function onLocationKeydown(e) {
+  if(e.key === 'Enter') {
+    const first = document.querySelector('.location-suggestion-item');
+    if(first) first.click();
+  }
+  if(e.key === 'Escape') hideSuggestions();
+}
+
+/**
+ * fetchLocationSuggestions
+ * Calls Nominatim OpenStreetMap API to get city/country suggestions.
+ * Free, open, no API key required.
+ */
+async function fetchLocationSuggestions(query) {
+  // Special case: "Remote" doesn't need geocoding
+  if(query.toLowerCase().startsWith('rem')) {
+    showSuggestions([{ name:'Remote', display:'Remote (Worldwide)', lat:0, lon:0, country:'Global', isRemote:true }]);
+    return;
+  }
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=6&featuretype=city`;
+    const res  = await fetch(url, { headers: {'Accept-Language':'en'} });
+    if(!res.ok) return;
+    const data = await res.json();
+    const suggestions = data.map(item => ({
+      name:    item.address?.city || item.address?.town || item.address?.village || item.name,
+      display: item.display_name,
+      lat:     parseFloat(item.lat),
+      lon:     parseFloat(item.lon),
+      country: item.address?.country || '',
+      countryCode: item.address?.country_code?.toUpperCase() || ''
+    })).filter(s => s.name);
+    showSuggestions(suggestions);
+  } catch(err) {
+    // Silently fail — just hide suggestions
+    hideSuggestions();
+  }
+}
+
+function showSuggestions(suggestions) {
+  LocationState.suggestions = suggestions;
+  const list = document.getElementById('location-suggestions-list');
+  if(!list) return;
+  if(suggestions.length === 0) { hideSuggestions(); return; }
+  list.innerHTML = suggestions.map((s, i) => `
+    <div class="location-suggestion-item" onclick="selectLocation(${i})">
+      <span class="loc-icon">${s.isRemote ? '🌐' : '◎'}</span>
+      <span class="loc-name">${esc(s.name)}</span>
+      <span class="loc-country">${esc(s.countryCode || s.country || '')}</span>
+    </div>`).join('');
+  list.classList.add('open');
+}
+
+function hideSuggestions() {
+  const list = document.getElementById('location-suggestions-list');
+  if(list) list.classList.remove('open');
+}
+
+function selectLocation(idx) {
+  const loc = LocationState.suggestions[idx];
+  if(!loc) return;
+  LocationState.selected = loc;
+  hideSuggestions();
+
+  // Update input
+  const input = document.getElementById('location-input');
+  if(input) input.value = loc.name;
+
+  // Show badge
+  const badge = document.getElementById('location-selected-badge');
+  const text  = document.getElementById('location-selected-text');
+  if(badge && text) {
+    text.textContent = loc.isRemote ? 'Remote (Worldwide)' : `${loc.name}${loc.country ? ', ' + loc.country : ''}`;
+    badge.classList.add('visible');
+  }
+  showToast(`📍 Location set: ${loc.name}`, 2000);
+}
+
+function clearLocation() {
+  LocationState.selected = null;
+  const input = document.getElementById('location-input');
+  const badge = document.getElementById('location-selected-badge');
+  if(input) input.value = '';
+  if(badge) badge.classList.remove('visible');
+  hideSuggestions();
+}
+
+/**
+ * detectMyLocation
+ * Uses the browser Geolocation API, then reverse-geocodes with Nominatim.
+ */
+async function detectMyLocation() {
+  if(!navigator.geolocation) {
+    showToast('Geolocation not supported by your browser', 3000); return;
+  }
+  const btn  = document.getElementById('detect-btn');
+  const icon = document.getElementById('detect-icon');
+  if(btn)  btn.classList.add('loading');
+  if(icon) icon.textContent = '⏳';
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude: lat, longitude: lon } = pos.coords;
+      try {
+        const url  = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
+        const res  = await fetch(url, { headers: {'Accept-Language':'en'} });
+        const data = await res.json();
+        const city    = data.address?.city || data.address?.town || data.address?.village || 'Nearby';
+        const country = data.address?.country || '';
+        const loc = { name:city, display:data.display_name, lat, lon, country };
+        LocationState.suggestions = [loc];
+        selectLocation(0);
+        const input = document.getElementById('location-input');
+        if(input) input.value = city;
+      } catch(e) {
+        showToast('Could not reverse-geocode location', 2500);
+      }
+      if(btn)  btn.classList.remove('loading');
+      if(icon) icon.textContent = '◎';
+    },
+    (err) => {
+      showToast('Location access denied. Enter manually.', 3000);
+      if(btn)  btn.classList.remove('loading');
+      if(icon) icon.textContent = '◎';
+    },
+    { timeout: 8000, maximumAge: 60000 }
+  );
+}
+
+function selectJobType(el, type) {
+  document.querySelectorAll('.job-type-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  LocationState.jobType = type;
+}
+
+function toggleApiSource() {
+  LocationState.useRealApi = !LocationState.useRealApi;
+  const sw = document.getElementById('api-toggle-sw');
+  const lb = document.getElementById('api-toggle-label');
+  if(sw) sw.className = `toggle-switch${LocationState.useRealApi ? ' on' : ''}`;
+  if(lb) lb.textContent = LocationState.useRealApi ? 'Using live job listings ✓' : 'Use live job listings';
+  showToast(LocationState.useRealApi ? '🌐 Live jobs enabled' : '📦 Using curated jobs', 2000);
+}
+
+/* ──────────────────────────────────────────────────────────
+   6. REAL JOB API — Remotive + Arbeitnow
+   Both are free, no API key required, CORS-friendly.
+   ────────────────────────────────────────────────────────── */
+
+/**
+ * fetchRealJobs
+ * Fetches actual live jobs from Remotive.io and Arbeitnow APIs.
+ * Remotive:  https://remotive.com/api/remote-jobs  (remote jobs only)
+ * Arbeitnow: https://www.arbeitnow.com/api/job-board-api  (global)
+ */
+async function fetchRealJobs(cvData, location) {
+  const loadingEl  = document.getElementById('api-loading');
+  const loadingSub = document.getElementById('api-loading-sub');
+  if(loadingEl) loadingEl.classList.add('visible');
+
+  // Build search terms from CV
+  const skillTerms = cvData.skills.slice(0, 3).map(s => s.name).join(' ');
+  const titleTerm  = cvData.personal?.title || '';
+  const searchTerm = skillTerms || titleTerm || 'developer';
+
+  const allJobs = [];
+
+  // ── Source 1: Remotive API (best for remote jobs) ──────
+  try {
+    if(loadingSub) loadingSub.textContent = 'Fetching from Remotive...';
+    const remUrl = `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(searchTerm)}&limit=40`;
+    const remRes = await fetch(remUrl);
+    if(remRes.ok) {
+      const remData = await remRes.json();
+      const remJobs = (remData.jobs || []).map((j, i) => normalizeRemotiveJob(j, i));
+      allJobs.push(...remJobs);
+    }
+  } catch(e) { console.warn('Remotive fetch failed:', e); }
+
+  // ── Source 2: Arbeitnow API (global, inc. location filter) ──
+  try {
+    if(loadingSub) loadingSub.textContent = 'Fetching from Arbeitnow...';
+    let arbUrl = `https://www.arbeitnow.com/api/job-board-api?page=1`;
+    if(location && !location.isRemote && location.name) {
+      arbUrl += `&location=${encodeURIComponent(location.name)}`;
+    }
+    const arbRes = await fetch(arbUrl);
+    if(arbRes.ok) {
+      const arbData = await arbRes.json();
+      const arbJobs = (arbData.data || []).slice(0, 40).map((j, i) => normalizeArbeitnowJob(j, i + 1000));
+      allJobs.push(...arbJobs);
+    }
+  } catch(e) { console.warn('Arbeitnow fetch failed:', e); }
+
+  if(loadingEl) loadingEl.classList.remove('visible');
+
+  if(allJobs.length === 0) {
+    showToast('⚠ Live API unavailable — showing curated jobs', 3500);
+    return null; // caller will fall back to mock data
+  }
+
+  showToast(`✓ Loaded ${allJobs.length} live jobs`, 2500);
+  return allJobs;
+}
+
+/**
+ * normalizeRemotiveJob
+ * Maps Remotive API response to our internal job format.
+ */
+function normalizeRemotiveJob(j, idx) {
+  // Extract skills from tags + category
+  const skills = (j.tags || []).concat(j.job_type ? [j.job_type] : []).slice(0, 6);
+  if(skills.length === 0 && j.category) skills.push(j.category);
+
+  return {
+    id: `rem_${j.id || idx}`,
+    title: j.title || 'Software Engineer',
+    company: j.company_name || 'Company',
+    location: j.candidate_required_location || 'Remote',
+    salary: j.salary || '',
+    type: j.job_type || 'Full-time',
+    skills: skills,
+    description: stripHtml(j.description || '').slice(0, 300),
+    applyLink: j.url || '#',
+    color: companyColor(j.company_name || 'company'),
+    isLive: true,
+    publishedAt: j.publication_date || ''
+  };
+}
+
+/**
+ * normalizeArbeitnowJob
+ * Maps Arbeitnow API response to our internal job format.
+ */
+function normalizeArbeitnowJob(j, idx) {
+  const skills = (j.tags || []).slice(0, 6);
+  return {
+    id: `arb_${idx}`,
+    title: j.title || 'Developer',
+    company: j.company_name || 'Company',
+    location: j.location || (j.remote ? 'Remote' : 'On-site'),
+    salary: '',
+    type: j.remote ? 'Remote' : 'Full-time',
+    skills: skills,
+    description: stripHtml(j.description || '').slice(0, 300),
+    applyLink: j.url || '#',
+    color: companyColor(j.company_name || 'company'),
+    isLive: true,
+    publishedAt: j.created_at || ''
+  };
+}
+
+/** Strip HTML tags from API descriptions */
+function stripHtml(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return d.textContent || d.innerText || '';
+}
+
+/* ──────────────────────────────────────────────────────────
+   7. MOCK JOB DATA — 50 curated jobs (fallback + default)
+   ────────────────────────────────────────────────────────── */
+const JOB_DATA = [
+  {id:1,title:'Senior Frontend Engineer',company:'Vercel',location:'Remote',salary:'$130k–$160k',type:'Full-time',skills:['JavaScript','React','TypeScript','CSS','Next.js'],description:'Build the future of web deployment. Work on the dashboard and developer tools used by millions worldwide.',applyLink:'https://vercel.com/careers',color:'#000000',isLive:false},
+  {id:2,title:'React Developer',company:'Shopify',location:'Ottawa, Canada',salary:'$110k–$140k',type:'Full-time',skills:['React','JavaScript','GraphQL','TypeScript','CSS'],description:'Join the Storefront team building shopping experiences for 1M+ merchants.',applyLink:'https://shopify.com/careers',color:'#96BF48',isLive:false},
+  {id:3,title:'UI Engineer',company:'Linear',location:'Remote',salary:'$120k–$150k',type:'Full-time',skills:['React','TypeScript','CSS','Figma','Animation'],description:'Craft pixel-perfect interfaces for a project management tool used by the best engineering teams.',applyLink:'https://linear.app/careers',color:'#5E6AD2',isLive:false},
+  {id:4,title:'Frontend Developer',company:'TechNova',location:'New York, NY',salary:'$90k–$115k',type:'Full-time',skills:['JavaScript','Vue.js','CSS','HTML','REST APIs'],description:'Build modern web interfaces for a SaaS platform in a fast-moving startup environment.',applyLink:'https://technova.com/jobs',color:'#E63946',isLive:false},
+  {id:5,title:'Staff Frontend Engineer',company:'Figma',location:'San Francisco, CA',salary:'$200k–$250k',type:'Full-time',skills:['JavaScript','React','TypeScript','WebAssembly','Canvas API'],description:'Work on the core editor powering the world\'s most collaborative design tool.',applyLink:'https://figma.com/careers',color:'#F24E1E',isLive:false},
+  {id:6,title:'Backend Engineer',company:'Stripe',location:'Remote',salary:'$150k–$200k',type:'Full-time',skills:['Node.js','Python','PostgreSQL','Redis','Docker'],description:'Build the financial infrastructure for the internet. Work on APIs used by millions of businesses.',applyLink:'https://stripe.com/jobs',color:'#635BFF',isLive:false},
+  {id:7,title:'Senior Backend Developer',company:'Cloudflare',location:'Austin, TX',salary:'$140k–$180k',type:'Full-time',skills:['Go','Rust','Kubernetes','Networking','Docker'],description:'Build distributed systems at global scale. Make the internet faster and safer.',applyLink:'https://cloudflare.com/careers',color:'#F38020',isLive:false},
+  {id:8,title:'Node.js Engineer',company:'Netlify',location:'Remote',salary:'$100k–$130k',type:'Full-time',skills:['Node.js','JavaScript','TypeScript','AWS','Serverless'],description:'Work on serverless functions and edge computing products.',applyLink:'https://netlify.com/careers',color:'#00C7B7',isLive:false},
+  {id:9,title:'Python Backend Developer',company:'Anthropic',location:'San Francisco, CA',salary:'$160k–$220k',type:'Full-time',skills:['Python','FastAPI','PostgreSQL','Docker','Machine Learning'],description:'Build the infrastructure that powers cutting-edge AI systems.',applyLink:'https://anthropic.com/careers',color:'#D4A373',isLive:false},
+  {id:10,title:'API Engineer',company:'Twilio',location:'Remote',salary:'$120k–$155k',type:'Full-time',skills:['Node.js','Python','REST APIs','PostgreSQL','Redis'],description:'Design and build APIs used by 250,000+ developer customers worldwide.',applyLink:'https://twilio.com/company/jobs',color:'#E2231A',isLive:false},
+  {id:11,title:'Full-Stack Engineer',company:'GitHub',location:'Remote',salary:'$140k–$190k',type:'Full-time',skills:['Ruby on Rails','React','TypeScript','PostgreSQL','Docker'],description:'Work on the platform that hosts over 100M repositories.',applyLink:'https://github.com/about/careers',color:'#24292E',isLive:false},
+  {id:12,title:'Senior Full-Stack Developer',company:'Notion',location:'San Francisco, CA',salary:'$150k–$200k',type:'Full-time',skills:['React','Node.js','TypeScript','PostgreSQL','Redis'],description:'Build the next generation of connected workspace features.',applyLink:'https://notion.so/careers',color:'#000000',isLive:false},
+  {id:13,title:'Full-Stack JavaScript Developer',company:'Loom',location:'Remote',salary:'$110k–$145k',type:'Full-time',skills:['JavaScript','React','Node.js','GraphQL','MongoDB'],description:'Build video messaging tools that transform how teams communicate.',applyLink:'https://loom.com/careers',color:'#625DF5',isLive:false},
+  {id:14,title:'Product Engineer',company:'Raycast',location:'Remote',salary:'$120k–$160k',type:'Full-time',skills:['TypeScript','React','Node.js','Swift','macOS'],description:'Build a supercharged productivity tool for developers on macOS.',applyLink:'https://raycast.com/jobs',color:'#FF6363',isLive:false},
+  {id:15,title:'Software Engineer (Fullstack)',company:'Retool',location:'San Francisco, CA',salary:'$130k–$175k',type:'Full-time',skills:['React','TypeScript','Node.js','PostgreSQL','Python'],description:'Help businesses build internal tools 10x faster.',applyLink:'https://retool.com/careers',color:'#3D72D7',isLive:false},
+  {id:16,title:'DevOps Engineer',company:'HashiCorp',location:'Remote',salary:'$130k–$170k',type:'Full-time',skills:['Kubernetes','Terraform','Docker','Go','AWS'],description:'Build tools that enable infrastructure as code for teams worldwide.',applyLink:'https://hashicorp.com/jobs',color:'#5C4EE5',isLive:false},
+  {id:17,title:'Platform Engineer',company:'Datadog',location:'New York, NY',salary:'$145k–$185k',type:'Full-time',skills:['Go','Kubernetes','Docker','Python','AWS'],description:'Build the platform that monitors millions of servers in real time.',applyLink:'https://datadoghq.com/jobs',color:'#632CA6',isLive:false},
+  {id:18,title:'Cloud Infrastructure Engineer',company:'AWS',location:'Seattle, WA',salary:'$160k–$210k',type:'Full-time',skills:['AWS','Python','Java','Kubernetes','Terraform'],description:'Work on Amazon Web Services infrastructure serving 30% of the internet.',applyLink:'https://amazon.jobs',color:'#FF9900',isLive:false},
+  {id:19,title:'Site Reliability Engineer',company:'PagerDuty',location:'Remote',salary:'$135k–$170k',type:'Full-time',skills:['Python','Go','Kubernetes','Terraform','Monitoring'],description:'Ensure reliability of the on-call platform that handles millions of incidents.',applyLink:'https://pagerduty.com/careers',color:'#25C151',isLive:false},
+  {id:20,title:'MLOps Engineer',company:'Weights & Biases',location:'Remote',salary:'$140k–$180k',type:'Full-time',skills:['Python','Docker','Kubernetes','Machine Learning','PyTorch'],description:'Build tools that help ML teams track, visualize, and optimize their models.',applyLink:'https://wandb.ai/site/careers',color:'#FFBE00',isLive:false},
+  {id:21,title:'Data Engineer',company:'Snowflake',location:'Remote',salary:'$130k–$170k',type:'Full-time',skills:['Python','SQL','PostgreSQL','dbt','Spark'],description:'Build scalable data pipelines for the Data Cloud platform.',applyLink:'https://snowflake.com/careers',color:'#29B5E8',isLive:false},
+  {id:22,title:'ML Engineer',company:'OpenAI',location:'San Francisco, CA',salary:'$200k–$300k',type:'Full-time',skills:['Python','PyTorch','TensorFlow','Machine Learning','CUDA'],description:'Train and deploy large language models at the frontier of AI.',applyLink:'https://openai.com/careers',color:'#74AA9C',isLive:false},
+  {id:23,title:'Senior Data Scientist',company:'Spotify',location:'New York, NY',salary:'$145k–$190k',type:'Full-time',skills:['Python','Machine Learning','SQL','Spark','TensorFlow'],description:'Build recommendation systems for 500M+ music listeners.',applyLink:'https://lifeatspotify.com',color:'#1DB954',isLive:false},
+  {id:24,title:'AI Engineer',company:'Hugging Face',location:'Remote',salary:'$120k–$160k',type:'Full-time',skills:['Python','PyTorch','Transformers','Machine Learning','FastAPI'],description:'Build the GitHub of machine learning — democratize AI for everyone.',applyLink:'https://huggingface.co/jobs',color:'#FFD21E',isLive:false},
+  {id:25,title:'Data Analyst',company:'Airbnb',location:'San Francisco, CA',salary:'$100k–$135k',type:'Full-time',skills:['SQL','Python','Tableau','Statistics','PostgreSQL'],description:'Turn data into insights that shape the future of travel.',applyLink:'https://careers.airbnb.com',color:'#FF5A5F',isLive:false},
+  {id:26,title:'iOS Engineer',company:'Duolingo',location:'Pittsburgh, PA',salary:'$120k–$155k',type:'Full-time',skills:['Swift','SwiftUI','iOS','Objective-C','Xcode'],description:'Build delightful language learning experiences for 500M+ learners on iPhone.',applyLink:'https://duolingo.com/careers',color:'#58CC02',isLive:false},
+  {id:27,title:'React Native Developer',company:'Coinbase',location:'Remote',salary:'$140k–$180k',type:'Full-time',skills:['React Native','TypeScript','JavaScript','iOS','Android'],description:'Build the crypto wallet used by 100M+ customers on mobile.',applyLink:'https://coinbase.com/careers',color:'#0052FF',isLive:false},
+  {id:28,title:'Android Engineer',company:'Signal',location:'Remote',salary:'$110k–$145k',type:'Full-time',skills:['Kotlin','Android','Java','Cryptography','REST APIs'],description:'Build the most secure private messaging app on Android.',applyLink:'https://signal.org/workworkwork',color:'#3A76F0',isLive:false},
+  {id:29,title:'Mobile Engineer (React Native)',company:'Brex',location:'Remote',salary:'$130k–$170k',type:'Full-time',skills:['React Native','TypeScript','GraphQL','iOS','Android'],description:'Build fintech products for startups on iOS and Android.',applyLink:'https://brex.com/careers',color:'#F16B1F',isLive:false},
+  {id:30,title:'Senior iOS Developer',company:'Calm',location:'Remote',salary:'$125k–$160k',type:'Full-time',skills:['Swift','SwiftUI','CoreData','iOS','AVFoundation'],description:'Build meditation and sleep experiences that improve millions of lives.',applyLink:'https://calm.com/jobs',color:'#1A3356',isLive:false},
+  {id:31,title:'Design Engineer',company:'Framer',location:'Amsterdam, Netherlands',salary:'€80k–€110k',type:'Full-time',skills:['React','TypeScript','CSS','Figma','Animation'],description:'Build design tools that let creatives make production-ready websites without code.',applyLink:'https://framer.com/jobs',color:'#0099FF',isLive:false},
+  {id:32,title:'UI/UX Developer',company:'Webflow',location:'Remote',salary:'$110k–$145k',type:'Full-time',skills:['JavaScript','CSS','HTML','React','Figma'],description:'Build the visual web development platform that empowers designers.',applyLink:'https://webflow.com/careers',color:'#4353FF',isLive:false},
+  {id:33,title:'Creative Frontend Developer',company:'Stytch',location:'San Francisco, CA',salary:'$115k–$150k',type:'Full-time',skills:['JavaScript','React','CSS','Animation','TypeScript'],description:'Build beautiful auth UIs and developer documentation.',applyLink:'https://stytch.com/careers',color:'#19A187',isLive:false},
+  {id:34,title:'Frontend Architect',company:'Plasmic',location:'Remote',salary:'$130k–$175k',type:'Full-time',skills:['React','TypeScript','JavaScript','CSS','Node.js'],description:'Build the next-generation visual content platform for React.',applyLink:'https://plasmic.app/jobs',color:'#7C3AED',isLive:false},
+  {id:35,title:'Security Engineer',company:'Cloudflare',location:'Remote',salary:'$140k–$180k',type:'Full-time',skills:['Python','Go','Networking','Cryptography','Docker'],description:'Protect 25M+ internet properties from cyberattacks.',applyLink:'https://cloudflare.com/careers',color:'#F38020',isLive:false},
+  {id:36,title:'AppSec Engineer',company:'Okta',location:'Remote',salary:'$130k–$165k',type:'Full-time',skills:['Python','JavaScript','Security Testing','OWASP','REST APIs'],description:'Secure identity infrastructure trusted by 17,000+ organizations.',applyLink:'https://okta.com/company/careers',color:'#007DC1',isLive:false},
+  {id:37,title:'Blockchain Developer',company:'Alchemy',location:'Remote',salary:'$150k–$200k',type:'Full-time',skills:['Solidity','JavaScript','TypeScript','Ethereum','Node.js'],description:'Build developer tools for Web3 — the AWS of blockchain.',applyLink:'https://alchemy.com/careers',color:'#363FF9',isLive:false},
+  {id:38,title:'Smart Contract Engineer',company:'Uniswap',location:'Remote',salary:'$160k–$220k',type:'Full-time',skills:['Solidity','TypeScript','React','Ethereum','Python'],description:'Build decentralized trading protocols securing billions in assets.',applyLink:'https://uniswap.org/careers',color:'#FF007A',isLive:false},
+  {id:39,title:'Founding Engineer',company:'Cursor',location:'San Francisco, CA',salary:'$150k–$220k',type:'Full-time',skills:['TypeScript','Python','React','Node.js','Machine Learning'],description:'Build the AI-powered code editor that\'s changing how developers work.',applyLink:'https://cursor.sh/careers',color:'#1A1A1A',isLive:false},
+  {id:40,title:'Software Engineer',company:'Perplexity AI',location:'San Francisco, CA',salary:'$150k–$200k',type:'Full-time',skills:['Python','TypeScript','React','Machine Learning','Search'],description:'Build the AI answer engine that challenges how people find information.',applyLink:'https://perplexity.ai/careers',color:'#1FB8CD',isLive:false},
+  {id:41,title:'Full-Stack Developer',company:'Cal.com',location:'Remote',salary:'$80k–$110k',type:'Full-time',skills:['TypeScript','React','Next.js','PostgreSQL','tRPC'],description:'Build the open-source scheduling platform used by 30,000+ developers.',applyLink:'https://cal.com/careers',color:'#111827',isLive:false},
+  {id:42,title:'Senior Software Engineer',company:'Salesforce',location:'San Francisco, CA',salary:'$160k–$210k',type:'Full-time',skills:['Java','JavaScript','SQL','Apex','REST APIs'],description:'Build CRM features for 150,000+ business customers worldwide.',applyLink:'https://salesforce.com/company/careers',color:'#00A1E0',isLive:false},
+  {id:43,title:'Software Development Engineer',company:'Amazon',location:'Seattle, WA',salary:'$160k–$220k',type:'Full-time',skills:['Java','Python','AWS','Distributed Systems','SQL'],description:'Work on services used by hundreds of millions of customers daily.',applyLink:'https://amazon.jobs',color:'#FF9900',isLive:false},
+  {id:44,title:'Cloud Software Engineer',company:'Microsoft',location:'Redmond, WA',salary:'$150k–$200k',type:'Full-time',skills:['C#','TypeScript','Azure','Python','Kubernetes'],description:'Build Azure cloud services powering global enterprise applications.',applyLink:'https://careers.microsoft.com',color:'#00A4EF',isLive:false},
+  {id:45,title:'Contract Frontend Developer',company:'Toptal',location:'Remote',salary:'$80–$150/hr',type:'Contract',skills:['React','JavaScript','TypeScript','CSS','REST APIs'],description:'Join the top 3% of freelance talent network. Work with world-class clients.',applyLink:'https://toptal.com/developers/join',color:'#204ECF',isLive:false},
+  {id:46,title:'Web Performance Engineer',company:'Fastly',location:'Remote',salary:'$135k–$175k',type:'Full-time',skills:['JavaScript','Go','CDN','Performance','HTTP'],description:'Make the web faster. Work on edge computing and CDN infrastructure.',applyLink:'https://fastly.com/about/careers',color:'#FF282D',isLive:false},
+  {id:47,title:'Infrastructure Engineer',company:'Fly.io',location:'Remote',salary:'$110k–$150k',type:'Full-time',skills:['Go','Rust','Docker','Networking','Linux'],description:'Build a global platform for running apps close to users worldwide.',applyLink:'https://fly.io/jobs',color:'#7B2FBE',isLive:false},
+  {id:48,title:'Staff Engineer',company:'Vercel',location:'Remote',salary:'$180k–$230k',type:'Full-time',skills:['Node.js','React','TypeScript','Rust','Edge Computing'],description:'Shape the technical direction of the platform used by 1M+ developers.',applyLink:'https://vercel.com/careers',color:'#000000',isLive:false},
+  {id:49,title:'Developer Advocate',company:'Supabase',location:'Remote',salary:'$90k–$130k',type:'Full-time',skills:['JavaScript','PostgreSQL','React','TypeScript','Node.js'],description:'Help developers build with the open-source Firebase alternative.',applyLink:'https://supabase.com/careers',color:'#3ECF8E',isLive:false},
+  {id:50,title:'Freelance Full-Stack Developer',company:'Contra',location:'Remote',salary:'$60–$120/hr',type:'Freelance',skills:['JavaScript','React','Node.js','PostgreSQL','GraphQL'],description:'Independent work platform for top freelance developers. Choose your projects.',applyLink:'https://contra.com',color:'#7B61FF',isLive:false}
+];
+
+/* ──────────────────────────────────────────────────────────
+   8. JOB MATCHER — Scoring Algorithm
+      +3 pts skill match | +2 pts project tech | +1 pt title
+      Location boost: +15 pts if location matches
+   ────────────────────────────────────────────────────────── */
+function matchJobs(userCV, jobs) {
+  const userSkills = (userCV.skills || []).map(s => s.name.toLowerCase().trim());
+  const projTechs  = [];
+  (userCV.projects || []).forEach(p => {
+    if(p.technologies) p.technologies.split(',').forEach(t => {
+      const tech = t.trim().toLowerCase();
+      if(tech && !projTechs.includes(tech)) projTechs.push(tech);
+    });
+  });
+  const stopWords = new Set(['senior','junior','lead','staff','principal','head','engineer','developer','designer','manager','analyst','architect']);
+  const titleWords = (userCV.personal?.title || '').toLowerCase().split(/\W+/).filter(w => w.length > 2 && !stopWords.has(w));
+  const selectedLoc = LocationState.selected;
+
+  const scored = jobs.map(job => {
+    let score = 0;
+    const jobSkills = (job.skills || []).map(s => s.toLowerCase());
+    const jobTitle  = (job.title  || '').toLowerCase();
+    const jobDesc   = (job.description || '').toLowerCase();
+    const jobLoc    = (job.location || '').toLowerCase();
+
+    userSkills.forEach(us => { if(jobSkills.some(js => js.includes(us) || us.includes(js))) score += 3; });
+    projTechs.forEach(pt  => { if(jobSkills.some(js => js.includes(pt) || pt.includes(js))) score += 2; });
+    titleWords.forEach(tw  => { if(jobTitle.includes(tw) || jobDesc.includes(tw)) score += 1; });
+
+    // Location match bonus
+    if(selectedLoc) {
+      if(selectedLoc.isRemote && (jobLoc.includes('remote') || job.type?.toLowerCase().includes('remote'))) {
+        score += 5; // remote preference bonus
+      } else if(!selectedLoc.isRemote && selectedLoc.name) {
+        const locName = selectedLoc.name.toLowerCase();
+        if(jobLoc.includes(locName) || jobLoc.includes(selectedLoc.country?.toLowerCase() || '')) {
+          score += 5;
+        } else if(jobLoc.includes('remote')) {
+          score += 2; // remote jobs are still accessible
+        }
+      }
+    }
+
+    const maxScore = (userSkills.length * 3) + (projTechs.length * 2) + (titleWords.length * 1) + 5;
+    const pct = maxScore > 0 ? Math.min(100, Math.round(10 + (score / maxScore) * 90)) : Math.floor(20 + Math.random() * 40);
+    return { ...job, matchScore: pct, rawScore: score };
+  });
+
+  return scored.sort((a, b) => b.matchScore - a.matchScore);
+}
+
+function matchColorClass(score) {
+  if(score >= 70) return 'match-high';
+  if(score >= 45) return 'match-mid';
+  return 'match-low';
+}
+function companyColor(company) {
+  let hash = 0;
+  for(let i=0;i<company.length;i++) hash = company.charCodeAt(i) + ((hash<<5)-hash);
+  return `hsl(${Math.abs(hash)%360},60%,45%)`;
+}
+
+/* ──────────────────────────────────────────────────────────
+   9. SWIPE ENGINE
+   ────────────────────────────────────────────────────────── */
+let swipeState = { isDragging:false, startX:0, startY:0, currentX:0, currentY:0, cardEl:null, raf:null };
+
+/** initJobsEntryPage — called on each navigation to entry page */
+function initJobsEntryPage() {
+  const chips = document.getElementById('match-chips');
+  if(chips) {
+    const skills = AppState.cvData.skills;
+    if(skills.length > 0) {
+      chips.innerHTML = skills.slice(0,6).map(s=>`<div class="match-preview-chip"><span class="dot"></span>${esc(s.name)}</div>`).join('');
+      if(skills.length > 6) chips.innerHTML += `<div class="match-preview-chip"><span class="dot"></span>+${skills.length-6} more</div>`;
+    } else {
+      chips.innerHTML = `<div class="match-preview-chip"><span class="dot"></span>No CV skills yet</div><div class="match-preview-chip" style="cursor:pointer;border-color:var(--gold)" onclick="startBuilder()">+ Build CV first</div>`;
+    }
+  }
+  // Sync toggles
+  const sw1 = document.getElementById('filter-toggle-sw'), lb1 = document.getElementById('filter-toggle-label');
+  if(sw1) sw1.className = `toggle-switch${AppState.highMatchOnly?' on':''}`;
+  if(lb1) lb1.textContent = AppState.highMatchOnly ? 'Showing 70%+ matches only' : 'Show only 70%+ matches';
+  const sw2 = document.getElementById('api-toggle-sw'), lb2 = document.getElementById('api-toggle-label');
+  if(sw2) sw2.className = `toggle-switch${LocationState.useRealApi?' on':''}`;
+  if(lb2) lb2.textContent = LocationState.useRealApi ? 'Using live job listings ✓' : 'Use live job listings';
+}
+
+function toggleHighMatchFilter() {
+  AppState.highMatchOnly = !AppState.highMatchOnly;
+  initJobsEntryPage();
+}
+
+/** startJobMatch — main entry point for swiping */
+async function startJobMatch() {
+  let jobs = JOB_DATA;
+
+  // Try real API if enabled
+  if(LocationState.useRealApi) {
+    const liveJobs = await fetchRealJobs(AppState.cvData, LocationState.selected);
+    if(liveJobs && liveJobs.length > 0) {
+      jobs = liveJobs;
+    } else {
+      // Fall back to mock data
+      jobs = JOB_DATA;
+    }
+  }
+
+  // Apply location filter to mock data
+  if(!LocationState.useRealApi && LocationState.selected) {
+    const loc = LocationState.selected;
+    if(loc.isRemote) {
+      // Filter to remote-friendly jobs, but keep all
+      jobs = [...jobs].sort((a,b) => {
+        const aRemote = a.location.toLowerCase().includes('remote');
+        const bRemote = b.location.toLowerCase().includes('remote');
+        return (bRemote ? 1 : 0) - (aRemote ? 1 : 0);
+      });
+    } else {
+      // Sort by location match — exact matches first, then remote, then rest
+      const locName = loc.name.toLowerCase();
+      jobs = [...jobs].sort((a,b) => {
+        const aLoc = a.location.toLowerCase();
+        const bLoc = b.location.toLowerCase();
+        const aScore = aLoc.includes(locName) ? 3 : aLoc.includes('remote') ? 1 : 0;
+        const bScore = bLoc.includes(locName) ? 3 : bLoc.includes('remote') ? 1 : 0;
+        return bScore - aScore;
+      });
+    }
+  }
+
+  // Apply job type filter
+  if(LocationState.jobType !== 'all') {
+    if(LocationState.jobType === 'remote') {
+      jobs = jobs.filter(j => j.location?.toLowerCase().includes('remote') || j.type?.toLowerCase().includes('remote'));
+    } else if(LocationState.jobType === 'full_time') {
+      jobs = jobs.filter(j => (j.type||'').toLowerCase().includes('full'));
+    } else if(LocationState.jobType === 'contract') {
+      jobs = jobs.filter(j => (j.type||'').toLowerCase().includes('contract') || (j.type||'').toLowerCase().includes('freelance'));
+    } else if(LocationState.jobType === 'internship') {
+      jobs = jobs.filter(j => (j.type||'').toLowerCase().includes('intern'));
+    }
+    if(jobs.length === 0) {
+      showToast('No jobs match that type filter. Showing all.', 2500);
+      jobs = LocationState.useRealApi ? jobs : JOB_DATA;
+    }
+  }
+
+  // Run match scoring
+  let matched = matchJobs(AppState.cvData, jobs);
+
+  // Apply 70%+ filter
+  if(AppState.highMatchOnly) {
+    const filtered = matched.filter(j => j.matchScore >= 70);
+    if(filtered.length === 0) {
+      showToast('No 70%+ matches found. Showing all.', 3000);
+      AppState.highMatchOnly = false;
+    } else {
+      matched = filtered;
+    }
+  }
+
+  AppState.jobQueue     = matched;
+  AppState.currentJobIdx = 0;
+  AppState.seenJobIds    = new Set();
+
+  navigateTo('page-swipe');
+  renderSwipeDeck();
+  updateSwipeCounter();
+  updateSavedBadge();
+
+  // Show location bar in swipe page
+  const locBar = document.getElementById('swipe-location-bar');
+  if(locBar) {
+    if(LocationState.selected) {
+      locBar.textContent = '';
+      locBar.innerHTML   = `<span class="loc-dot"></span>Jobs near ${esc(LocationState.selected.name)}${LocationState.useRealApi ? ' · Live listings' : ' · Curated'}`;
+      locBar.style.display = 'flex';
+    } else {
+      locBar.style.display = LocationState.useRealApi ? 'flex' : 'none';
+      if(LocationState.useRealApi) locBar.innerHTML = `<span class="loc-dot"></span>Live job listings`;
+    }
+  }
+}
+
+function renderSwipeDeck() {
+  const deck = document.getElementById('swipe-deck');
+  if(!deck) return;
+  deck.querySelectorAll('.job-card,.no-results-card').forEach(c => c.remove());
+  const remaining = AppState.jobQueue.slice(AppState.currentJobIdx);
+  if(remaining.length === 0) return;
+  [...remaining.slice(0,3)].reverse().forEach((job, i) => {
+    deck.appendChild(createJobCard(job, i === Math.min(remaining.length,3)-1));
+  });
+  const topCard = deck.querySelector('.job-card:last-child');
+  if(topCard) attachSwipeEvents(topCard);
+}
+
+function createJobCard(job) {
+  const card = document.createElement('div');
+  card.className = 'job-card';
+  card.dataset.jobId = job.id;
+  const scoreClass = matchColorClass(job.matchScore);
+  const logoColor  = job.color || companyColor(job.company);
+  const initials   = (job.company||'??').slice(0,2).toUpperCase();
+  const userSkills = AppState.cvData.skills.map(s=>s.name.toLowerCase());
+  const projTechs  = AppState.cvData.projects.flatMap(p=>(p.technologies||'').split(',').map(t=>t.trim().toLowerCase()));
+  const allUserTech = [...userSkills, ...projTechs];
+  const skillPills = (job.skills||[]).map(skill=>{
+    const isMatch = allUserTech.some(u => u.includes(skill.toLowerCase()) || skill.toLowerCase().includes(u));
+    return `<span class="job-card-skill ${isMatch?'matched':'unmatched'}">${esc(skill)}</span>`;
+  }).join('');
+  const sourceBadge = job.isLive
+    ? `<span class="job-source-badge job-source-live">● LIVE</span>`
+    : `<span class="job-source-badge job-source-mock">CURATED</span>`;
+
+  card.innerHTML = `
+    <div class="swipe-overlay swipe-overlay-like">SAVE ♥</div>
+    <div class="swipe-overlay swipe-overlay-skip">SKIP ✕</div>
+    <div class="job-card-header">
+      <div class="match-score-badge">
+        <div class="match-score-pct ${scoreClass}">${job.matchScore}%</div>
+        <div class="match-score-label">Match</div>
+      </div>
+      <div class="job-card-company-row">
+        <div class="job-card-logo" style="background:${logoColor}">${initials}</div>
+        <div>
+          <div class="job-card-company">${esc(job.company)}</div>
+          <div class="job-card-location">◎ ${esc(job.location)}</div>
+        </div>
+      </div>
+      <div class="job-card-title">${esc(job.title)}</div>
+      <div class="job-card-meta">
+        ${job.salary?`<span class="job-card-salary">${esc(job.salary)}</span>`:''}
+        <span class="job-card-type">${esc(job.type||'Full-time')}</span>
+      </div>
+      ${sourceBadge}
+    </div>
+    <div class="job-card-body">
+      <div class="job-card-desc">${esc(job.description)}</div>
+      <div class="job-card-skills-label">Required Skills</div>
+      <div class="job-card-skills">${skillPills}</div>
+    </div>`;
+  return card;
+}
+
+function attachSwipeEvents(cardEl) {
+  cardEl.addEventListener('pointerdown', onPointerDown, {passive:true});
+  cardEl.addEventListener('selectstart', e => e.preventDefault());
+}
+function onPointerDown(e) {
+  const card = e.currentTarget;
+  swipeState = { isDragging:true, startX:e.clientX, startY:e.clientY, currentX:0, currentY:0, cardEl:card, raf:null };
+  card.setPointerCapture(e.pointerId);
+  card.addEventListener('pointermove', onPointerMove, {passive:true});
+  card.addEventListener('pointerup',   onPointerUp);
+  card.addEventListener('pointercancel', onPointerUp);
+}
+function onPointerMove(e) {
+  if(!swipeState.isDragging) return;
+  swipeState.currentX = e.clientX - swipeState.startX;
+  swipeState.currentY = e.clientY - swipeState.startY;
+  cancelAnimationFrame(swipeState.raf);
+  swipeState.raf = requestAnimationFrame(updateCardTransform);
+}
+function updateCardTransform() {
+  const { cardEl, currentX, currentY } = swipeState;
+  if(!cardEl) return;
+  cardEl.style.transform = `translate(${currentX}px,${currentY*0.3}px) rotate(${currentX*0.08}deg)`;
+  const like = cardEl.querySelector('.swipe-overlay-like');
+  const skip = cardEl.querySelector('.swipe-overlay-skip');
+  if(like) like.style.opacity = Math.min(1, (currentX-60)/80);
+  if(skip) skip.style.opacity = Math.min(1, (-currentX-60)/80);
+}
+function onPointerUp(e) {
+  if(!swipeState.isDragging) return;
+  swipeState.isDragging = false;
+  const card = swipeState.cardEl; if(!card) return;
+  card.removeEventListener('pointermove', onPointerMove);
+  card.removeEventListener('pointerup',   onPointerUp);
+  card.removeEventListener('pointercancel', onPointerUp);
+  if(swipeState.currentX > 100)       animateCardOff(card,'right');
+  else if(swipeState.currentX < -100) animateCardOff(card,'left');
+  else {
+    card.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+    card.style.transform  = 'translate(0,0) rotate(0deg)';
+    const like = card.querySelector('.swipe-overlay-like');
+    const skip = card.querySelector('.swipe-overlay-skip');
+    if(like) like.style.opacity = 0;
+    if(skip) skip.style.opacity = 0;
+    setTimeout(()=>{card.style.transition='';},400);
+  }
+  swipeState.cardEl = null;
+}
+function animateCardOff(cardEl, direction) {
+  const xOff = direction==='right' ? window.innerWidth*1.5 : -window.innerWidth*1.5;
+  cardEl.style.transition = 'transform 0.45s ease,opacity 0.45s ease';
+  cardEl.style.transform  = `translate(${xOff}px,-100px) rotate(${direction==='right'?30:-30}deg)`;
+  cardEl.style.opacity    = '0';
+  const like = cardEl.querySelector('.swipe-overlay-like');
+  const skip = cardEl.querySelector('.swipe-overlay-skip');
+  if(direction==='right'&&like) like.style.opacity=1;
+  if(direction==='left'&&skip)  skip.style.opacity=1;
+  setTimeout(()=>{
+    processSwipe(direction, cardEl.dataset.jobId);
+    cardEl.remove();
+    renderSwipeDeck();
+    updateSwipeCounter();
+  }, 430);
+}
+function swipeCard(direction) {
+  const deck = document.getElementById('swipe-deck');
+  if(!deck) return;
+  const topCard = deck.querySelector('.job-card:last-child');
+  if(topCard) animateCardOff(topCard, direction);
+}
+function processSwipe(direction, jobId) {
+  const job = AppState.jobQueue.find(j=>String(j.id)===String(jobId));
+  if(!job) return;
+  AppState.seenJobIds.add(job.id);
+  AppState.currentJobIdx++;
+  if(direction==='right') {
+    if(!AppState.savedJobs.some(s=>s.id===job.id)) {
+      AppState.savedJobs.push(job);
+      localStorage.setItem('folio-saved-jobs', JSON.stringify(AppState.savedJobs));
+      showToast(`♥ Saved: ${job.title}`, 2200);
+    }
+    updateSavedBadge();
+  } else {
+    showToast(`Skipped — ${job.title}`, 1200);
+  }
+}
+function updateSwipeCounter() {
+  const el = document.getElementById('swipe-counter');
+  if(el) el.textContent = `${Math.min(AppState.currentJobIdx, AppState.jobQueue.length)} / ${AppState.jobQueue.length} jobs`;
+}
+function updateSavedBadge() {
+  const el = document.getElementById('saved-count-badge');
+  if(el) el.textContent = AppState.savedJobs.length;
+}
+function resetSwipe() { AppState.currentJobIdx=0; AppState.seenJobIds=new Set(); renderSwipeDeck(); updateSwipeCounter(); }
+function openDetails() {
+  const topCard = document.querySelector('#swipe-deck .job-card:last-child');
+  if(!topCard) return;
+  const job = AppState.jobQueue.find(j=>String(j.id)===topCard.dataset.jobId);
+  if(job) openJobModal(job);
+}
+
+/* ──────────────────────────────────────────────────────────
+   10. JOB DETAILS MODAL
+   ────────────────────────────────────────────────────────── */
+function openJobModal(job) {
+  AppState.currentModalJob = job;
+  const $ = id => document.getElementById(id);
+  const logoColor = job.color || companyColor(job.company);
+  $('modal-logo').style.background = logoColor;
+  $('modal-logo').textContent = (job.company||'??').slice(0,2).toUpperCase();
+  $('modal-title').textContent   = job.title;
+  $('modal-company').textContent = `${job.company} · ${job.location}`;
+  $('modal-desc').textContent    = job.description;
+  const scoreClass = matchColorClass(job.matchScore||0);
+  $('modal-match').innerHTML = `<div class="match-score-pct ${scoreClass}" style="font-size:0.9rem">${job.matchScore||0}%</div><div class="match-score-label">Match</div>`;
+  $('modal-meta').innerHTML  = [
+    job.salary ? `<span class="job-card-salary">${esc(job.salary)}</span>` : '',
+    `<span class="job-card-type">${esc(job.type||'Full-time')}</span>`,
+    `<span class="job-card-type">◎ ${esc(job.location)}</span>`,
+    job.isLive ? `<span class="job-card-type" style="color:#86EFAC;border-color:rgba(34,197,94,0.3)">● Live listing</span>` : ''
+  ].filter(Boolean).join('');
+  const userSkills = AppState.cvData.skills.map(s=>s.name.toLowerCase());
+  $('modal-skills').innerHTML = (job.skills||[]).map(skill=>{
+    const isMatch = userSkills.some(u=>u.includes(skill.toLowerCase())||skill.toLowerCase().includes(u));
+    return `<span class="job-card-skill ${isMatch?'matched':'unmatched'}">${esc(skill)}</span>`;
+  }).join('');
+  $('modal-apply-link').href = job.applyLink || '#';
+  const alreadySaved = AppState.savedJobs.some(s=>s.id===job.id);
+  const saveBtn = $('modal-save-btn');
+  if(saveBtn) { saveBtn.textContent = alreadySaved ? '♥ Saved' : '♥ Save'; saveBtn.style.opacity = alreadySaved?'0.5':'1'; }
+  document.getElementById('job-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() { document.getElementById('job-modal').classList.remove('open'); document.body.style.overflow=''; }
+function handleModalClick(e) { if(e.target===document.getElementById('job-modal')) closeModal(); }
+function saveFromModal() {
+  const job = AppState.currentModalJob; if(!job) return;
+  if(!AppState.savedJobs.some(s=>s.id===job.id)) {
+    AppState.savedJobs.push(job);
+    localStorage.setItem('folio-saved-jobs', JSON.stringify(AppState.savedJobs));
+    showToast(`♥ Saved: ${job.title}`, 2000);
+    const btn = document.getElementById('modal-save-btn');
+    if(btn) { btn.textContent='♥ Saved'; btn.style.opacity='0.5'; }
+    updateSavedBadge();
+    if(AppState.currentPage==='page-swipe') { swipeCard('right'); closeModal(); }
+  }
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+/* ──────────────────────────────────────────────────────────
+   11. SAVED JOBS PAGE
+   ────────────────────────────────────────────────────────── */
+function renderSavedJobs() {
+  const grid=$('saved-grid')||document.getElementById('saved-grid');
+  const $el = id => document.getElementById(id);
+  const saved = AppState.savedJobs;
+  if($el('saved-total')) $el('saved-total').textContent = saved.length;
+  if(saved.length > 0) {
+    const scores = saved.map(j=>j.matchScore||0);
+    if($el('saved-avg-match')) $el('saved-avg-match').textContent = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)+'%';
+    if($el('saved-top-match')) $el('saved-top-match').textContent = Math.max(...scores)+'%';
+  } else {
+    if($el('saved-avg-match')) $el('saved-avg-match').textContent = '—';
+    if($el('saved-top-match')) $el('saved-top-match').textContent = '—';
+  }
+  const gridEl = document.getElementById('saved-grid'); if(!gridEl) return;
+  if(saved.length === 0) {
+    gridEl.innerHTML = `<div class="saved-empty"><div class="empty-icon">💼</div><h3>No Saved Jobs Yet</h3><p>Start swiping to discover jobs matched to your CV</p><button class="btn btn-gold" onclick="navigateTo('page-jobs-entry')">✦ Find Matching Jobs</button></div>`;
+    return;
+  }
+  gridEl.innerHTML = saved.map(job=>{
+    const logoColor  = job.color||companyColor(job.company);
+    const initials   = (job.company||'??').slice(0,2).toUpperCase();
+    const scoreClass = matchColorClass(job.matchScore||0);
+    const topSkills  = (job.skills||[]).slice(0,4).map(s=>`<span class="saved-card-skill">${esc(s)}</span>`).join('');
+    const liveBadge  = job.isLive ? `<span style="font-size:0.65rem;color:#86EFAC;margin-left:0.4rem">● live</span>` : '';
+    return `<div class="saved-job-card">
+      <div class="saved-card-top">
+        <div class="saved-card-logo" style="background:${logoColor}">${initials}</div>
+        <div class="saved-card-info">
+          <div class="saved-card-title">${esc(job.title)}${liveBadge}</div>
+          <div class="saved-card-company">${esc(job.company)}</div>
+          <div class="saved-card-location">◎ ${esc(job.location)}${job.salary?' · '+esc(job.salary):''}</div>
+        </div>
+        <div class="saved-card-match ${scoreClass}">${job.matchScore||0}%</div>
+      </div>
+      <div class="saved-card-skills">${topSkills}</div>
+      <div class="saved-card-actions">
+        <a class="saved-apply-btn" href="${esc(job.applyLink||'#')}" target="_blank" rel="noopener">Apply Now ↗</a>
+        <button class="saved-remove-btn" onclick="removeSavedJob('${job.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function removeSavedJob(jobId) {
+  AppState.savedJobs = AppState.savedJobs.filter(j=>String(j.id)!==String(jobId));
+  localStorage.setItem('folio-saved-jobs', JSON.stringify(AppState.savedJobs));
+  updateSavedBadge(); renderSavedJobs();
+  showToast('Job removed from saved', 1800);
+}
+
+/* ──────────────────────────────────────────────────────────
+   12. INIT
+   ────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadFromStorage();
+  applyTheme(AppState.theme);
+  initReveal();
+  initNav();
+  updateSavedBadge();
+
+  // Close location suggestions when clicking outside
+  document.addEventListener('click', e => {
+    if(!e.target.closest('.location-suggestions') && !e.target.closest('#location-input')) {
+      hideSuggestions();
+    }
+  });
+});
+</script>
+
+<!-- Swipe page location bar (injected into swipe page dynamically) -->
+<script>
+// Add location bar to swipe page after DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  const swipePage = document.querySelector('.swipe-page');
+  if(swipePage) {
+    const locBar = document.createElement('div');
+    locBar.id = 'swipe-location-bar';
+    locBar.className = 'swipe-location-bar';
+    locBar.style.display = 'none';
+    // Insert before swipe-deck
+    const deck = document.getElementById('swipe-deck');
+    if(deck) swipePage.insertBefore(locBar, deck);
+  }
+});
+</script>
 </body>
 </html>
