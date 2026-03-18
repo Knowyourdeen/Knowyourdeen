@@ -13,6 +13,10 @@
 <!-- html2pdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+<!-- ModemPay SDK — loaded as a global via CDN -->
+<!-- We use a thin fetch wrapper instead since the SDK uses ES modules.
+     The createPaymentIntent function below handles everything natively. -->
+
 <style>
 /* ============================================================
    DESIGN TOKENS & CSS CUSTOM PROPERTIES
@@ -965,9 +969,10 @@ footer {
 .preview-topbar {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  height: 60px;
-  display: flex; align-items: center; gap: 14px;
+  padding: 8px 24px;
+  min-height: 60px;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
   position: sticky; top: 0; z-index: 100;
 }
 .preview-topbar-title {
@@ -1373,10 +1378,609 @@ footer {
 .deck-empty h3 { font-size: 22px; margin-bottom: 8px; color: var(--text2); }
 
 /* ============================================================
-   PRINT STYLES
+   VIEW 6 — EMPLOYER PORTAL
    ============================================================ */
+
+/* ── Portal layout ── */
+#view-employer { display: none; padding-top: 68px; }
+#view-employer.active { display: block; }
+
+.employer-topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.employer-topbar h2 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+.employer-topbar-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(212,168,83,0.15);
+  border: 1px solid rgba(212,168,83,0.35);
+  color: var(--gold);
+  border-radius: 100px; padding: 3px 10px;
+}
+
+/* ── Portal body ── */
+.employer-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+/* ── Supabase config banner ── */
+.supabase-config-banner {
+  background: rgba(212,168,83,0.07);
+  border: 1px dashed rgba(212,168,83,0.4);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 40px;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.scb-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+.scb-text { flex: 1; }
+.scb-text h4 { font-size: 14px; color: var(--gold); margin-bottom: 6px; }
+.scb-text p  { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.scb-inputs  { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.scb-inputs input {
+  flex: 1; min-width: 200px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(212,168,83,0.3);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  font-size: 12px; font-family: var(--font-mono);
+  color: var(--gold2); outline: none;
+}
+.scb-inputs input::placeholder { color: var(--muted); }
+.scb-inputs input:focus { border-color: var(--gold); }
+.scb-status {
+  font-size: 12px; margin-top: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.scb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.scb-dot.connected { background: #4ade80; }
+.scb-dot.error     { background: #f87171; }
+
+/* ── Portal tabs ── */
+.portal-tabs {
+  display: flex; gap: 4px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 4px;
+  width: fit-content;
+  margin-bottom: 40px;
+}
+.portal-tab {
+  padding: 9px 22px;
+  border-radius: 100px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none;
+  background: transparent;
+  color: var(--muted);
+  transition: all 0.25s;
+}
+.portal-tab.active {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+}
+.portal-tab:hover:not(.active) { color: var(--text); }
+
+.portal-panel { display: none; }
+.portal-panel.active { display: block; animation: fadeUp 0.35s var(--ease); }
+
+/* ── Post a Job form ── */
+.post-job-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
+  align-items: start;
+}
+
+.post-job-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 36px;
+}
+.post-job-form h3 { font-size: 24px; margin-bottom: 6px; }
+.post-job-form .form-subtitle { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* Character counter */
+.form-group-counted { position: relative; }
+.char-counter {
+  position: absolute; right: 12px; bottom: 10px;
+  font-size: 11px; color: var(--muted);
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+/* Job type radio pills */
+.type-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.type-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  font-size: 13px; color: var(--text2);
+  transition: all 0.2s;
+  user-select: none;
+}
+.type-pill input[type="radio"] { display: none; }
+.type-pill.selected {
+  border-color: var(--gold);
+  background: rgba(212,168,83,0.1);
+  color: var(--gold);
+}
+
+/* Benefits / perks chips */
+.perks-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+.perk-chip {
+  padding: 7px 14px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  font-size: 12px; color: var(--text2);
+  cursor: pointer; transition: all 0.2s;
+  user-select: none;
+}
+.perk-chip.selected {
+  border-color: rgba(212,168,83,0.5);
+  background: rgba(212,168,83,0.1);
+  color: var(--gold2);
+}
+
+/* Plan selector */
+.plan-cards { display: flex; flex-direction: column; gap: 12px; }
+.plan-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.plan-card:hover { border-color: rgba(212,168,83,0.4); }
+.plan-card.selected {
+  border-color: var(--gold);
+  background: rgba(212,168,83,0.07);
+}
+.plan-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.plan-name { font-size: 15px; font-weight: 700; }
+.plan-price {
+  font-family: var(--font-mono);
+  font-size: 14px; color: var(--gold);
+}
+.plan-price.free { color: #4ade80; }
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.plan-features li {
+  font-size: 12px; color: var(--text2);
+  display: flex; align-items: center; gap: 7px;
+}
+.plan-features li::before { content: '✓'; color: var(--gold); font-size: 11px; }
+.plan-card.selected .plan-features li::before { color: #4ade80; }
+
+/* Sidebar info panel */
+.post-job-sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+.sidebar-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+.sidebar-card h4 {
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-card p { font-size: 13px; color: var(--text2); line-height: 1.7; }
+.sidebar-stat {
+  display: flex; justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 13px;
+}
+.sidebar-stat:last-child { border-bottom: none; }
+.sidebar-stat-val { font-weight: 700; color: var(--gold); font-family: var(--font-mono); }
+
+/* Preview card (live preview as they type) */
+.job-preview-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,168,83,0.2);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.job-preview-card h4 { font-size: 13px; color: var(--gold); margin-bottom: 14px; letter-spacing: 0.08em; text-transform: uppercase; font-family: var(--font-mono); }
+.preview-job-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: var(--text); min-height: 22px; }
+.preview-job-company { font-size: 13px; color: var(--text2); margin-bottom: 10px; min-height: 18px; }
+.preview-job-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.preview-meta-item { font-size: 11px; color: var(--muted); background: rgba(255,255,255,0.04); border-radius: 4px; padding: 3px 8px; }
+.preview-job-desc { font-size: 12px; color: var(--text2); line-height: 1.6; max-height: 80px; overflow: hidden; min-height: 16px; }
+
+/* Submit button state */
+.submit-btn-inner { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.submit-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-submitting .submit-spinner { display: block; }
+.btn-submitting .submit-text { opacity: 0.6; }
+
+/* ── Success screen ── */
+.submission-success {
+  text-align: center; padding: 60px 40px;
+  display: none;
+}
+.submission-success.show { display: block; animation: fadeUp 0.5s var(--ease); }
+.success-icon { font-size: 64px; margin-bottom: 20px; }
+.submission-success h3 { font-size: 32px; margin-bottom: 12px; }
+.submission-success p { font-size: 16px; color: var(--text2); max-width: 480px; margin: 0 auto 32px; line-height: 1.7; }
+.success-steps {
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+.success-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  font-size: 13px; color: var(--text2);
+  max-width: 200px; text-align: left;
+}
+.success-step .ss-num {
+  font-size: 11px; font-family: var(--font-mono);
+  color: var(--gold); margin-bottom: 6px;
+}
+
+/* ── Manage jobs panel ── */
+.manage-jobs-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.manage-jobs-header h3 { font-size: 22px; }
+
+.manage-job-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 14px;
+  transition: all 0.25s;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+}
+.manage-job-card:hover { border-color: rgba(212,168,83,0.35); }
+.manage-job-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.manage-job-meta  { font-size: 13px; color: var(--text2); display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+.manage-job-meta span { display: flex; align-items: center; gap: 5px; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 100px; padding: 4px 12px;
+}
+.status-pending  { background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.35); color: #fbbf24; }
+.status-approved { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3);  color: #4ade80; }
+.status-rejected { background: rgba(248,113,113,0.12);border: 1px solid rgba(248,113,113,0.3); color: #f87171; }
+.manage-job-actions { display: flex; gap: 8px; flex-direction: column; align-items: flex-end; }
+
+/* ── Empty manage state ── */
+.manage-empty {
+  text-align: center; padding: 80px 40px;
+  color: var(--muted);
+}
+.manage-empty h3 { font-size: 20px; color: var(--text2); margin-bottom: 8px; }
+
+/* ── Admin panel (simple) ── */
+.admin-login-form {
+  max-width: 400px; margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+}
+.admin-login-form h3 { font-size: 22px; margin-bottom: 6px; }
+.admin-login-form p  { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+.admin-panel { display: none; }
+.admin-panel.active { display: block; animation: fadeUp 0.3s var(--ease); }
+.admin-job-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.admin-job-row:hover { border-color: rgba(212,168,83,0.3); }
+.admin-job-row h4 { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.admin-job-row p  { font-size: 12px; color: var(--muted); }
+.admin-approve-btns { display: flex; gap: 8px; }
+.btn-approve { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.35); color: #4ade80; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.btn-approve:hover { background: rgba(74,222,128,0.2); }
+.btn-reject  { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.35); color: #f87171; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.btn-reject:hover  { background: rgba(248,113,113,0.2); }
+
+/* ── Stats bar ── */
+.employer-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 40px;
+}
+.employer-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+}
+.employer-stat-num {
+  font-family: var(--font-display);
+  font-size: 28px; color: var(--gold); line-height: 1;
+  margin-bottom: 4px;
+}
+.employer-stat-label { font-size: 12px; color: var(--muted); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .post-job-layout { grid-template-columns: 1fr; }
+  .post-job-sidebar { display: none; }
+  .employer-stats-bar { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .employer-body { padding: 28px 20px 80px; }
+  .employer-topbar { padding: 0 20px; }
+  .form-row { grid-template-columns: 1fr; }
+  .employer-stats-bar { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ============================================================
+   VIEW 7 — COVER LETTER GENERATOR
+   ============================================================ */
+
+#view-coverletter { display: none; padding-top: 68px; }
+#view-coverletter.active { display: block; }
+
+.cl-topbar {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 0 40px; height: 60px;
+  display: flex; align-items: center; gap: 14px;
+  position: sticky; top: 68px; z-index: 100;
+}
+.cl-topbar-title { font-size: 15px; font-weight: 600; flex: 1; }
+.cl-autosave { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); }
+
+.cl-layout {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  min-height: calc(100vh - 128px);
+}
+
+/* Builder panel */
+.cl-builder {
+  background: var(--bg2); border-right: 1px solid var(--border);
+  overflow-y: auto; padding: 28px 28px 100px;
+}
+.cl-section { margin-bottom: 28px; }
+.cl-section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.cl-section-title::after { content:''; flex:1; height:1px; background:rgba(212,168,83,0.2); }
+
+/* Tone selector */
+.tone-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tone-card {
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: var(--radius); padding: 12px 8px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.tone-card:hover { border-color: rgba(212,168,83,0.4); }
+.tone-card.selected { border-color: var(--gold); background: rgba(212,168,83,0.08); }
+.tone-card .tone-icon { font-size: 20px; margin-bottom: 5px; }
+.tone-card .tone-label { font-size: 11px; font-weight: 600; color: var(--text2); }
+.tone-card.selected .tone-label { color: var(--gold); }
+
+/* Import CV bar */
+.import-cv-bar {
+  background: rgba(212,168,83,0.07); border: 1px solid rgba(212,168,83,0.25);
+  border-radius: var(--radius); padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; font-size: 13px;
+}
+.import-cv-bar span { color: var(--text2); }
+.import-cv-bar strong { color: var(--gold); }
+
+/* Paragraph items */
+.cl-para-list { display: flex; flex-direction: column; gap: 12px; }
+.cl-para-item {
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--radius); padding: 14px;
+  transition: border-color 0.2s;
+}
+.cl-para-item:hover { border-color: rgba(212,168,83,0.25); }
+.cl-para-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cl-para-item textarea {
+  width: 100%; background: transparent; border: none;
+  color: var(--text); font-size: 13px; font-family: var(--font-body);
+  line-height: 1.7; resize: vertical; min-height: 80px; outline: none;
+}
+.cl-para-item textarea::placeholder { color: var(--muted); }
+
+/* AI button */
+.btn-ai {
+  background: rgba(212,168,83,0.1); border: 1px solid rgba(212,168,83,0.3);
+  color: var(--gold); border-radius: 6px; padding: 4px 10px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; display: flex; align-items: center; gap: 4px;
+}
+.btn-ai:hover { background: rgba(212,168,83,0.2); }
+.btn-ai.loading { opacity: 0.5; pointer-events: none; }
+
+/* AI shimmer loading */
+.ai-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(212,168,83,0.1) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%; animation: shimmer 1.2s infinite;
+  border-radius: 4px; height: 13px; margin: 5px 0;
+}
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+
+/* Builder sticky footer */
+.cl-builder-footer {
+  position: sticky; bottom: 0; background: var(--bg2);
+  border-top: 1px solid var(--border); padding: 14px 28px;
+  display: flex; gap: 10px; margin: 0 -28px -100px;
+}
+
+/* Preview panel */
+.cl-preview-panel {
+  background: #ccc9bf; overflow-y: auto;
+  padding: 32px 24px; display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+}
+.cl-preview-actions {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  width: 100%; max-width: 660px;
+}
+.cl-theme-switcher {
+  display: flex; gap: 6px; align-items: center;
+  width: 100%; max-width: 660px;
+}
+.cl-theme-switcher span { font-size: 12px; color: #555; margin-right: 4px; }
+.cl-tbtn {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+}
+.cl-tbtn.active { border-color: #333; transform: scale(1.2); }
+
+/* A4 letter paper */
+.cl-paper {
+  width: 100%; max-width: 660px;
+  min-height: 930px;
+  background: #fff; color: #1a1a1a;
+  box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+  border-radius: 2px; overflow: hidden;
+  font-family: 'Outfit', sans-serif;
+  position: relative;
+}
+/* PDF export class — applied during download only */
+.cl-paper.pdf-export {
+  width: 794px !important;
+  max-width: 794px !important;
+  min-width: 794px !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+.cv-paper.pdf-export {
+  width: 794px !important;
+  max-width: 794px !important;
+  min-width: 794px !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* Themes */
+.cl-paper.clt-classic   { --cl-accent:#1a3a5c; --cl-bar:#1a3a5c; --cl-bar-text:#fff; }
+.cl-paper.clt-minimal   { --cl-accent:#222;    --cl-bar:#f5f5f5; --cl-bar-text:#222; }
+.cl-paper.clt-warm      { --cl-accent:#5a3e2b; --cl-bar:#5a3e2b; --cl-bar-text:#fff; }
+.cl-paper.clt-bold      { --cl-accent:#c0392b; --cl-bar:#c0392b; --cl-bar-text:#fff; }
+.cl-paper.clt-sage      { --cl-accent:#2d6a4f; --cl-bar:#2d6a4f; --cl-bar-text:#fff; }
+.cl-paper.clt-navy-gold { --cl-accent:#1a2744; --cl-bar:#1a2744; --cl-bar-text:#d4a853; }
+
+.cl-paper::before {
+  content:''; position:absolute; left:0; top:0; bottom:0;
+  width:5px; background:var(--cl-accent);
+}
+.cl-paper.clt-minimal::before { display: none; }
+
+/* Letter header */
+.cl-letter-header {
+  background: var(--cl-bar); padding: 30px 44px 24px;
+  color: var(--cl-bar-text);
+}
+.cl-letter-name {
+  font-size: 24px; font-weight: 700; margin-bottom: 3px;
+  font-family: var(--dw-font-display, 'Cormorant Garamond', serif);
+}
+.cl-letter-jobtitle { font-size: 12px; opacity: 0.8; margin-bottom: 12px; }
+.cl-letter-contacts {
+  display: flex; gap: 18px; flex-wrap: wrap; font-size: 11px; opacity: 0.72;
+}
+.cl-letter-contacts span { display: flex; align-items: center; gap: 4px; }
+
+/* Letter body */
+.cl-letter-body { padding: 32px 44px 36px; }
+.cl-letter-date { font-size: 12px; color: #777; margin-bottom: 20px; }
+.cl-letter-recipient { margin-bottom: 20px; }
+.cl-letter-recipient-name { font-size: 13px; font-weight: 700; color: #111; }
+.cl-letter-recipient-sub  { font-size: 12px; color: #555; line-height: 1.6; }
+.cl-letter-subject {
+  font-size: 13px; font-weight: 700; color: var(--cl-accent);
+  border-bottom: 2px solid var(--cl-accent);
+  padding-bottom: 5px; margin-bottom: 18px; display: inline-block;
+}
+.cl-letter-salutation { font-size: 13px; color: #333; margin-bottom: 12px; }
+.cl-letter-paragraphs { display: flex; flex-direction: column; gap: 12px; }
+.cl-letter-para { font-size: 13px; line-height: 1.8; color: #333; text-align: justify; }
+.cl-letter-closing { margin-top: 24px; font-size: 13px; color: #333; }
+.cl-letter-closing-line { margin-bottom: 32px; }
+.cl-letter-sig {
+  font-family: var(--dw-font-display,'Cormorant Garamond',serif);
+  font-size: 20px; color: var(--cl-accent); font-style: italic;
+}
+.cl-letter-sig-sub { font-size: 12px; color: #777; margin-top: 2px; }
+
+/* Mobile */
+@media (max-width: 1000px) {
+  .cl-layout { grid-template-columns: 1fr; }
+  .cl-preview-panel { display: none; }
+  .cl-layout.show-preview .cl-builder { display: none; }
+  .cl-layout.show-preview .cl-preview-panel { display: flex; }
+}
+@media (max-width: 768px) {
+  .cl-topbar { padding: 0 20px; }
+  .cl-builder { padding: 20px 20px 100px; }
+  .cl-builder-footer { padding: 12px 20px; margin: 0 -20px -100px; }
+  .cl-letter-header { padding: 22px 26px 18px; }
+  .cl-letter-body   { padding: 22px 26px 26px; }
+}
+
 @media print {
-  body > *:not(#view-preview) { display: none !important; }
+  body > *:not(#view-coverletter) { display: none !important; }
+  #view-coverletter { display: block !important; background: none !important; }
+  .cl-topbar, .cl-builder, .cl-preview-actions, .cl-theme-switcher { display: none !important; }
+  .cl-layout { grid-template-columns: 1fr !important; }
+  .cl-preview-panel { background: none !important; padding: 0 !important; display: flex !important; }
+  .cl-paper { box-shadow: none !important; max-width: 100% !important; }
+}
+
+@media print {
+  body > *:not(#view-preview):not(#view-coverletter) { display: none !important; }
   #view-preview { display: block !important; background: none !important; }
   .preview-topbar { display: none !important; }
   .customizer-panel, .customizer-overlay { display: none !important; }
@@ -1454,10 +2058,12 @@ footer {
     <a href="#" onclick="scrollToFeatures()">Features</a>
     <a href="#" onclick="scrollToHow()">How It Works</a>
     <a href="#" onclick="scrollToTemplates()">Templates</a>
+    <a href="#" onclick="showView('coverletter')" style="color:var(--gold2)">Cover Letter</a>
+    <a href="#" onclick="showView('employer')" style="color:var(--gold)">For Employers</a>
   </div>
   <div class="nav-actions">
-    <button class="btn btn-outline btn-sm" onclick="showView('wizard')">Start Building</button>
-    <button class="btn btn-gold btn-sm" onclick="showView('jobs')">Explore Jobs</button>
+    <button class="btn btn-outline btn-sm" onclick="showView('employer')">Post a Job</button>
+    <button class="btn btn-gold btn-sm" onclick="showView('wizard')">Build CV</button>
   </div>
   <button class="hamburger" id="hamburger" onclick="toggleMobileNav()">
     <span></span><span></span><span></span>
@@ -1469,6 +2075,8 @@ footer {
   <a href="#" onclick="scrollToFeatures();closeMobileNav()">Features</a>
   <a href="#" onclick="scrollToHow();closeMobileNav()">How It Works</a>
   <a href="#" onclick="scrollToTemplates();closeMobileNav()">Templates</a>
+  <a href="#" onclick="showView('coverletter');closeMobileNav()" style="color:var(--gold2)">✉ Cover Letter Generator</a>
+  <a href="#" onclick="showView('employer');closeMobileNav()" style="color:var(--gold)">🏢 For Employers — Post a Job</a>
   <button class="btn btn-gold btn-full" onclick="showView('wizard');closeMobileNav()">Start Building Free</button>
 </div>
 
@@ -1566,6 +2174,14 @@ footer {
         <div class="bento-icon">🔗</div>
         <h3>Publish & Share</h3>
         <p>Get a public URL for your CV. Share on Twitter, LinkedIn, or WhatsApp. Your professional presence, online in seconds.</p>
+      </div>
+      <div class="bento-card col-6 featured" style="cursor:pointer" onclick="showView('employer')">
+        <div class="bento-icon">🏢</div>
+        <h3>Employer Job Portal</h3>
+        <p>Businesses can post jobs directly on Folio CV — free basic listing, AI-matched to qualified candidates, live on the job board within 24 hours.</p>
+        <div style="margin-top:16px">
+          <button class="btn btn-gold btn-sm" onclick="showView('employer')">Post a Job Free →</button>
+        </div>
       </div>
     </div>
   </section>
@@ -1899,9 +2515,11 @@ footer {
       </div>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="toggleCustomizer()">⚙ Customise</button>
-    <button class="btn btn-gold btn-sm" onclick="downloadPDF()">⬇ Download PDF</button>
+    <button class="btn btn-gold btn-sm" onclick="downloadPDF()">⬇ CV PDF</button>
+    <button class="btn btn-outline btn-sm" onclick="initiateDownloadPayment('bundle')" title="Download CV + Cover Letter together">⬇ Bundle GMD 35</button>
     <button class="btn btn-outline btn-sm" onclick="showView('builder')">✏ Edit</button>
     <button class="btn btn-ghost btn-sm" onclick="showView('jobs')">🎯 Find Jobs</button>
+    <button class="btn btn-outline btn-sm" onclick="showView('coverletter')">✉ Cover Letter</button>
   </div>
 
   <!-- CV Paper -->
@@ -1933,7 +2551,10 @@ footer {
       </div>
       <div class="customizer-section-title">Actions</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="btn btn-gold btn-full btn-sm" onclick="downloadPDF()">⬇ Download PDF</button>
+        <button class="btn btn-gold btn-full btn-sm" onclick="downloadPDF()">⬇ CV PDF — GMD 25</button>
+        <button class="btn btn-outline btn-full btn-sm" onclick="downloadCoverLetter()">⬇ Cover Letter — GMD 15</button>
+        <button class="btn btn-ghost btn-full btn-sm" onclick="initiateDownloadPayment('bundle')">⬇ Bundle (Both) — GMD 35</button>
+        <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">First download is always free ✦</p>
         <button class="btn btn-ghost btn-full btn-sm" onclick="showView('builder')">✏ Edit Content</button>
         <button class="btn btn-ghost btn-full btn-sm" onclick="showView('wizard')">🎨 Change Design</button>
         <button class="btn btn-ghost btn-full btn-sm" onclick="publishCV()">🌐 Publish CV</button>
@@ -2005,6 +2626,651 @@ footer {
 </div><!-- /view-jobs -->
 
 <!-- ============================================================
+     VIEW 6 — EMPLOYER PORTAL
+     ============================================================ -->
+<div id="view-employer" class="view">
+
+  <!-- Top bar -->
+  <div class="employer-topbar">
+    <h2>🏢 Employer Portal <span class="employer-topbar-badge">For Businesses</span></h2>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button class="btn btn-ghost btn-sm" onclick="showView('landing')">← Home</button>
+      <button class="btn btn-gold btn-sm" onclick="showView('jobs')">View Job Board</button>
+    </div>
+  </div>
+
+  <div class="employer-body">
+
+    <!-- Supabase config banner -->
+    <div class="supabase-config-banner" id="supabase-banner">
+      <div class="scb-icon">⚙️</div>
+      <div class="scb-text">
+        <h4>One-time setup: Connect your Supabase database</h4>
+        <p>
+          Paste your free Supabase Project URL and anon key below to enable live job posting.
+          Get these from <strong>supabase.com → Settings → API</strong> — it takes 5 minutes.
+          Your keys are saved locally in your browser only.
+        </p>
+        <div class="scb-inputs">
+          <input type="text" id="sb-url-input" placeholder="https://your-project.supabase.co"
+            oninput="sbDraftSave()" value="">
+          <input type="text" id="sb-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            oninput="sbDraftSave()" value="">
+          <button class="btn btn-gold btn-sm" onclick="saveSupabaseConfig()">Connect →</button>
+        </div>
+        <div class="scb-status" id="scb-status">
+          <div class="scb-dot" id="scb-dot"></div>
+          <span id="scb-status-text">Not connected — job posts will be saved locally</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="employer-stats-bar">
+      <div class="employer-stat">
+        <div class="employer-stat-num" id="stat-total">0</div>
+        <div class="employer-stat-label">Jobs Posted</div>
+      </div>
+      <div class="employer-stat">
+        <div class="employer-stat-num" id="stat-active">0</div>
+        <div class="employer-stat-label">Active Listings</div>
+      </div>
+      <div class="employer-stat">
+        <div class="employer-stat-num" id="stat-pending">0</div>
+        <div class="employer-stat-label">Awaiting Review</div>
+      </div>
+      <div class="employer-stat">
+        <div class="employer-stat-num">GMD 0</div>
+        <div class="employer-stat-label">Total Spend</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="portal-tabs">
+      <button class="portal-tab active" onclick="switchPortalTab('post', this)">📝 Post a Job</button>
+      <button class="portal-tab" onclick="switchPortalTab('manage', this)">📋 My Listings</button>
+      <button class="portal-tab" onclick="switchPortalTab('admin', this)">🔐 Admin</button>
+    </div>
+
+    <!-- ── TAB 1: Post a Job ── -->
+    <div class="portal-panel active" id="panel-post">
+      <div class="post-job-layout">
+
+        <!-- Main form -->
+        <div>
+          <!-- Success state (hidden until submit) -->
+          <div class="submission-success" id="submission-success">
+            <div class="success-icon">🎉</div>
+            <h3>Job Posted Successfully!</h3>
+            <p>
+              Your listing has been submitted and is under review.
+              It will appear on the Folio CV job board within 24 hours.
+            </p>
+            <div class="success-steps">
+              <div class="success-step">
+                <div class="ss-num">STEP 01</div>
+                Submission received & saved to database
+              </div>
+              <div class="success-step">
+                <div class="ss-num">STEP 02</div>
+                Admin reviews for quality (within 24h)
+              </div>
+              <div class="success-step">
+                <div class="ss-num">STEP 03</div>
+                Job goes live on Folio CV job board
+              </div>
+              <div class="success-step">
+                <div class="ss-num">STEP 04</div>
+                CVs matched by AI — candidates apply
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+              <button class="btn btn-gold" onclick="resetPostForm()">Post Another Job</button>
+              <button class="btn btn-ghost" onclick="switchPortalTab('manage', document.querySelector('.portal-tab:nth-child(2)'))">View My Listings →</button>
+            </div>
+          </div>
+
+          <!-- Post form -->
+          <div class="post-job-form" id="post-job-form">
+            <h3>Post a Job</h3>
+            <p class="form-subtitle">Reach thousands of qualified Gambian professionals. Free basic listing, no credit card required.</p>
+
+            <!-- Company info -->
+            <div class="section-label" style="margin-bottom:20px">Company Details</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Company Name *</label>
+                <input type="text" class="form-control" id="pj-company" placeholder="e.g. Trust Bank Gambia"
+                  oninput="updateJobPreview()">
+              </div>
+              <div class="form-group">
+                <label>Industry</label>
+                <select class="form-control" id="pj-industry">
+                  <option value="">Select industry</option>
+                  <option>Banking & Finance</option>
+                  <option>NGO / Development</option>
+                  <option>Technology & ICT</option>
+                  <option>Healthcare</option>
+                  <option>Education</option>
+                  <option>Government</option>
+                  <option>Hospitality & Tourism</option>
+                  <option>Media & Communications</option>
+                  <option>Construction & Engineering</option>
+                  <option>Agriculture</option>
+                  <option>Retail & FMCG</option>
+                  <option>Transport & Logistics</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Company Email *</label>
+                <input type="email" class="form-control" id="pj-email" placeholder="hr@yourcompany.gm">
+              </div>
+              <div class="form-group">
+                <label>Company Website</label>
+                <input type="text" class="form-control" id="pj-website" placeholder="https://yourcompany.gm">
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Job details -->
+            <div class="section-label" style="margin-bottom:20px">Job Details</div>
+            <div class="form-group">
+              <label>Job Title *</label>
+              <input type="text" class="form-control" id="pj-title" placeholder="e.g. Marketing Manager"
+                oninput="updateJobPreview()">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Location *</label>
+                <select class="form-control" id="pj-location" onchange="updateJobPreview()">
+                  <option value="">Select location</option>
+                  <option>Banjul</option>
+                  <option>Serrekunda</option>
+                  <option>Bakau</option>
+                  <option>Fajara</option>
+                  <option>Kololi</option>
+                  <option>Kairaba Avenue</option>
+                  <option>Brikama</option>
+                  <option>Kanifing</option>
+                  <option>Lamin</option>
+                  <option>Basse</option>
+                  <option>Remote / Online</option>
+                  <option>Multiple Locations</option>
+                  <option>The Gambia (Nationwide)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Application Deadline *</label>
+                <input type="date" class="form-control" id="pj-deadline">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Job Type *</label>
+              <div class="type-pills" id="type-pills">
+                <label class="type-pill selected"><input type="radio" name="jobtype" value="Full Time" checked onchange="selectPill(this)">💼 Full Time</label>
+                <label class="type-pill"><input type="radio" name="jobtype" value="Part Time" onchange="selectPill(this)">⏰ Part Time</label>
+                <label class="type-pill"><input type="radio" name="jobtype" value="Contract" onchange="selectPill(this)">📋 Contract</label>
+                <label class="type-pill"><input type="radio" name="jobtype" value="Freelance" onchange="selectPill(this)">🚀 Freelance</label>
+                <label class="type-pill"><input type="radio" name="jobtype" value="Internship" onchange="selectPill(this)">🎓 Internship</label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Salary / Compensation <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+                <input type="text" class="form-control" id="pj-salary" placeholder="e.g. GMD 25,000/month"
+                  oninput="updateJobPreview()">
+              </div>
+              <div class="form-group">
+                <label>Experience Required</label>
+                <select class="form-control" id="pj-experience">
+                  <option value="">Any level</option>
+                  <option>Entry Level (0–1 yrs)</option>
+                  <option>Junior (1–3 yrs)</option>
+                  <option>Mid-Level (3–5 yrs)</option>
+                  <option>Senior (5–8 yrs)</option>
+                  <option>Lead / Manager (8+ yrs)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group form-group-counted">
+              <label>Job Description * <span style="color:var(--muted);font-weight:400">(min 100 characters)</span></label>
+              <textarea class="form-control" id="pj-description" rows="7"
+                placeholder="Describe the role, responsibilities, what a typical day looks like, and what makes this opportunity exciting..."
+                oninput="updateJobPreview();updateCharCount('pj-description','pj-desc-count',2000)"></textarea>
+              <span class="char-counter" id="pj-desc-count">0 / 2000</span>
+            </div>
+
+            <div class="form-group form-group-counted">
+              <label>Requirements <span style="color:var(--muted);font-weight:400">(qualifications, skills, experience)</span></label>
+              <textarea class="form-control" id="pj-requirements" rows="5"
+                placeholder="List the qualifications, technical skills, and experience needed for this role..."
+                oninput="updateCharCount('pj-requirements','pj-req-count',1000)"></textarea>
+              <span class="char-counter" id="pj-req-count">0 / 1000</span>
+            </div>
+
+            <div class="form-group">
+              <label>Perks & Benefits <span style="color:var(--muted);font-weight:400">(select all that apply)</span></label>
+              <div class="perks-grid" id="perks-grid">
+                <span class="perk-chip" onclick="togglePerk(this)">🏥 Health Insurance</span>
+                <span class="perk-chip" onclick="togglePerk(this)">🚗 Transport Allowance</span>
+                <span class="perk-chip" onclick="togglePerk(this)">🍱 Meal Allowance</span>
+                <span class="perk-chip" onclick="togglePerk(this)">📱 Phone Allowance</span>
+                <span class="perk-chip" onclick="togglePerk(this)">🎓 Training & Dev</span>
+                <span class="perk-chip" onclick="togglePerk(this)">🏖 Annual Leave</span>
+                <span class="perk-chip" onclick="togglePerk(this)">💰 Pension Scheme</span>
+                <span class="perk-chip" onclick="togglePerk(this)">🏠 Housing Allowance</span>
+                <span class="perk-chip" onclick="togglePerk(this)">🌍 International Travel</span>
+                <span class="perk-chip" onclick="togglePerk(this)">📈 Performance Bonus</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>How to Apply</label>
+              <input type="text" class="form-control" id="pj-apply-url"
+                placeholder="e.g. Email cv@yourcompany.gm or https://yourcompany.gm/careers">
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Plan selector -->
+            <div class="section-label" style="margin-bottom:20px">Choose a Plan</div>
+            <div class="plan-cards">
+              <div class="plan-card selected" onclick="selectPlan(this,'free')">
+                <div class="plan-card-header">
+                  <span class="plan-name">🆓 Free Listing</span>
+                  <span class="plan-price free">GMD 0</span>
+                </div>
+                <ul class="plan-features">
+                  <li>Listed for 30 days</li>
+                  <li>Basic job card on board</li>
+                  <li>Reviewed within 24 hours</li>
+                  <li>Direct link to your apply page</li>
+                </ul>
+              </div>
+              <div class="plan-card" onclick="selectPlan(this,'featured')">
+                <div class="plan-card-header">
+                  <span class="plan-name">⭐ Featured Listing</span>
+                  <span class="plan-price">GMD 500</span>
+                </div>
+                <ul class="plan-features">
+                  <li>Everything in Free</li>
+                  <li>Listed for 60 days</li>
+                  <li>Gold "Featured" badge on card</li>
+                  <li>Priority position in job board</li>
+                  <li>Email blast to 2,000+ registered job seekers</li>
+                </ul>
+              </div>
+              <div class="plan-card" onclick="selectPlan(this,'premium')">
+                <div class="plan-card-header">
+                  <span class="plan-name">🏆 Premium Listing</span>
+                  <span class="plan-price">GMD 1,200</span>
+                </div>
+                <ul class="plan-features">
+                  <li>Everything in Featured</li>
+                  <li>Listed for 90 days</li>
+                  <li>Pinned to top of job board</li>
+                  <li>AI-matched to top 10 candidate CVs</li>
+                  <li>Candidate shortlist delivered to your inbox</li>
+                  <li>Company logo on card</li>
+                </ul>
+              </div>
+            </div>
+
+            <div style="margin-top:32px;">
+              <button class="btn btn-gold btn-lg btn-full" id="submit-job-btn" onclick="submitJobPost()">
+                <div class="submit-btn-inner">
+                  <div class="submit-spinner" id="submit-spinner"></div>
+                  <span class="submit-text" id="submit-btn-label">✦ Submit Free Listing</span>
+                </div>
+              </button>
+              <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px" id="submit-btn-note">
+                Free listings are reviewed manually within 24 hours. No payment required.
+              </p>
+            </div>
+          </div><!-- /post-job-form -->
+        </div>
+
+        <!-- Sidebar -->
+        <div class="post-job-sidebar" id="post-job-sidebar">
+
+          <!-- Live preview -->
+          <div class="sidebar-card">
+            <h4>👁 Live Preview</h4>
+            <div class="job-preview-card">
+              <h4 style="font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-bottom:10px">HOW YOUR JOB WILL APPEAR</h4>
+              <div class="preview-job-title" id="prev-title">Job Title</div>
+              <div class="preview-job-company" id="prev-company">Company Name</div>
+              <div class="preview-job-meta">
+                <span class="preview-meta-item" id="prev-location">📍 Location</span>
+                <span class="preview-meta-item" id="prev-type">💼 Full Time</span>
+                <span class="preview-meta-item" id="prev-salary" style="display:none"></span>
+              </div>
+              <div class="preview-job-desc" id="prev-desc">Your job description will appear here…</div>
+            </div>
+          </div>
+
+          <!-- Why Folio CV -->
+          <div class="sidebar-card">
+            <h4>📊 Why Post Here?</h4>
+            <div class="sidebar-stat"><span>Monthly visitors</span><span class="sidebar-stat-val">2,400+</span></div>
+            <div class="sidebar-stat"><span>CV profiles</span><span class="sidebar-stat-val">1,100+</span></div>
+            <div class="sidebar-stat"><span>AI-matched daily</span><span class="sidebar-stat-val">340+</span></div>
+            <div class="sidebar-stat"><span>Avg. apply time</span><span class="sidebar-stat-val">&lt; 2 min</span></div>
+            <div class="sidebar-stat"><span>Free listing cost</span><span class="sidebar-stat-val">GMD 0</span></div>
+          </div>
+
+          <!-- Tips -->
+          <div class="sidebar-card">
+            <h4>💡 Tips for a Great Listing</h4>
+            <p>
+              Jobs with a clear salary range get <strong style="color:var(--gold)">3× more applications</strong>.
+              Listings with 150+ word descriptions see 60% higher engagement.
+              Always include a specific application deadline.
+            </p>
+          </div>
+        </div>
+
+      </div><!-- /post-job-layout -->
+    </div><!-- /panel-post -->
+
+    <!-- ── TAB 2: My Listings ── -->
+    <div class="portal-panel" id="panel-manage">
+      <div class="manage-jobs-header">
+        <h3>My Job Listings</h3>
+        <button class="btn btn-gold btn-sm" onclick="switchPortalTab('post', document.querySelector('.portal-tab'))">+ Post New Job</button>
+      </div>
+      <div id="manage-jobs-list">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- ── TAB 3: Admin ── -->
+    <div class="portal-panel" id="panel-admin">
+
+      <!-- Login form (shown when not logged in) -->
+      <div id="admin-login" class="admin-login-form">
+        <h3>🔐 Admin Access</h3>
+        <p>Review and approve or reject pending job listings before they go live.</p>
+        <div class="form-group">
+          <label>Admin Password</label>
+          <input type="password" class="form-control" id="admin-pw-input"
+            placeholder="Enter admin password" onkeydown="if(event.key==='Enter')adminLogin()">
+        </div>
+        <button class="btn btn-gold btn-full" onclick="adminLogin()">Login →</button>
+        <p style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center">
+          Default password: <code style="color:var(--gold);font-family:var(--font-mono)">folio2025</code> — change this in the JS config
+        </p>
+      </div>
+
+      <!-- Admin panel (shown after login) -->
+      <div class="admin-panel" id="admin-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+          <h3 style="font-size:22px;">📋 Pending Review <span id="admin-pending-count" style="font-size:14px;color:var(--muted)"></span></h3>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-ghost btn-sm" onclick="adminRefresh()">↺ Refresh</button>
+            <button class="btn btn-ghost btn-sm" onclick="adminLogout()">Logout</button>
+          </div>
+        </div>
+        <div id="admin-jobs-list">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /employer-body -->
+</div><!-- /view-employer -->
+
+<!-- ============================================================
+     VIEW 7 — COVER LETTER GENERATOR
+     ============================================================ -->
+<div id="view-coverletter" class="view">
+
+  <!-- Top bar -->
+  <div class="cl-topbar">
+    <div class="cl-topbar-title">✉ Cover Letter Generator</div>
+    <div class="cl-autosave">
+      <div class="autosave-dot" id="cl-autosave-dot"></div>
+      <span id="cl-autosave-label">Auto saving…</span>
+    </div>
+    <!-- Mobile toggle -->
+    <button class="btn btn-ghost btn-sm" id="cl-toggle-btn"
+      onclick="toggleCLView()" style="display:none">👁 Preview</button>
+    <button class="btn btn-ghost btn-sm" onclick="showView('landing')">← Home</button>
+    <button class="btn btn-outline btn-sm" onclick="showView('preview')">View CV</button>
+    <button class="btn btn-gold btn-sm" onclick="downloadCoverLetter()">⬇ Download PDF</button>
+  </div>
+
+  <div class="cl-layout" id="cl-layout">
+
+    <!-- ── LEFT: Builder ── -->
+    <div class="cl-builder">
+
+      <!-- Import from CV -->
+      <div class="import-cv-bar">
+        <span>Auto-fill from your CV? <strong id="cl-cv-name">No CV found</strong></span>
+        <button class="btn btn-gold btn-sm" onclick="importFromCV()">Import CV ↓</button>
+      </div>
+
+      <!-- SECTION: Your Details -->
+      <div class="cl-section">
+        <div class="cl-section-title">Your Details</div>
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" class="form-control" id="cl-fullname" placeholder="e.g. Fatou Jallow" oninput="renderCoverLetter()">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Professional Title</label>
+            <input type="text" class="form-control" id="cl-title" placeholder="e.g. Marketing Manager" oninput="renderCoverLetter()">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" class="form-control" id="cl-email" placeholder="you@email.com" oninput="renderCoverLetter()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" class="form-control" id="cl-phone" placeholder="+220 XXX XXXX" oninput="renderCoverLetter()">
+          </div>
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" class="form-control" id="cl-location" placeholder="Banjul, The Gambia" oninput="renderCoverLetter()">
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: Job You're Applying For -->
+      <div class="cl-section">
+        <div class="cl-section-title">Job You're Applying For</div>
+        <div class="form-group">
+          <label>Job Title *</label>
+          <input type="text" class="form-control" id="cl-job-title" placeholder="e.g. Communications Officer" oninput="renderCoverLetter()">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Company / Organisation *</label>
+            <input type="text" class="form-control" id="cl-company" placeholder="e.g. UNICEF Gambia" oninput="renderCoverLetter()">
+          </div>
+          <div class="form-group">
+            <label>Hiring Manager's Name</label>
+            <input type="text" class="form-control" id="cl-hiring-manager" placeholder="e.g. Mr. Omar Ceesay" oninput="renderCoverLetter()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Company Address / Department</label>
+          <input type="text" class="form-control" id="cl-company-address" placeholder="e.g. Human Resources Department, Banjul" oninput="renderCoverLetter()">
+        </div>
+        <div class="form-group">
+          <label>Where Did You See This Job?</label>
+          <input type="text" class="form-control" id="cl-job-source" placeholder="e.g. GamJobs.com, LinkedIn, referral from…" oninput="renderCoverLetter()">
+        </div>
+      </div>
+
+      <!-- SECTION: Tone -->
+      <div class="cl-section">
+        <div class="cl-section-title">Letter Tone</div>
+        <div class="tone-grid" id="cl-tone-grid">
+          <div class="tone-card selected" data-tone="professional" onclick="selectTone(this)">
+            <div class="tone-icon">👔</div>
+            <div class="tone-label">Professional</div>
+          </div>
+          <div class="tone-card" data-tone="confident" onclick="selectTone(this)">
+            <div class="tone-icon">🦁</div>
+            <div class="tone-label">Confident</div>
+          </div>
+          <div class="tone-card" data-tone="warm" onclick="selectTone(this)">
+            <div class="tone-icon">🤝</div>
+            <div class="tone-label">Warm</div>
+          </div>
+          <div class="tone-card" data-tone="concise" onclick="selectTone(this)">
+            <div class="tone-icon">⚡</div>
+            <div class="tone-label">Concise</div>
+          </div>
+          <div class="tone-card" data-tone="creative" onclick="selectTone(this)">
+            <div class="tone-icon">🎨</div>
+            <div class="tone-label">Creative</div>
+          </div>
+          <div class="tone-card" data-tone="formal" onclick="selectTone(this)">
+            <div class="tone-icon">🏛</div>
+            <div class="tone-label">Formal</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: Letter Content -->
+      <div class="cl-section">
+        <div class="cl-section-title">Letter Content</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+          Write each paragraph below, or use the <strong style="color:var(--gold)">✦ AI Write</strong> button
+          to generate it based on your CV and the job you're applying for.
+        </p>
+
+        <div class="cl-para-list">
+
+          <!-- Opening -->
+          <div class="cl-para-item">
+            <div class="cl-para-label">
+              <span>Opening — Why You're Writing</span>
+              <button class="btn-ai" onclick="aiWriteParagraph('opening')" id="ai-btn-opening">✦ AI Write</button>
+            </div>
+            <textarea id="cl-para-opening" placeholder="Introduce yourself and state the specific role you are applying for. Mention where you found the listing and a one-line hook about why you're a strong fit…" oninput="renderCoverLetter()"></textarea>
+          </div>
+
+          <!-- Skills Match -->
+          <div class="cl-para-item">
+            <div class="cl-para-label">
+              <span>Why You're the Right Fit</span>
+              <button class="btn-ai" onclick="aiWriteParagraph('skills')" id="ai-btn-skills">✦ AI Write</button>
+            </div>
+            <textarea id="cl-para-skills" placeholder="Highlight 2-3 key skills or experiences that directly match the role. Be specific — use numbers or outcomes where possible…" oninput="renderCoverLetter()"></textarea>
+          </div>
+
+          <!-- Achievements -->
+          <div class="cl-para-item">
+            <div class="cl-para-label">
+              <span>Your Key Achievement</span>
+              <button class="btn-ai" onclick="aiWriteParagraph('achievement')" id="ai-btn-achievement">✦ AI Write</button>
+            </div>
+            <textarea id="cl-para-achievement" placeholder="Share one specific achievement or project that proves your value. What problem did you solve? What was the measurable result?…" oninput="renderCoverLetter()"></textarea>
+          </div>
+
+          <!-- Why This Company -->
+          <div class="cl-para-item">
+            <div class="cl-para-label">
+              <span>Why This Organisation</span>
+              <button class="btn-ai" onclick="aiWriteParagraph('company')" id="ai-btn-company">✦ AI Write</button>
+            </div>
+            <textarea id="cl-para-company" placeholder="Show genuine interest in this specific organisation. What do you admire about their mission, culture, or impact in The Gambia?…" oninput="renderCoverLetter()"></textarea>
+          </div>
+
+          <!-- Closing -->
+          <div class="cl-para-item">
+            <div class="cl-para-label">
+              <span>Closing — Call to Action</span>
+              <button class="btn-ai" onclick="aiWriteParagraph('closing')" id="ai-btn-closing">✦ AI Write</button>
+            </div>
+            <textarea id="cl-para-closing" placeholder="Thank the reader for their time. Express enthusiasm for an interview. State your availability and how they can reach you…" oninput="renderCoverLetter()"></textarea>
+          </div>
+
+        </div>
+
+        <!-- AI Write All -->
+        <div style="margin-top:16px">
+          <button class="btn btn-gold btn-full" id="ai-write-all-btn" onclick="aiWriteAll()">
+            ✦ AI Write Entire Letter
+          </button>
+          <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">
+            Uses your CV data and job details to generate all 5 paragraphs at once
+          </p>
+        </div>
+      </div>
+
+      <!-- SECTION: Custom Closing -->
+      <div class="cl-section">
+        <div class="cl-section-title">Sign-off</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Closing Phrase</label>
+            <select class="form-control" id="cl-closing-phrase" onchange="renderCoverLetter()">
+              <option>Yours sincerely,</option>
+              <option>Yours faithfully,</option>
+              <option>Kind regards,</option>
+              <option>Best regards,</option>
+              <option>With respect,</option>
+              <option>Respectfully yours,</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="text" class="form-control" id="cl-date"
+              placeholder="e.g. 16 March 2026" oninput="renderCoverLetter()">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cl-builder -->
+
+    <!-- ── RIGHT: Live Preview ── -->
+    <div class="cl-preview-panel" id="cl-preview-panel">
+
+      <!-- Theme switcher -->
+      <div class="cl-theme-switcher">
+        <span>Theme:</span>
+        <button class="cl-tbtn active" style="background:#1a3a5c" title="Classic"   onclick="setCLTheme('clt-classic',this)"></button>
+        <button class="cl-tbtn"        style="background:#f0ece4;border-color:#ccc" title="Minimal"   onclick="setCLTheme('clt-minimal',this)"></button>
+        <button class="cl-tbtn"        style="background:#5a3e2b" title="Warm"      onclick="setCLTheme('clt-warm',this)"></button>
+        <button class="cl-tbtn"        style="background:#c0392b" title="Bold"      onclick="setCLTheme('clt-bold',this)"></button>
+        <button class="cl-tbtn"        style="background:#2d6a4f" title="Sage"      onclick="setCLTheme('clt-sage',this)"></button>
+        <button class="cl-tbtn"        style="background:#1a2744" title="Navy Gold" onclick="setCLTheme('clt-navy-gold',this)"></button>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="cl-preview-actions">
+        <button class="btn btn-gold" onclick="downloadCoverLetter()">⬇ Download PDF</button>
+        <button class="btn btn-ghost" onclick="printCoverLetter()">🖨 Print</button>
+        <button class="btn btn-outline" onclick="showView('preview')">View CV →</button>
+      </div>
+
+      <!-- The letter itself -->
+      <div class="cl-paper clt-classic" id="cl-paper">
+        <!-- Rendered by JS -->
+      </div>
+
+    </div><!-- /cl-preview-panel -->
+
+  </div><!-- /cl-layout -->
+
+</div><!-- /view-coverletter -->
+
+<!-- ============================================================
      JAVASCRIPT
      ============================================================ -->
 <script>
@@ -2047,7 +3313,7 @@ function slug(s) {
 /* ============================================================
    VIEW ROUTING
    ============================================================ */
-const VIEWS = ['landing','wizard','builder','preview','jobs'];
+const VIEWS = ['landing','wizard','builder','preview','jobs','employer','coverletter'];
 let currentView = 'landing';
 
 function showView(id) {
@@ -2063,9 +3329,11 @@ function showView(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   /* On entering certain views, run setup */
-  if (id === 'builder') setupBuilderContext();
-  if (id === 'preview') renderCV();
-  if (id === 'jobs') initJobDiscovery();
+  if (id === 'builder')     setupBuilderContext();
+  if (id === 'preview')     renderCV();
+  if (id === 'jobs')        initJobDiscovery();
+  if (id === 'employer')    initEmployerPortal();
+  if (id === 'coverletter') initCoverLetter();
 }
 
 /* Navbar scroll effect */
@@ -2670,9 +3938,12 @@ function renderCV() {
 }
 
 function buildCVHTML(d) {
+  /* Photo: use raw src (base64 data URL) — do NOT escape through h()
+     as that would corrupt the data: URI. It is safe here because
+     this string only comes from the user's own file upload. */
   const photoHTML = d.photo
-    ? `<img src="${d.photo}" class="cv-photo" alt="Profile photo">`
-    : `<div class="cv-photo">👤</div>`;
+    ? '<img src="' + d.photo + '" class="cv-photo" alt="Profile photo" crossorigin="anonymous">'
+    : '<div class="cv-photo">👤</div>';
 
   const langs = (d.languages||'').split(',').map(l=>l.trim()).filter(Boolean);
   const certs = (d.certs||'').split('\n').map(c=>c.trim()).filter(Boolean);
@@ -2761,30 +4032,321 @@ function buildCVHTML(d) {
 }
 
 /* ============================================================
-   PDF DOWNLOAD
-   ============================================================ */
-function downloadPDF() {
-  const data = loadData('cvData') || {};
-  const name = (data.fullname || 'cv').toLowerCase().replace(/\s+/g,'-');
-  const element = document.getElementById('cv-paper');
+   PDF DOWNLOAD GATEWAY — ModemPay HTML Checkout
+   ─────────────────────────────────────────────────────────────
+   Uses ModemPay's HTML Checkout: a plain form POST.
+   No API calls, no SDK, no Edge Function needed.
 
-  if (typeof html2pdf !== 'undefined') {
-    toast('Preparing your PDF…', 'default', 2000);
+   Flow:
+   1. User clicks Download PDF
+   2. First download is always FREE — executes immediately
+   3. After the free download, a payment modal appears
+   4. User picks a plan (CV: GMD 25, CL: GMD 15, Bundle: GMD 35)
+   5. We build a hidden HTML form with all required ModemPay fields
+   6. We .submit() the form → browser POSTs to ModemPay checkout
+   7. User pays on ModemPay's hosted page (mobile money / wallet)
+   8. ModemPay redirects back to return_url with ?payment_status=success
+   9. App reads the URL → triggers the PDF download automatically
+   ============================================================ */
+
+/* ── Track free downloads ─────────────────────────────────── */
+function getFreeDownloadsLeft() {
+  const used = loadData_raw('folio_downloads_used') || 0;
+  return Math.max(0, MODEMPAY_CONFIG.FREE_DOWNLOADS - used);
+}
+function useFreeDownload() {
+  const used = loadData_raw('folio_downloads_used') || 0;
+  saveData_raw('folio_downloads_used', used + 1);
+}
+
+/* ── CV PDF download ──────────────────────────────────────── */
+async function downloadPDF() {
+  if (currentView !== 'preview') {
+    showView('preview');
+    setTimeout(() => downloadPDF(), 600);
+    return;
+  }
+  const freeLeft = getFreeDownloadsLeft();
+  if (freeLeft > 0) {
+    useFreeDownload();
+    if (freeLeft - 1 === 0) {
+      toast('Free download used! Next download costs GMD ' + MODEMPAY_CONFIG.DOWNLOAD_PRICES.cv + '.', 'gold', 5000);
+    }
+    executePDFDownload('cv');
+    return;
+  }
+  showDownloadPaymentModal('cv');
+}
+
+/* ── Cover letter PDF download ────────────────────────────── */
+async function downloadCoverLetter() {
+  if (currentView !== 'coverletter') {
+    showView('coverletter');
+    setTimeout(() => downloadCoverLetter(), 600);
+    return;
+  }
+  const freeLeft = getFreeDownloadsLeft();
+  if (freeLeft > 0) {
+    useFreeDownload();
+    if (freeLeft - 1 === 0) {
+      toast('Free download used! Next download costs GMD ' + MODEMPAY_CONFIG.DOWNLOAD_PRICES.coverletter + '.', 'gold', 5000);
+    }
+    executePDFDownload('coverletter');
+    return;
+  }
+  showDownloadPaymentModal('coverletter');
+}
+
+/* ── Payment modal — shows plan options before checkout ───── */
+function showDownloadPaymentModal(type) {
+  var prices    = MODEMPAY_CONFIG.DOWNLOAD_PRICES;
+  var typeLabel = { cv:'CV', coverletter:'Cover Letter', bundle:'CV + Cover Letter Bundle' };
+
+  var overlay = document.createElement('div');
+  overlay.id = 'download-payment-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:9000;display:flex;align-items:center;justify-content:center;padding:24px;';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-xl);padding:40px;max-width:440px;width:100%;animation:fadeUp 0.3s var(--ease);';
+
+  box.innerHTML = '<div style="font-size:44px;margin-bottom:16px;text-align:center">📄</div>' +
+    '<h3 style="font-size:22px;margin-bottom:8px;text-align:center">Download Your ' + h(typeLabel[type]||'Document') + '</h3>' +
+    '<p style="font-size:14px;color:var(--text2);text-align:center;line-height:1.7;margin-bottom:24px">Your free download has been used.<br>Pay securely via ModemPay — mobile money accepted.</p>' +
+    '<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:12px">🔒 Secured by ModemPay · GMD transactions</p>';
+
+  /* Options container */
+  var opts = document.createElement('div');
+  opts.style.cssText = 'display:flex;flex-direction:column;gap:10px;margin-bottom:20px;';
+
+  /* Individual plan option */
+  if (type !== 'bundle') {
+    var card1 = document.createElement('div');
+    card1.style.cssText = 'background:var(--surface);border:2px solid var(--gold);border-radius:var(--radius-lg);padding:16px;cursor:pointer;';
+    card1.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700;margin-bottom:3px">' + h(typeLabel[type]) + ' PDF</div><div style="font-size:12px;color:var(--text2)">A4 PDF · your chosen theme</div></div><div style="font-family:var(--font-mono);font-size:16px;color:var(--gold);font-weight:700">GMD ' + prices[type] + '</div></div>';
+    card1.addEventListener('click', function() {
+      document.getElementById('download-payment-overlay').remove();
+      submitModemPayForm(type);
+    });
+    opts.appendChild(card1);
+  }
+
+  /* Bundle option */
+  var card2 = document.createElement('div');
+  card2.style.cssText = 'background:var(--surface);border:2px solid rgba(212,168,83,0.4);border-radius:var(--radius-lg);padding:16px;cursor:pointer;';
+  card2.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700;margin-bottom:3px">✦ CV + Cover Letter Bundle</div><div style="font-size:12px;color:var(--text2)">Best value — both documents</div></div><div style="font-family:var(--font-mono);font-size:16px;color:var(--gold);font-weight:700">GMD ' + prices.bundle + '</div></div>';
+  card2.addEventListener('click', function() {
+    document.getElementById('download-payment-overlay').remove();
+    submitModemPayForm('bundle');
+  });
+  opts.appendChild(card2);
+
+  /* Cancel button */
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-ghost btn-full btn-sm';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', function() {
+    document.getElementById('download-payment-overlay').remove();
+  });
+
+  /* Assemble */
+  box.insertBefore(opts, box.lastElementChild);
+  box.insertBefore(cancelBtn, box.lastElementChild);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+/* ── Core: build & submit ModemPay HTML Checkout form ──────── */
+/*
+ * This is the HTML Checkout method from ModemPay's docs:
+ *
+ *   <form method="POST" action="https://checkout.modempay.com/api/pay">
+ *     <input type="hidden" name="public_key" value="pk_live_..." />
+ *     <input type="hidden" name="amount" value="450" />
+ *     ...
+ *     <button type="submit">Pay Now</button>
+ *   </form>
+ *
+ * We build this form dynamically in JS and submit it immediately.
+ * No API call. No fetch(). No Edge Function. Just a form POST.
+ */
+function submitModemPayForm(type) {
+  const prices    = MODEMPAY_CONFIG.DOWNLOAD_PRICES;
+  const amount    = prices[type];
+  const cvData    = loadData('cvData') || {};
+  const dlToken   = 'dl-' + type + '-' + Date.now();
+  const typeLabel = { cv:'CV PDF', coverletter:'Cover Letter PDF', bundle:'CV + Cover Letter Bundle' };
+
+  /* Save token so we know what to download when user returns */
+  saveData_raw('folio_pending_download', { type: type, token: dlToken, amount: amount });
+
+  const returnUrl = MODEMPAY_CONFIG.RETURN_URL + '&dl_token=' + encodeURIComponent(dlToken);
+  const cancelUrl = MODEMPAY_CONFIG.CANCEL_URL;
+
+  /* Customer details from saved CV */
+  const customerName  = cvData.fullname || 'Folio CV User';
+  const customerEmail = cvData.email    || 'user@foliocv.gm';
+  const customerPhone = (cvData.phone   || '7000000').replace(/[^0-9]/g, '').slice(-7) || '7000000';
+
+  /* Build the hidden form exactly as ModemPay HTML Checkout requires */
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'https://checkout.modempay.com/api/pay';
+  form.style.display = 'none';
+
+  const fields = {
+    public_key:     MODEMPAY_PUBLIC_KEY,
+    amount:         String(amount),
+    currency:       'GMD',
+    customer_name:  customerName,
+    customer_email: customerEmail,
+    customer_phone: customerPhone,
+    return_url:     returnUrl,
+    cancel_url:     cancelUrl,
+    'metadata[source]':    'folio-cv',
+    'metadata[type]':      typeLabel[type] || type,
+    'metadata[dl_token]':  dlToken,
+  };
+
+  Object.entries(fields).forEach(function(entry) {
+    const input = document.createElement('input');
+    input.type  = 'hidden';
+    input.name  = entry[0];
+    input.value = entry[1];
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  toast('Redirecting to ModemPay… GMD ' + amount, 'gold', 2000);
+  setTimeout(function() { form.submit(); }, 600);
+}
+
+/* ── Job posting also uses HTML Checkout form ─────────────── */
+function submitJobPaymentForm(jobPayload, plan, amount) {
+  const pendingId = 'pend-' + Date.now();
+  saveData_raw('folio_pending_job', Object.assign({}, jobPayload, { _pendingId: pendingId }));
+
+  const returnUrl = MODEMPAY_CONFIG.RETURN_URL + '&job_id=' + encodeURIComponent(pendingId);
+  const cancelUrl = MODEMPAY_CONFIG.CANCEL_URL;
+
+  const planLabel = { featured:'Featured Job Listing (GMD 500)', premium:'Premium Job Listing (GMD 1200)' };
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'https://checkout.modempay.com/api/pay';
+  form.style.display = 'none';
+
+  const fields = {
+    public_key:     MODEMPAY_PUBLIC_KEY,
+    amount:         String(amount),
+    currency:       'GMD',
+    customer_name:  jobPayload.company || 'Employer',
+    customer_email: jobPayload.email   || 'employer@foliocv.gm',
+    customer_phone: '7000000',
+    return_url:     returnUrl,
+    cancel_url:     cancelUrl,
+    'metadata[source]':     'folio-cv-employer',
+    'metadata[plan]':       plan,
+    'metadata[job_title]':  jobPayload.title || '',
+    'metadata[pending_id]': pendingId,
+  };
+
+  Object.entries(fields).forEach(function(entry) {
+    const input = document.createElement('input');
+    input.type  = 'hidden';
+    input.name  = entry[0];
+    input.value = entry[1];
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  toast('Redirecting to ModemPay payment… GMD ' + amount, 'gold', 2000);
+  setTimeout(function() { form.submit(); }, 800);
+}
+
+/* ── The actual PDF generation (called after payment or free) */
+function executePDFDownload(type) {
+  if (type === 'bundle') {
+    executePDFDownload('cv');
+    setTimeout(() => executePDFDownload('coverletter'), 3500);
+    return;
+  }
+
+  const isCL   = type === 'coverletter';
+  const elemId = isCL ? 'cl-paper' : 'cv-paper';
+
+  /* Navigate to correct view if not already there */
+  if (isCL && currentView !== 'coverletter') {
+    showView('coverletter');
+    setTimeout(() => executePDFDownload(type), 900);
+    return;
+  }
+  if (!isCL && currentView !== 'preview') {
+    showView('preview');
+    setTimeout(() => executePDFDownload(type), 900);
+    return;
+  }
+
+  const element = document.getElementById(elemId);
+  if (!element) {
+    toast('Could not find document to export. Please try again.', 'error');
+    return;
+  }
+
+  if (typeof html2pdf === 'undefined') {
+    toast('PDF library not loaded. Using print instead.', 'default');
+    window.print();
+    return;
+  }
+
+  /* Get filename */
+  const cvData  = loadData('cvData') || {};
+  const clData  = (() => { try { return JSON.parse(localStorage.getItem('folio_cover_letter')) || {}; } catch { return {}; } })();
+  const rawName = (isCL ? (clData.fullname || 'cover-letter') : (cvData.fullname || 'cv'));
+  const name    = rawName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const filename = isCL ? (name + '-cover-letter.pdf') : (name + '-cv.pdf');
+
+  toast('Preparing ' + (isCL ? 'cover letter' : 'CV') + ' PDF…', 'default', 4000);
+
+  /* Add export class to lock width to A4 */
+  element.classList.add('pdf-export');
+
+  /* Fix photo: if cv-photo img exists, make sure src is the raw data URL */
+  if (!isCL) {
+    const photoImg = element.querySelector('img.cv-photo');
+    if (photoImg && cvData.photo) {
+      photoImg.src = cvData.photo;
+    }
+  }
+
+  /* Small delay so browser paints the pdf-export styles before capture */
+  setTimeout(() => {
     html2pdf()
       .set({
-        margin: 0,
-        filename: `${name}-cv.pdf`,
-        image: { type:'jpeg', quality:0.98 },
-        html2canvas: { scale:2, useCORS:true },
-        jsPDF: { unit:'px', format:'a4', orientation:'portrait' },
+        margin:      0,
+        filename:    filename,
+        image:       { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale:       2.5,
+          useCORS:     true,
+          allowTaint:  true,
+          logging:     false,
+          windowWidth: 794,
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all'] },
       })
       .from(element)
       .save()
-      .then(() => toast('PDF downloaded! ✦', 'gold'));
-  } else {
-    toast('Falling back to print…', 'default');
-    window.print();
-  }
+      .then(() => {
+        element.classList.remove('pdf-export');
+        toast(filename + ' downloaded ✦', 'gold', 4000);
+      })
+      .catch(() => {
+        element.classList.remove('pdf-export');
+        toast('PDF export failed — using print fallback', 'error');
+        window.print();
+      });
+  }, 150);
 }
 
 /* ============================================================
@@ -2927,7 +4489,16 @@ async function initJobDiscovery() {
     toast('Showing recent GamJobs listings (live fetch unavailable)', 'default', 4000);
   }
 
-  // 4. AI-score jobs against CV
+  // 4. Merge in any approved Folio employer jobs (from Supabase or local)
+  try {
+    const folioJobs = await fetchFolioEmployerJobs();
+    if (folioJobs.length > 0) {
+      jobs = [...folioJobs, ...jobs];
+      toast(`${folioJobs.length} employer listing${folioJobs.length>1?'s':''} added from Folio CV!`, 'gold', 3000);
+    }
+  } catch(e) { /* non-blocking */ }
+
+  // 5. AI-score jobs against CV
   jobsDeck = aiScoreJobs(jobs, cvData);
   swipeIndex = 0;
 
@@ -3367,8 +4938,929 @@ function resetDeck() {
 }
 
 /* ============================================================
-   KEYBOARD SHORTCUTS (Job swipe)
+   EMPLOYER PORTAL — FULL MODULE
    ============================================================ */
+
+/* ── Config ───────────────────────────────────────────────── */
+const EMPLOYER_STORAGE = {
+  config:    'folio_sb_config',      // Supabase URL + key
+  draftPost: 'folio_employer_draft', // In-progress post form
+  myJobs:    'folio_employer_jobs',  // Employer's own submitted jobs
+};
+
+const ADMIN_PASSWORD = 'folio2025'; // Change this to something secret!
+
+/* ── Supabase client (lightweight, no SDK needed) ─────────── */
+
+/* ✦ YOUR SUPABASE CREDENTIALS — already connected ✦ */
+/* ✦ YOUR SUPABASE CREDENTIALS — already connected ✦ */
+const SB_URL_DEFAULT = 'https://whrlhlssojgpbcwregmf.supabase.co';
+const SB_KEY_DEFAULT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndocmxobHNzb2pncGJjd3JlZ21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTg4NjUsImV4cCI6MjA4OTIzNDg2NX0.4T2hePXxyJ8KdKjbVpGax7wh2ruPCkd2BxHUlcuedno';
+
+let SB_URL = SB_URL_DEFAULT;
+let SB_KEY = SB_KEY_DEFAULT;
+let SB_CONNECTED = false;
+
+function sbLoad() {
+  // Use saved config if available, otherwise fall back to hardcoded defaults
+  const cfg = loadData_raw(EMPLOYER_STORAGE.config);
+  if (cfg && cfg.url && cfg.key) {
+    SB_URL = cfg.url.replace(/\/+$/, '');
+    SB_KEY = cfg.key;
+  } else {
+    // Save the defaults so they persist
+    saveData_raw(EMPLOYER_STORAGE.config, { url: SB_URL_DEFAULT, key: SB_KEY_DEFAULT });
+  }
+  // Pre-fill the input fields
+  const urlInput = document.getElementById('sb-url-input');
+  const keyInput = document.getElementById('sb-key-input');
+  if (urlInput) urlInput.value = SB_URL;
+  if (keyInput) keyInput.value = SB_KEY;
+  // Auto-connect immediately
+  sbTestConnection();
+}
+
+function loadData_raw(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+}
+function saveData_raw(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+function sbDraftSave() {
+  // Nothing needed — just keeps inputs live
+}
+
+async function saveSupabaseConfig() {
+  const url = document.getElementById('sb-url-input').value.trim();
+  const key = document.getElementById('sb-key-input').value.trim();
+  if (!url || !key) { toast('Please enter both your Supabase URL and anon key', 'error'); return; }
+  SB_URL = url.replace(/\/+$/, '');
+  SB_KEY = key;
+  saveData_raw(EMPLOYER_STORAGE.config, { url: SB_URL, key: SB_KEY });
+  await sbTestConnection();
+}
+
+async function sbTestConnection() {
+  const dot    = document.getElementById('scb-dot');
+  const status = document.getElementById('scb-status-text');
+  dot.className = 'scb-dot';
+  status.textContent = 'Testing connection…';
+  try {
+    // Ping the jobs table
+    const res = await fetch(`${SB_URL}/rest/v1/jobs?limit=1`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (res.ok || res.status === 406) {
+      // 406 = RLS blocked but connection works
+      SB_CONNECTED = true;
+      dot.className = 'scb-dot connected';
+      status.textContent = `✓ Connected to Supabase — live job posting enabled`;
+      toast('Supabase connected! Jobs will be posted to your database.', 'success');
+    } else {
+      throw new Error(`Status ${res.status}`);
+    }
+  } catch(e) {
+    SB_CONNECTED = false;
+    dot.className = 'scb-dot error';
+    status.textContent = `✗ Could not connect (${e.message}) — jobs saved locally`;
+  }
+}
+
+/** POST a job to Supabase */
+async function sbInsertJob(job) {
+  const res = await fetch(`${SB_URL}/rest/v1/jobs`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(job),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `HTTP ${res.status}`);
+  }
+  return await res.json();
+}
+
+/** FETCH all jobs (admin — all) or approved jobs (public) */
+async function sbFetchJobs(adminMode = false) {
+  const filter = adminMode ? '' : '?approved=eq.false&order=created_at.desc';
+  const url = `${SB_URL}/rest/v1/jobs${filter || '?order=created_at.desc'}`;
+  const res = await fetch(url, {
+    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
+}
+
+/** PATCH a job (approve/reject) */
+async function sbUpdateJob(id, patch) {
+  const res = await fetch(`${SB_URL}/rest/v1/jobs?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+    },
+    body: JSON.stringify(patch),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+/* ── Init ─────────────────────────────────────────────────── */
+function initEmployerPortal() {
+  sbLoad();
+  setDeadlineDefault();
+  renderManageJobs();
+  updatePortalStats();
+}
+
+function setDeadlineDefault() {
+  const input = document.getElementById('pj-deadline');
+  if (!input.value) {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    input.value = d.toISOString().split('T')[0];
+  }
+}
+
+/* ── Tab switcher ─────────────────────────────────────────── */
+function switchPortalTab(tab, btn) {
+  document.querySelectorAll('.portal-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.portal-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`)?.classList.add('active');
+  if (tab === 'manage') renderManageJobs();
+  if (tab === 'admin')  renderAdminPanel();
+}
+
+/* ── Live preview ─────────────────────────────────────────── */
+function updateJobPreview() {
+  const title   = document.getElementById('pj-title')?.value       || '';
+  const company = document.getElementById('pj-company')?.value     || '';
+  const loc     = document.getElementById('pj-location')?.value    || '';
+  const salary  = document.getElementById('pj-salary')?.value      || '';
+  const desc    = document.getElementById('pj-description')?.value || '';
+  const type    = document.querySelector('input[name="jobtype"]:checked')?.value || 'Full Time';
+
+  document.getElementById('prev-title').textContent   = title   || 'Job Title';
+  document.getElementById('prev-company').textContent = company || 'Company Name';
+  document.getElementById('prev-location').textContent = `📍 ${loc || 'Location'}`;
+  document.getElementById('prev-type').textContent     = `💼 ${type}`;
+  document.getElementById('prev-desc').textContent     = desc.slice(0, 160) || 'Your job description will appear here…';
+
+  const salaryEl = document.getElementById('prev-salary');
+  if (salary) {
+    salaryEl.textContent = `💵 ${salary}`;
+    salaryEl.style.display = '';
+  } else {
+    salaryEl.style.display = 'none';
+  }
+}
+
+/* ── Form helpers ─────────────────────────────────────────── */
+function updateCharCount(inputId, countId, max) {
+  const val = document.getElementById(inputId)?.value || '';
+  document.getElementById(countId).textContent = `${val.length} / ${max}`;
+  document.getElementById(countId).style.color = val.length > max * 0.9 ? '#f87171' : 'var(--muted)';
+}
+
+function selectPill(radio) {
+  document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('selected'));
+  radio.closest('.type-pill').classList.add('selected');
+  updateJobPreview();
+}
+
+function togglePerk(chip) {
+  chip.classList.toggle('selected');
+}
+
+function selectPlan(card, plan) {
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  card.dataset.plan = plan;
+
+  // Update submit button label and note to reflect selected plan
+  const prices = { free: 0, featured: 500, premium: 1200 };
+  const labels = {
+    free:     '✦ Submit Free Listing',
+    featured: '💳 Pay GMD 500 & Submit Featured Listing',
+    premium:  '💳 Pay GMD 1,200 & Submit Premium Listing',
+  };
+  const notes = {
+    free:     'Free listings are reviewed manually within 24 hours. No payment required.',
+    featured: 'You will be redirected to ModemPay to complete payment securely in GMD.',
+    premium:  'You will be redirected to ModemPay to complete payment securely in GMD.',
+  };
+  const labelEl = document.getElementById('submit-btn-label');
+  const noteEl  = document.getElementById('submit-btn-note');
+  if (labelEl) labelEl.textContent = labels[plan] || labels.free;
+  if (noteEl)  noteEl.textContent  = notes[plan]  || notes.free;
+}
+
+function getSelectedPlan() {
+  const sel = document.querySelector('.plan-card.selected');
+  return sel ? (sel.dataset.plan || 'free') : 'free';
+}
+
+function getSelectedPerks() {
+  return Array.from(document.querySelectorAll('.perk-chip.selected'))
+    .map(c => c.textContent.trim());
+}
+
+/* ============================================================
+   MODEMPAY PAYMENT GATEWAY — PUBLIC KEY MODE
+   ============================================================
+   Uses ModemPay's PUBLIC key (pk_live_...) directly in the
+   browser. This is safe because the public key can only be
+   used to CREATE a payment intent UI — it cannot move money,
+   access your account, or perform any sensitive actions.
+
+   Flow:
+   1. User clicks Pay
+   2. Browser calls ModemPay API directly with the PUBLIC key
+   3. ModemPay returns a checkout_url
+   4. Browser redirects user to that checkout page
+   5. User pays using mobile money / wallet
+   6. ModemPay redirects back with ?payment_status=success
+   7. App finalises the job post or triggers the PDF download
+
+   ✦ PASTE YOUR pk_live_ KEY INTO MODEMPAY_PUBLIC_KEY BELOW
+   ============================================================ */
+
+/* ── PASTE YOUR MODEMPAY PUBLIC KEY HERE ─────────────────── */
+const MODEMPAY_PUBLIC_KEY = 'pk_live_51ebe3d202c7d2dfd9b31befc1536124a934c826ea02ba062aae2914bf5c2a39';
+/*
+   To find your public key:
+   1. Go to modem-pay.com → Login → Dashboard
+   2. Click API Keys in the sidebar
+   3. Copy the key that starts with pk_live_
+   4. Paste it above replacing pk_live_REPLACE_WITH_YOUR_PUBLIC_KEY
+*/
+
+const MODEMPAY_CONFIG = {
+  /* ModemPay public API endpoint — safe to call from browser */
+  API_URL: 'https://api.modem-pay.com/v1/payment-intents',
+
+  /* Job listing plan prices in GMD */
+  PRICES: {
+    free:     0,
+    featured: 500,
+    premium:  1200,
+  },
+
+  /* PDF download prices in GMD */
+  DOWNLOAD_PRICES: {
+    cv:          25,   /* CV PDF */
+    coverletter: 15,   /* Cover Letter PDF */
+    bundle:      35,   /* Both together */
+  },
+
+  /* How many free downloads before payment kicks in (per browser) */
+  FREE_DOWNLOADS: 1,
+
+  /* ModemPay redirects here after payment */
+  RETURN_URL: window.location.href.split('?')[0] + '?payment_status=success',
+  CANCEL_URL: window.location.href.split('?')[0] + '?payment_status=cancelled',
+};
+
+/* ── Check for payment return on page load ────────────────── */
+/*
+   ModemPay redirects back to this page with URL params.
+   We read them here and route to the right handler:
+     ?payment_status=success&job_id=xxx    → finalise job post
+     ?payment_status=success&dl_token=xxx  → trigger PDF download
+     ?payment_status=cancelled             → show cancellation toast
+*/
+(function checkPaymentReturn() {
+  const params  = new URLSearchParams(window.location.search);
+  const status  = params.get('payment_status');
+  const jobId   = params.get('job_id');
+  const dlToken = params.get('dl_token');
+
+  const clean = () => window.history.replaceState({}, '', window.location.pathname);
+
+  if (status === 'success' && jobId) {
+    /* ── Job post payment confirmed ── */
+    window.addEventListener('DOMContentLoaded', () => {
+      finalisePaidJob(jobId);
+      clean();
+    });
+
+  } else if (status === 'success' && dlToken) {
+    /* ── PDF download payment confirmed ── */
+    window.addEventListener('DOMContentLoaded', () => {
+      finaliseDownload(dlToken);
+      clean();
+    });
+
+  } else if (status === 'cancelled') {
+    /* ── Payment cancelled by user ── */
+    window.addEventListener('DOMContentLoaded', () => {
+      const pending = loadData_raw('folio_pending_download');
+      if (pending) {
+        showView('preview');
+        toast('Payment cancelled — your CV was not downloaded.', 'error', 5000);
+      } else {
+        showView('employer');
+        toast('Payment cancelled — your job was not posted.', 'error', 5000);
+      }
+      clean();
+    });
+  }
+})();
+
+/* ── Finalise download after payment ──────────────────────── */
+async function finaliseDownload(token) {
+  const pending = loadData_raw('folio_pending_download');
+
+  if (!pending || pending.token !== token) {
+    /* Token mismatch — still trigger download as fallback */
+    toast('Payment confirmed! Starting download…', 'success');
+    showView('preview');
+    setTimeout(() => executePDFDownload('cv'), 800);
+    return;
+  }
+
+  const { type } = pending;
+  localStorage.removeItem('folio_pending_download');
+
+  /* Record this as a used paid download */
+  const usedDownloads = (loadData_raw('folio_downloads_used') || 0) + 1;
+  saveData_raw('folio_downloads_used', usedDownloads);
+
+  toast('Payment confirmed! ✦ Preparing your download…', 'success', 3000);
+
+  /* Route to correct view and download */
+  if (type === 'cv') {
+    showView('preview');
+    setTimeout(() => executePDFDownload('cv'), 1000);
+  } else if (type === 'coverletter') {
+    showView('coverletter');
+    setTimeout(() => executePDFDownload('coverletter'), 1000);
+  } else if (type === 'bundle') {
+    showView('preview');
+    setTimeout(async () => {
+      executePDFDownload('cv');
+      await new Promise(r => setTimeout(r, 2000));
+      showView('coverletter');
+      setTimeout(() => executePDFDownload('coverletter'), 800);
+    }, 1000);
+  }
+}
+
+/* ── Finalise a job after successful payment ──────────────── */
+async function finalisePaidJob(jobId) {
+  showView('employer');
+
+  // Load the pending job from localStorage
+  const pending = loadData_raw('folio_pending_job');
+  if (!pending || pending._pendingId !== jobId) {
+    toast('Could not find pending job — please resubmit', 'error');
+    return;
+  }
+
+  // Mark as paid and save
+  const jobPayload = { ...pending, paid: true, payment_confirmed: true };
+  delete jobPayload._pendingId;
+
+  let savedRemotely = false;
+  try {
+    if (SB_CONNECTED) {
+      await sbInsertJob(jobPayload);
+      savedRemotely = true;
+    }
+  } catch(err) {
+    console.warn('[Payment] Supabase insert failed after payment:', err.message);
+  }
+
+  // Save locally
+  const localId = `paid-${Date.now()}`;
+  const localJob = { ...jobPayload, id: localId, _local: !savedRemotely };
+  const myJobs = loadData_raw(EMPLOYER_STORAGE.myJobs) || [];
+  myJobs.unshift(localJob);
+  saveData_raw(EMPLOYER_STORAGE.myJobs, myJobs);
+
+  // Clear pending
+  localStorage.removeItem('folio_pending_job');
+
+  // Show success
+  document.getElementById('post-job-form').style.display = 'none';
+  document.getElementById('submission-success').classList.add('show');
+  toast('Payment confirmed! ✦ Job listing submitted for review.', 'success', 6000);
+  updatePortalStats();
+}
+
+/* ── Main submit function ─────────────────────────────────── */
+async function submitJobPost() {
+  /* ── 1. Collect & validate all form fields ── */
+  const title       = document.getElementById('pj-title')?.value.trim()        || '';
+  const company     = document.getElementById('pj-company')?.value.trim()      || '';
+  const email       = document.getElementById('pj-email')?.value.trim()        || '';
+  const location    = document.getElementById('pj-location')?.value            || '';
+  const deadline    = document.getElementById('pj-deadline')?.value            || '';
+  const description = document.getElementById('pj-description')?.value.trim()  || '';
+
+  if (!title)                   { toast('Please enter a job title', 'error');              return; }
+  if (!company)                 { toast('Please enter your company name', 'error');        return; }
+  if (!email || !email.includes('@')) { toast('Please enter a valid contact email', 'error'); return; }
+  if (!location)                { toast('Please select a location', 'error');              return; }
+  if (!deadline)                { toast('Please set an application deadline', 'error');    return; }
+  if (description.length < 100) { toast('Description must be at least 100 characters', 'error'); return; }
+
+  const jobType      = document.querySelector('input[name="jobtype"]:checked')?.value || 'Full Time';
+  const salary       = document.getElementById('pj-salary')?.value.trim()       || '';
+  const experience   = document.getElementById('pj-experience')?.value          || '';
+  const industry     = document.getElementById('pj-industry')?.value            || '';
+  const website      = document.getElementById('pj-website')?.value.trim()      || '';
+  const applyUrl     = document.getElementById('pj-apply-url')?.value.trim()    || '';
+  const requirements = document.getElementById('pj-requirements')?.value.trim() || '';
+  const perks        = getSelectedPerks();
+  const plan         = getSelectedPlan();
+
+  const jobPayload = {
+    title, company, email, location, deadline,
+    description, requirements,
+    type: jobType,
+    salary, experience, industry,
+    website, apply_url: applyUrl,
+    perks: JSON.stringify(perks),
+    plan,
+    approved: false,
+    submitted_at: new Date().toISOString(),
+  };
+
+  /* ── 2. Show spinner ── */
+  const btn = document.getElementById('submit-job-btn');
+  const spinnerEl = document.getElementById('submit-spinner');
+  btn.classList.add('btn-submitting');
+  btn.disabled = true;
+
+  /* ── 3. Route by plan ── */
+  const amount = MODEMPAY_CONFIG.PRICES[plan] || 0;
+
+  if (amount === 0) {
+    /* FREE plan — no payment needed, save directly */
+    await saveJobDirectly(jobPayload);
+    btn.classList.remove('btn-submitting');
+    btn.disabled = false;
+
+  } else {
+    /* PAID plan — use ModemPay HTML Checkout form (simplest method) */
+    btn.classList.remove('btn-submitting');
+    btn.disabled = false;
+    submitJobPaymentForm(jobPayload, plan, amount);
+  }
+}
+
+/* ── Save job (free / post-payment) ──────────────────────── */
+async function saveJobDirectly(jobPayload) {
+  let savedRemotely = false;
+  try {
+    if (SB_CONNECTED) {
+      await sbInsertJob(jobPayload);
+      savedRemotely = true;
+    }
+  } catch(err) {
+    console.warn('[Employer] Supabase insert failed:', err.message);
+  }
+
+  const localId  = `local-${Date.now()}`;
+  const localJob = { ...jobPayload, id: localId, _local: !savedRemotely };
+  const myJobs   = loadData_raw(EMPLOYER_STORAGE.myJobs) || [];
+  myJobs.unshift(localJob);
+  saveData_raw(EMPLOYER_STORAGE.myJobs, myJobs);
+
+  document.getElementById('post-job-form').style.display = 'none';
+  document.getElementById('submission-success').classList.add('show');
+  toast(
+    savedRemotely ? 'Job submitted! Saved to database ✓' : 'Job saved locally (connect Supabase to go live)',
+    savedRemotely ? 'success' : 'gold', 5000
+  );
+  updatePortalStats();
+}
+
+/* ── Create ModemPay Payment Intent via Edge Function ────── */
+async function createPaymentIntent({ amount, company, title, plan, pendingId, email, returnUrl }) {
+  /*
+   * Mirrors the ModemPay SDK pattern exactly:
+   *
+   *   const modempay = new ModemPay('YOUR_KEY');
+   *   const intent = await modempay.paymentIntents.create({ amount: 450 });
+   *   console.log(intent.data.payment_link);  // ← redirect user here
+   *
+   * Since our app is a single HTML file (no npm), we replicate what the
+   * SDK does internally — a POST to /v1/payment-intents with Bearer auth —
+   * and read intent.data.payment_link from the response, exactly as the
+   * SDK snippet shows.
+   *
+   * The PUBLIC key (pk_live_...) is safe here. It can only create a
+   * payment checkout. It cannot move money or access your account.
+   */
+
+  /* ── Guard: public key must be set ── */
+  if (!MODEMPAY_PUBLIC_KEY || MODEMPAY_PUBLIC_KEY.includes('REPLACE_WITH')) {
+    throw new Error(
+      'ModemPay public key not configured. ' +
+      'Find MODEMPAY_PUBLIC_KEY in the file and paste your pk_live_ key.'
+    );
+  }
+
+  /* ── Guard: must be hosted online, not opened as a local file ── */
+  if (window.location.protocol === 'file:') {
+    throw new Error(
+      'Payments require the app to be hosted online. ' +
+      'Upload index.html to Netlify or GitHub Pages first.'
+    );
+  }
+
+  const finalReturnUrl = returnUrl || (MODEMPAY_CONFIG.RETURN_URL + '&job_id=' + encodeURIComponent(pendingId));
+  const cancelUrl      = MODEMPAY_CONFIG.CANCEL_URL;
+
+  /* ── POST to ModemPay — same as SDK's paymentIntents.create() ── */
+  const res = await fetch('https://api.modem-pay.com/v1/payment-intents', {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + MODEMPAY_PUBLIC_KEY,
+    },
+    body: JSON.stringify({
+      amount:              amount,
+      currency:            'GMD',
+      return_url:          finalReturnUrl,
+      cancel_url:          cancelUrl,
+      skip_url_validation: true,
+      metadata: {
+        job_title:      title,
+        company:        company,
+        plan:           plan,
+        pending_id:     pendingId,
+        employer_email: email,
+        source:         'folio-cv',
+      },
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error('ModemPay error ' + res.status + ': ' + errText);
+  }
+
+  /* ── Read response exactly as SDK does: intent.data.payment_link ── */
+  const intent = await res.json();
+
+  const paymentLink = intent?.data?.payment_link   // SDK-style
+                   || intent?.data?.checkout_url   // alternative field
+                   || intent?.payment_link          // flat response
+                   || intent?.checkout_url;         // another alternative
+
+  if (!paymentLink) {
+    throw new Error(
+      'ModemPay did not return a payment link. ' +
+      'Full response: ' + JSON.stringify(intent).slice(0, 300)
+    );
+  }
+
+  return paymentLink;
+}
+
+/* ── Fallback UI if Edge Function not yet deployed ────────── */
+function showPaymentFallback(jobPayload, plan, amount, errMsg) {
+  /*
+   * Shows a friendly modal explaining payment isn't live yet,
+   * with option to save as free listing instead or pay manually.
+   */
+  const planLabel = plan === 'featured' ? '⭐ Featured' : '🏆 Premium';
+
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.75);
+    z-index:9000;display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  `;
+
+  overlay.innerHTML = `
+    <div style="
+      background:var(--bg2);border:1px solid var(--border);
+      border-radius:var(--radius-xl);padding:40px;max-width:480px;width:100%;
+      animation:fadeUp 0.3s var(--ease);
+    ">
+      <div style="font-size:40px;margin-bottom:16px">💳</div>
+      <h3 style="font-size:22px;margin-bottom:10px">${planLabel} — GMD ${amount}</h3>
+      <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:20px">
+        ${errMsg.includes('hosted online') ?
+          'Payments only work when the app is hosted online. Upload your <strong style="color:var(--gold)">index.html</strong> to GitHub Pages or Netlify — it takes 5 minutes and is free. Once hosted, payments will work automatically.' :
+          'The payment gateway could not be reached. The Supabase Edge Function needs to be deployed with your ModemPay secret key.'
+        }
+        <br><br>
+        <strong style="color:var(--gold)">In the meantime, you have two options:</strong>
+      </p>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);padding:14px;margin-bottom:20px;font-size:13px;color:var(--muted)">
+        <strong style="color:var(--text2);display:block;margin-bottom:4px">Error detail (for developer):</strong>
+        ${h(errMsg)}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-gold btn-full" onclick="
+          this.closest('div[style*=fixed]').remove();
+          saveJobDirectly(window._pendingJobPayload);
+        ">
+          Save as Free Listing (submit for review now)
+        </button>
+        <button class="btn btn-outline btn-full" onclick="
+          window.open('https://dashboard.modem-pay.com','_blank');
+          this.closest('div[style*=fixed]').remove();
+        ">
+          Go to ModemPay Dashboard to pay manually
+        </button>
+        <button class="btn btn-ghost btn-full" onclick="this.closest('div[style*=fixed]').remove()">
+          Cancel — go back to form
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Attach payload to window temporarily for the inline onclick above
+  window._pendingJobPayload = jobPayload;
+  document.body.appendChild(overlay);
+
+  // Re-enable submit button
+  const btn = document.getElementById('submit-job-btn');
+  btn.classList.remove('btn-submitting');
+  btn.disabled = false;
+}
+
+/* ── Reset form ───────────────────────────────────────────── */
+function resetPostForm() {
+  document.getElementById('pj-title').value       = '';
+  document.getElementById('pj-company').value     = '';
+  document.getElementById('pj-email').value       = '';
+  document.getElementById('pj-location').value    = '';
+  document.getElementById('pj-salary').value      = '';
+  document.getElementById('pj-description').value = '';
+  document.getElementById('pj-requirements').value = '';
+  document.getElementById('pj-apply-url').value   = '';
+  document.querySelectorAll('.perk-chip').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.plan-card').forEach((c,i) => c.classList.toggle('selected', i===0));
+  document.querySelector('input[name="jobtype"][value="Full Time"]').checked = true;
+  document.querySelectorAll('.type-pill').forEach((p,i) => p.classList.toggle('selected', i===0));
+  setDeadlineDefault();
+  updateJobPreview();
+  document.getElementById('post-job-form').style.display = '';
+  document.getElementById('submission-success').classList.remove('show');
+}
+
+/* ── My Listings (employer view) ──────────────────────────── */
+function renderManageJobs() {
+  const container = document.getElementById('manage-jobs-list');
+  const jobs = loadData_raw(EMPLOYER_STORAGE.myJobs) || [];
+
+  if (!jobs.length) {
+    container.innerHTML = `
+      <div class="manage-empty">
+        <div style="font-size:48px;margin-bottom:16px">📋</div>
+        <h3>No listings yet</h3>
+        <p style="margin-bottom:20px">Your submitted job posts will appear here.</p>
+        <button class="btn btn-gold" onclick="switchPortalTab('post', document.querySelector('.portal-tab'))">Post Your First Job</button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = jobs.map(job => {
+    const statusClass = job.approved ? 'status-approved' : (job.rejected ? 'status-rejected' : 'status-pending');
+    const statusLabel = job.approved ? '✓ Live' : (job.rejected ? '✗ Rejected' : '⏳ Pending Review');
+    const perks = (() => { try { return JSON.parse(job.perks || '[]'); } catch { return []; } })();
+
+    return `
+      <div class="manage-job-card">
+        <div>
+          <div class="manage-job-title">${h(job.title)}</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:8px">${h(job.company)} · ${h(job.industry||'')}</div>
+          <div class="manage-job-meta">
+            <span>📍 ${h(job.location)}</span>
+            <span>💼 ${h(job.type)}</span>
+            ${job.salary ? `<span>💵 ${h(job.salary)}</span>` : ''}
+            <span>⏰ Closes ${h(job.deadline)}</span>
+            <span>📋 ${h(job.plan||'free')} plan</span>
+          </div>
+          ${perks.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${perks.map(p=>`<span style="font-size:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:100px;padding:2px 8px;color:var(--text2)">${h(p)}</span>`).join('')}</div>` : ''}
+          <div style="font-size:11px;color:var(--muted);margin-top:10px">
+            Submitted: ${new Date(job.submitted_at||Date.now()).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
+            ${job._local ? ' · <span style="color:var(--gold)">Stored locally</span>' : ' · <span style="color:#4ade80">In database</span>'}
+          </div>
+        </div>
+        <div class="manage-job-actions">
+          <span class="status-badge ${statusClass}">${statusLabel}</span>
+          <button class="btn btn-ghost btn-sm" onclick="deleteMyJob('${job.id}')">✕ Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteMyJob(id) {
+  if (!confirm('Delete this job listing?')) return;
+  const jobs = (loadData_raw(EMPLOYER_STORAGE.myJobs) || []).filter(j => j.id !== id);
+  saveData_raw(EMPLOYER_STORAGE.myJobs, jobs);
+  renderManageJobs();
+  updatePortalStats();
+  toast('Listing deleted', 'default');
+}
+
+/* ── Portal stats ─────────────────────────────────────────── */
+function updatePortalStats() {
+  const jobs    = loadData_raw(EMPLOYER_STORAGE.myJobs) || [];
+  const total   = jobs.length;
+  const active  = jobs.filter(j => j.approved).length;
+  const pending = jobs.filter(j => !j.approved && !j.rejected).length;
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-active').textContent  = active;
+  document.getElementById('stat-pending').textContent = pending;
+}
+
+/* ── Admin panel ──────────────────────────────────────────── */
+let adminLoggedIn = false;
+
+function adminLogin() {
+  const pw = document.getElementById('admin-pw-input').value;
+  if (pw === ADMIN_PASSWORD) {
+    adminLoggedIn = true;
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-panel').classList.add('active');
+    renderAdminPanel();
+    toast('Admin access granted', 'gold');
+  } else {
+    toast('Incorrect password', 'error');
+    document.getElementById('admin-pw-input').value = '';
+    document.getElementById('admin-pw-input').style.borderColor = 'rgba(248,113,113,0.6)';
+    setTimeout(() => document.getElementById('admin-pw-input').style.borderColor = '', 2000);
+  }
+}
+
+function adminLogout() {
+  adminLoggedIn = false;
+  document.getElementById('admin-login').style.display = '';
+  document.getElementById('admin-panel').classList.remove('active');
+  document.getElementById('admin-pw-input').value = '';
+}
+
+async function renderAdminPanel() {
+  if (!adminLoggedIn) return;
+  const container = document.getElementById('admin-jobs-list');
+  container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">Loading…</div>`;
+
+  let jobs = [];
+
+  // Try Supabase first (gets ALL submissions from all employers)
+  if (SB_CONNECTED) {
+    try {
+      jobs = await sbFetchJobs(true);
+    } catch(e) {
+      toast('Could not load from Supabase, showing local jobs', 'error');
+    }
+  }
+
+  // Merge with local if needed
+  const localJobs = (loadData_raw(EMPLOYER_STORAGE.myJobs) || []).filter(j => j._local && !j.approved && !j.rejected);
+  const allIds = new Set(jobs.map(j => String(j.id)));
+  localJobs.forEach(j => { if (!allIds.has(String(j.id))) jobs.push(j); });
+
+  const pending = jobs.filter(j => !j.approved && !j.rejected);
+  document.getElementById('admin-pending-count').textContent = `(${pending.length} pending)`;
+
+  if (!pending.length) {
+    container.innerHTML = `
+      <div class="manage-empty">
+        <div style="font-size:40px;margin-bottom:12px">✅</div>
+        <h3>All clear!</h3>
+        <p>No jobs pending review right now.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = pending.map(job => `
+    <div class="admin-job-row" id="admin-row-${job.id}">
+      <div>
+        <h4>${h(job.title)} <span style="font-weight:400;color:var(--muted)">— ${h(job.company)}</span></h4>
+        <p>📍 ${h(job.location)} · 💼 ${h(job.type)} · ⏰ ${h(job.deadline)} · 📋 ${h(job.plan||'free')}</p>
+        <p style="margin-top:6px;color:var(--text2);font-size:12px;max-width:600px;line-height:1.5">${h((job.description||'').slice(0,200))}…</p>
+        <p style="margin-top:6px;font-size:11px;color:var(--muted)">Contact: ${h(job.email)} ${job._local ? '· <span style="color:var(--gold)">Local only</span>' : ''}</p>
+      </div>
+      <div class="admin-approve-btns">
+        <button class="btn-approve" onclick="adminApprove('${job.id}', ${!!job._local})">✓ Approve</button>
+        <button class="btn-reject"  onclick="adminReject('${job.id}',  ${!!job._local})">✗ Reject</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function adminApprove(id, isLocal) {
+  const row = document.getElementById(`admin-row-${id}`);
+  if (row) { row.style.opacity = '0.4'; row.style.pointerEvents = 'none'; }
+
+  if (!isLocal && SB_CONNECTED) {
+    try {
+      await sbUpdateJob(id, { approved: true });
+      toast('Job approved and live!', 'success');
+    } catch(e) {
+      toast('Supabase update failed — approving locally', 'error');
+      isLocal = true;
+    }
+  }
+
+  // Update local copy too
+  const jobs = loadData_raw(EMPLOYER_STORAGE.myJobs) || [];
+  const idx  = jobs.findIndex(j => String(j.id) === String(id));
+  if (idx !== -1) { jobs[idx].approved = true; saveData_raw(EMPLOYER_STORAGE.myJobs, jobs); }
+
+  if (isLocal) toast('Approved locally ✓ (connect Supabase to make it live)', 'gold');
+
+  setTimeout(() => { row?.remove(); updatePortalStats(); }, 600);
+}
+
+async function adminReject(id, isLocal) {
+  const row = document.getElementById(`admin-row-${id}`);
+  if (row) { row.style.opacity = '0.4'; row.style.pointerEvents = 'none'; }
+
+  if (!isLocal && SB_CONNECTED) {
+    try {
+      await sbUpdateJob(id, { approved: false, rejected: true });
+    } catch(e) { isLocal = true; }
+  }
+
+  const jobs = loadData_raw(EMPLOYER_STORAGE.myJobs) || [];
+  const idx  = jobs.findIndex(j => String(j.id) === String(id));
+  if (idx !== -1) { jobs[idx].rejected = true; saveData_raw(EMPLOYER_STORAGE.myJobs, jobs); }
+
+  toast('Job rejected', 'default');
+  setTimeout(() => { row?.remove(); updatePortalStats(); }, 600);
+}
+
+function adminRefresh() { renderAdminPanel(); }
+
+/* ── Wire up Supabase jobs into job discovery ─────────────── */
+/**
+ * Called from initJobDiscovery — merges Supabase-approved employer
+ * jobs with the GamJobs scraped results so they appear in the swipe deck.
+ */
+async function fetchFolioEmployerJobs() {
+  if (!SB_CONNECTED) {
+    // Return any locally approved jobs
+    return (loadData_raw(EMPLOYER_STORAGE.myJobs) || [])
+      .filter(j => j.approved)
+      .map((j, idx) => ({
+        id: `folio-${j.id}`,
+        title: j.title,
+        company: j.company,
+        location: j.location,
+        type: j.type,
+        desc: j.description,
+        tags: extractTags(j.title),
+        link: j.apply_url || j.website || 'https://folio-cv.gm',
+        deadline: j.deadline,
+        salary: j.salary,
+        _folio: true,
+      }));
+  }
+
+  try {
+    const rows = await fetch(
+      `${SB_URL}/rest/v1/jobs?approved=eq.true&order=created_at.desc`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }, signal: AbortSignal.timeout(6000) }
+    ).then(r => r.json());
+
+    return (rows || []).map(j => ({
+      id: `folio-${j.id}`,
+      title: j.title,
+      company: j.company,
+      location: j.location,
+      type: j.type,
+      desc: j.description,
+      tags: extractTags(j.title),
+      link: j.apply_url || j.website || 'https://folio-cv.gm',
+      deadline: j.deadline,
+      salary: j.salary,
+      _folio: true,
+    }));
+  } catch(e) {
+    console.warn('[Employer] Could not fetch live employer jobs:', e.message);
+    return [];
+  }
+}
+
+/* ── Init on DOMContentLoaded (added to existing init) ───── */
+document.addEventListener('DOMContentLoaded', () => {
+  sbLoad(); // Connect to Supabase immediately on page load
+});
 document.addEventListener('keydown', e => {
   if (currentView !== 'jobs') return;
   if (e.key === 'ArrowRight' || e.key === 'l') swipeCard(true);
@@ -3430,6 +5922,403 @@ document.addEventListener('DOMContentLoaded', () => {
 
   console.log('%c✦ Folio CV — Gambia\'s Professional CV Platform', 'color:#d4a853;font-size:14px;font-weight:bold');
 });
+
+/* ============================================================
+   COVER LETTER GENERATOR — FULL MODULE
+   ============================================================ */
+
+const CL_STORAGE_KEY = 'folio_cover_letter';
+let clTheme = 'clt-classic';
+let clAutoSaveTimer = null;
+let clMobileShowPreview = false;
+
+/* ── Tone definitions ────────────────────────────────────── */
+const CL_TONES = {
+  professional: { opener:'I am writing to express my interest in', fit:'With a proven track record in', energy:'measured and results-focused' },
+  confident:    { opener:'I am excited to apply for', fit:'I bring a strong background in', energy:'assertive and achievement-driven' },
+  warm:         { opener:'It is with great enthusiasm that I apply for', fit:'Throughout my career, I have developed a passion for', energy:'personable and relationship-focused' },
+  concise:      { opener:'I am applying for', fit:'My key qualifications include', energy:'direct and impact-focused' },
+  creative:     { opener:'Storytelling, strategy, and results — these are the things I live for. I am applying for', fit:'My unique blend of skills in', energy:'imaginative and bold' },
+  formal:       { opener:'I respectfully wish to apply for the position of', fit:'My professional background encompasses', energy:'formal and thorough' },
+};
+
+/* ── Placeholder paragraphs shown before user types ─────── */
+const CL_PLACEHOLDERS = {
+  opening:     'I am writing to express my strong interest in this position at your organisation. Having followed your work for some time, I am excited by the opportunity to contribute my experience to your team.',
+  skills:      'With over [X] years of experience in [field], I have developed expertise in [skill 1], [skill 2], and [skill 3]. My background has equipped me with a practical understanding of what it takes to succeed in this type of role.',
+  achievement: 'In my most recent position at [Company], I led a project that resulted in [outcome]. This experience demonstrated my ability to [key skill] while delivering measurable results under tight deadlines.',
+  company:     'I am particularly drawn to [Company] because of [specific reason — their mission, impact, reputation in Gambia]. I believe your commitment to [value] aligns closely with my own professional values.',
+  closing:     'I would welcome the opportunity to discuss how my background can contribute to your team\'s goals. Thank you sincerely for your time and consideration. I look forward to hearing from you.',
+};
+
+/* ── AI paragraph templates (local — no API key needed) ─── */
+function generateParagraph(type, data) {
+  const tone = CL_TONES[data.tone] || CL_TONES.professional;
+  const jobTitle  = data.jobTitle  || 'this position';
+  const company   = data.company   || 'your organisation';
+  const name      = data.fullname  || 'the applicant';
+  const myTitle   = data.myTitle   || 'professional';
+  const source    = data.jobSource ? `which I discovered through ${data.jobSource}` : 'advertised on GamJobs.com';
+  const topSkills = data.skills?.slice(0,3).map(s=>s.name).join(', ') || 'communication, organisation, and leadership';
+  const topExp    = data.experience?.[0] || null;
+  const topAch    = data.achievements?.[0] || null;
+  const summary   = data.summary || '';
+
+  switch(type) {
+    case 'opening':
+      return `${tone.opener} the role of ${jobTitle} at ${company}, ${source}. As an experienced ${myTitle}, I am confident that my skills and background make me a strong candidate for this opportunity. ${summary ? summary.split('.')[0] + '.' : `I am ${tone.energy} and eager to bring genuine value to your team.`}`;
+
+    case 'skills':
+      return `${tone.fit} ${topSkills}. ${topExp ? `In my role as ${topExp.title} at ${topExp.org}, I was responsible for ${topExp.desc?.split('.')[0]?.toLowerCase() || 'delivering key outcomes and building strong stakeholder relationships'}.` : 'My professional journey has given me a hands-on understanding of what drives results in fast-paced environments.'} I am adept at working both independently and within teams, and I consistently prioritise quality, accuracy, and timely delivery.`;
+
+    case 'achievement':
+      if (topAch) {
+        return `One achievement I am particularly proud of is ${topAch.title?.toLowerCase()}. ${topAch.desc ? topAch.desc.split('.')[0] + '.' : ''} This experience reinforced my ability to take initiative, manage complexity, and deliver outcomes that matter — skills I am eager to apply at ${company}.`;
+      }
+      return `Throughout my career, I have consistently delivered results that exceed expectations. I am recognised for my ability to identify opportunities, mobilise resources, and execute with precision — an approach I will bring with me to ${company}.`;
+
+    case 'company':
+      return `I am especially drawn to ${company} because of the meaningful impact your work has in The Gambia and the wider region. I admire your commitment to excellence and believe that joining your team would allow me to grow while contributing to goals I genuinely care about. I am looking for more than a job — I want to be part of an organisation whose mission inspires me, and ${company} represents exactly that.`;
+
+    case 'closing':
+      return `Thank you sincerely for taking the time to consider my application. I would welcome the opportunity to discuss how my experience and enthusiasm can contribute to ${company}'s continued success. I am available for an interview at your earliest convenience and can be reached at ${data.email || 'the contact details above'}. I look forward to the possibility of joining your team.`;
+
+    default: return '';
+  }
+}
+
+/* ── Init ────────────────────────────────────────────────── */
+function initCoverLetter() {
+  loadCoverLetterData();
+  setDefaultDate();
+  updateImportBadge();
+  renderCoverLetter();
+
+  // Mobile toggle button visibility
+  const toggleBtn = document.getElementById('cl-toggle-btn');
+  if (window.innerWidth <= 1000 && toggleBtn) toggleBtn.style.display = '';
+
+  // Autosave
+  if (clAutoSaveTimer) clearInterval(clAutoSaveTimer);
+  clAutoSaveTimer = setInterval(saveCoverLetterData, 8000);
+}
+
+function setDefaultDate() {
+  const el = document.getElementById('cl-date');
+  if (el && !el.value) {
+    el.value = new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+  }
+}
+
+function updateImportBadge() {
+  const cvData = loadData('cvData');
+  const el     = document.getElementById('cl-cv-name');
+  if (cvData?.fullname) {
+    el.textContent = cvData.fullname;
+    el.style.color = 'var(--gold)';
+  } else {
+    el.textContent = 'No CV found — build one first';
+  }
+}
+
+/* ── Import from CV ──────────────────────────────────────── */
+function importFromCV() {
+  const cv = loadData('cvData');
+  if (!cv) { toast('No CV found. Build your CV first.', 'error'); return; }
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  set('cl-fullname', cv.fullname);
+  set('cl-title',    cv.title);
+  set('cl-email',    cv.email);
+  set('cl-phone',    cv.phone);
+  set('cl-location', cv.location);
+
+  renderCoverLetter();
+  toast('CV details imported! ✦ Fill in the job details to personalise.', 'gold');
+}
+
+/* ── Tone selection ──────────────────────────────────────── */
+function selectTone(card) {
+  document.querySelectorAll('.tone-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  renderCoverLetter();
+}
+
+function getSelectedTone() {
+  return document.querySelector('.tone-card.selected')?.dataset?.tone || 'professional';
+}
+
+/* ── Collect all form data ───────────────────────────────── */
+function collectCLData() {
+  const cv = loadData('cvData') || {};
+  return {
+    // Sender
+    fullname: document.getElementById('cl-fullname')?.value || '',
+    myTitle:  document.getElementById('cl-title')?.value    || '',
+    email:    document.getElementById('cl-email')?.value    || '',
+    phone:    document.getElementById('cl-phone')?.value    || '',
+    location: document.getElementById('cl-location')?.value || '',
+    // Job target
+    jobTitle:    document.getElementById('cl-job-title')?.value      || '',
+    company:     document.getElementById('cl-company')?.value        || '',
+    hiringMgr:   document.getElementById('cl-hiring-manager')?.value || '',
+    companyAddr: document.getElementById('cl-company-address')?.value|| '',
+    jobSource:   document.getElementById('cl-job-source')?.value     || '',
+    // Content
+    tone:         getSelectedTone(),
+    paraOpening:  document.getElementById('cl-para-opening')?.value     || '',
+    paraSkills:   document.getElementById('cl-para-skills')?.value      || '',
+    paraAchieve:  document.getElementById('cl-para-achievement')?.value || '',
+    paraCompany:  document.getElementById('cl-para-company')?.value     || '',
+    paraClosing:  document.getElementById('cl-para-closing')?.value     || '',
+    closingPhrase:document.getElementById('cl-closing-phrase')?.value   || 'Yours sincerely,',
+    date:         document.getElementById('cl-date')?.value             || '',
+    // CV context for AI
+    skills:       cv.skills       || [],
+    experience:   cv.experience   || [],
+    achievements: cv.achievements || [],
+    summary:      cv.summary      || '',
+    theme:        clTheme,
+  };
+}
+
+/* ── Render the letter paper ─────────────────────────────── */
+function renderCoverLetter() {
+  const d = collectCLData();
+  const paper = document.getElementById('cl-paper');
+  if (!paper) return;
+
+  // Contacts
+  const contacts = [
+    d.email    && `<span>✉ ${h(d.email)}</span>`,
+    d.phone    && `<span>📱 ${h(d.phone)}</span>`,
+    d.location && `<span>📍 ${h(d.location)}</span>`,
+  ].filter(Boolean).join('');
+
+  // Subject line
+  const subject = d.jobTitle && d.company
+    ? `Re: Application for ${h(d.jobTitle)} — ${h(d.company)}`
+    : (d.jobTitle ? `Re: Application for ${h(d.jobTitle)}` : 'Cover Letter');
+
+  // Salutation
+  const salutation = d.hiringMgr
+    ? `Dear ${h(d.hiringMgr)},`
+    : 'Dear Hiring Manager,';
+
+  // Paragraphs — use typed content or placeholder
+  const paras = [
+    d.paraOpening  || CL_PLACEHOLDERS.opening,
+    d.paraSkills   || CL_PLACEHOLDERS.skills,
+    d.paraAchieve  || CL_PLACEHOLDERS.achievement,
+    d.paraCompany  || CL_PLACEHOLDERS.company,
+    d.paraClosing  || CL_PLACEHOLDERS.closing,
+  ];
+
+  const parasHTML = paras
+    .filter(p => p.trim())
+    .map(p => `<div class="cl-letter-para">${h(p)}</div>`)
+    .join('');
+
+  paper.className = `cl-paper ${clTheme}`;
+  paper.innerHTML = `
+    <div class="cl-letter-header">
+      <div class="cl-letter-name">${h(d.fullname || 'Your Name')}</div>
+      <div class="cl-letter-jobtitle">${h(d.myTitle || 'Professional Title')}</div>
+      ${contacts ? `<div class="cl-letter-contacts">${contacts}</div>` : ''}
+    </div>
+    <div class="cl-letter-body">
+      <div class="cl-letter-date">${h(d.date || new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}))}</div>
+
+      ${(d.hiringMgr || d.company || d.companyAddr) ? `
+      <div class="cl-letter-recipient">
+        ${d.hiringMgr   ? `<div class="cl-letter-recipient-name">${h(d.hiringMgr)}</div>` : ''}
+        ${d.company     ? `<div class="cl-letter-recipient-sub">${h(d.company)}</div>` : ''}
+        ${d.companyAddr ? `<div class="cl-letter-recipient-sub">${h(d.companyAddr)}</div>` : ''}
+      </div>` : ''}
+
+      <div class="cl-letter-subject">${subject}</div>
+      <div class="cl-letter-salutation">${salutation}</div>
+
+      <div class="cl-letter-paragraphs">${parasHTML}</div>
+
+      <div class="cl-letter-closing">
+        <div class="cl-letter-closing-line">${h(d.closingPhrase || 'Yours sincerely,')}</div>
+        <div class="cl-letter-sig">${h(d.fullname || 'Your Name')}</div>
+        <div class="cl-letter-sig-sub">${h(d.myTitle || '')}</div>
+      </div>
+    </div>
+  `;
+}
+
+/* ── AI Write individual paragraph ──────────────────────── */
+async function aiWriteParagraph(type) {
+  const btnId = `ai-btn-${type}`;
+  const paraId = `cl-para-${type === 'achievement' ? 'achievement' : type}`;
+
+  // Map type to textarea ID
+  const idMap = {
+    opening: 'cl-para-opening',
+    skills: 'cl-para-skills',
+    achievement: 'cl-para-achievement',
+    company: 'cl-para-company',
+    closing: 'cl-para-closing',
+  };
+
+  const btn      = document.getElementById(btnId);
+  const textarea = document.getElementById(idMap[type]);
+  if (!btn || !textarea) return;
+
+  // Show loading shimmer in textarea
+  btn.classList.add('loading');
+  btn.textContent = '⏳';
+  textarea.value = '';
+  textarea.placeholder = 'Writing…';
+
+  const shimmers = `<div class="ai-shimmer" style="width:90%"></div>
+    <div class="ai-shimmer" style="width:75%"></div>
+    <div class="ai-shimmer" style="width:85%"></div>`;
+  textarea.style.background = 'rgba(212,168,83,0.04)';
+
+  // Simulate slight delay for UX feel
+  await new Promise(r => setTimeout(r, 700 + Math.random() * 400));
+
+  const data = collectCLData();
+  const generated = generateParagraph(type, data);
+
+  // Typewriter reveal
+  textarea.value = '';
+  textarea.style.background = '';
+  textarea.placeholder = '';
+  btn.classList.remove('loading');
+  btn.innerHTML = '✦ AI Write';
+
+  await typewriterFill(textarea, generated);
+  renderCoverLetter();
+  saveCoverLetterData();
+  toast(`${type.charAt(0).toUpperCase() + type.slice(1)} paragraph written ✦`, 'gold', 2000);
+}
+
+/* ── AI Write All ────────────────────────────────────────── */
+async function aiWriteAll() {
+  const btn = document.getElementById('ai-write-all-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Writing…';
+
+  const data = collectCLData();
+  const types = ['opening','skills','achievement','company','closing'];
+  const idMap = {
+    opening:'cl-para-opening', skills:'cl-para-skills',
+    achievement:'cl-para-achievement', company:'cl-para-company', closing:'cl-para-closing',
+  };
+
+  for (const type of types) {
+    const ta = document.getElementById(idMap[type]);
+    if (!ta) continue;
+    await new Promise(r => setTimeout(r, 200));
+    const text = generateParagraph(type, data);
+    await typewriterFill(ta, text, 8);
+    renderCoverLetter();
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✦ AI Write Entire Letter';
+  saveCoverLetterData();
+  toast('Cover letter written! Review and personalise each paragraph. ✦', 'gold', 4000);
+}
+
+/* ── Typewriter effect ───────────────────────────────────── */
+async function typewriterFill(textarea, text, speed = 12) {
+  textarea.value = '';
+  const chars = text.split('');
+  for (let i = 0; i < chars.length; i++) {
+    textarea.value += chars[i];
+    if (i % 3 === 0) {
+      textarea.scrollTop = textarea.scrollHeight;
+      await new Promise(r => setTimeout(r, speed));
+    }
+  }
+  textarea.value = text;
+}
+
+/* ── Theme switcher ──────────────────────────────────────── */
+function setCLTheme(theme, btn) {
+  clTheme = theme;
+  document.querySelectorAll('.cl-tbtn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderCoverLetter();
+}
+
+/* ── Mobile view toggle ──────────────────────────────────── */
+function toggleCLView() {
+  clMobileShowPreview = !clMobileShowPreview;
+  const layout  = document.getElementById('cl-layout');
+  const toggleBtn = document.getElementById('cl-toggle-btn');
+  layout.classList.toggle('show-preview', clMobileShowPreview);
+  if (toggleBtn) toggleBtn.textContent = clMobileShowPreview ? '✏ Edit' : '👁 Preview';
+}
+
+/* ── Persist / restore ───────────────────────────────────── */
+function saveCoverLetterData() {
+  const dot   = document.getElementById('cl-autosave-dot');
+  const label = document.getElementById('cl-autosave-label');
+  const data  = collectCLData();
+  try { localStorage.setItem(CL_STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+  if (dot) { dot.classList.add('saved'); }
+  if (label) label.textContent = 'Draft saved ✓';
+  setTimeout(() => {
+    if (dot) dot.classList.remove('saved');
+    if (label) label.textContent = 'Auto saving…';
+  }, 2500);
+}
+
+function loadCoverLetterData() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(CL_STORAGE_KEY)); } catch(e) {}
+
+  if (!saved) return;
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  set('cl-fullname',          saved.fullname);
+  set('cl-title',             saved.myTitle);
+  set('cl-email',             saved.email);
+  set('cl-phone',             saved.phone);
+  set('cl-location',          saved.location);
+  set('cl-job-title',         saved.jobTitle);
+  set('cl-company',           saved.company);
+  set('cl-hiring-manager',    saved.hiringMgr);
+  set('cl-company-address',   saved.companyAddr);
+  set('cl-job-source',        saved.jobSource);
+  set('cl-para-opening',      saved.paraOpening);
+  set('cl-para-skills',       saved.paraSkills);
+  set('cl-para-achievement',  saved.paraAchieve);
+  set('cl-para-company',      saved.paraCompany);
+  set('cl-para-closing',      saved.paraClosing);
+  set('cl-closing-phrase',    saved.closingPhrase);
+  set('cl-date',              saved.date);
+
+  if (saved.tone) {
+    document.querySelectorAll('.tone-card').forEach(c => {
+      c.classList.toggle('selected', c.dataset.tone === saved.tone);
+    });
+  }
+  if (saved.theme) {
+    clTheme = saved.theme;
+    document.querySelectorAll('.cl-tbtn').forEach((b,i) => {
+      const themes = ['clt-classic','clt-minimal','clt-warm','clt-bold','clt-sage','clt-navy-gold'];
+      b.classList.toggle('active', themes[i] === saved.theme);
+    });
+  }
+}
+
+/* ── PDF Download ─────────────────────────────────────────
+   downloadCoverLetter() is now defined above alongside
+   downloadPDF() in the unified payment gateway section.
+   Both use the same paymentIntents.create flow via
+   executePDFDownload('coverletter').
+   ──────────────────────────────────────────────────────── */
+function printCoverLetter() {
+  window.print();
+}
 </script>
 </body>
 </html>
