@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Folio CV — Build Your Professional CV in Minutes</title>
+<title>GamHub Jobs — Build Your Professional CV in Minutes</title>
 
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,9 @@
 
 <!-- html2pdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- Supabase JS v2 — for authentication -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <!-- ModemPay SDK — loaded as a global via CDN -->
 <!-- We use a thin fetch wrapper instead since the SDK uses ES modules.
@@ -158,10 +161,15 @@ h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 400; line-height: 1
   border-radius: var(--radius);
   padding: 12px 16px;
   color: var(--text);
-  font-size: 15px;
+  font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
   transition: border-color 0.2s;
   outline: none;
   width: 100%;
+  /* Ensure minimum touch target height */
+  min-height: 44px;
+  /* Prevent iOS from rounding inputs */
+  -webkit-appearance: none;
+  appearance: none;
 }
 .form-control:focus { border-color: var(--gold); background: rgba(212,168,83,0.04); }
 .form-control::placeholder { color: var(--muted); }
@@ -256,36 +264,93 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 }
 .nav-links a:hover { color: var(--gold); }
 
-.nav-actions { display: flex; align-items: center; gap: 12px; }
+.nav-actions { display: flex; align-items: center; gap: 10px; }
 
+/* Hamburger — big enough tap target on mobile */
 .hamburger {
   display: none;
-  background: none; border: none;
-  flex-direction: column; gap: 5px;
-  padding: 8px; cursor: pointer;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  flex-direction: column; gap: 4px;
+  padding: 7px 10px 6px;
+  cursor: pointer;
+  min-width: 52px; min-height: 46px;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
 }
+.hamburger:hover  { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.2); }
+.hamburger.open   { background: rgba(212,168,83,0.12);  border-color: rgba(212,168,83,0.35); }
 .hamburger span {
-  display: block; width: 22px; height: 2px;
-  background: var(--text);
+  display: block; width: 18px; height: 2px;
+  background: var(--text2);
   border-radius: 2px;
-  transition: all 0.3s;
+  transition: all 0.28s cubic-bezier(0.4,0,0.2,1);
 }
+.hamburger:hover span,
+.hamburger.open  span { background: var(--text); }
+/* Helper text label below the bars */
+.hamburger-label {
+  display: block;
+  font-size: 0;   /* hide any raw text; content comes from ::after */
+  line-height: 1;
+  margin-top: 4px;
+}
+.hamburger-label::after {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  transition: color 0.2s;
+  color: var(--muted);
+}
+/* Swap label: "MENU" when closed, "CLOSE" when open */
+.hamburger:not(.open) .hamburger-label::after { content: 'Menu'; }
+.hamburger.open       .hamburger-label::after { content: 'Close'; color: var(--gold); }
+.hamburger:hover:not(.open) .hamburger-label::after { color: var(--text); }
+/* Animate bars into X */
+.hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
 /* Mobile drawer */
 #mobile-drawer {
   position: fixed; top: 68px; left: 0; right: 0;
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
   z-index: 999;
-  padding: 24px 28px;
-  display: flex; flex-direction: column; gap: 20px;
+  padding: 20px 24px 28px;
+  display: flex; flex-direction: column; gap: 0;
   transform: translateY(-110%);
   transition: transform 0.35s var(--ease);
 }
 #mobile-drawer.open { transform: translateY(0); }
 #mobile-drawer a {
   font-size: 15px; color: var(--text2); font-weight: 500;
-  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 8px;
+  min-height: 44px;
+}
+#mobile-drawer a:hover { color: var(--gold); }
+/* Auth info row in drawer */
+.drawer-auth-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.drawer-auth-email {
+  font-size: 13px; color: var(--text2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 200px;
+}
+/* Drawer action buttons */
+.drawer-actions {
+  display: flex; flex-direction: column; gap: 10px;
+  padding-top: 18px;
 }
 
 /* ============================================================
@@ -672,7 +737,7 @@ footer {
   flex: 1;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 48px 40px;
+  padding: 40px 32px;
   width: 100%;
 }
 
@@ -834,10 +899,15 @@ footer {
 /* Builder progress */
 .builder-progress {
   padding: 12px 0;
-  display: flex; gap: 6px; overflow-x: auto;
+  display: flex; gap: 6px;
+  overflow-x: auto;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* Snap to step indicators as user scrolls */
+  scroll-snap-type: x mandatory;
 }
 .builder-progress::-webkit-scrollbar { display: none; }
+.bp-step { scroll-snap-align: start; }
 .bp-step {
   flex: 1; min-width: 80px;
   height: 36px;
@@ -969,16 +1039,61 @@ footer {
 .preview-topbar {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding: 8px 24px;
-  min-height: 60px;
-  display: flex; align-items: center; gap: 10px;
-  flex-wrap: wrap;
+  padding: 0 20px;
+  height: 56px;
+  display: flex; align-items: center; gap: 8px;
   position: sticky; top: 0; z-index: 100;
+  overflow-x: auto;
+  /* Hide scrollbar but keep scrollable */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.preview-topbar::-webkit-scrollbar { display: none; }
 .preview-topbar-title {
   font-size: 14px; font-weight: 600; color: var(--text);
-  flex: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
+/* Groups in topbar */
+.preview-topbar-group {
+  display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
+}
+.preview-topbar-divider {
+  width: 1px; height: 24px;
+  background: rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+/* Gear / customise button with label */
+.cust-gear-btn {
+  display: flex; align-items: center; gap: 3px;
+  flex-direction: column;
+  padding: 5px 10px;
+  min-width: 52px; min-height: 42px;
+  justify-content: center;
+  border-radius: var(--radius);
+  transition: background 0.2s, border-color 0.2s;
+}
+.cust-gear-btn.open {
+  background: rgba(212,168,83,0.1);
+  border-color: rgba(212,168,83,0.35);
+  color: var(--gold);
+}
+.cust-gear-icon { font-size: 15px; line-height: 1; transition: transform 0.4s ease; }
+.cust-gear-btn:hover .cust-gear-icon { transform: rotate(60deg); }
+.cust-gear-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+.cust-gear-btn:hover .cust-gear-label,
+.cust-gear-btn.open  .cust-gear-label { color: var(--gold); }
 .theme-switcher {
   display: flex; gap: 6px;
 }
@@ -995,8 +1110,10 @@ footer {
 /* A4 Paper */
 .cv-wrapper {
   padding: 40px 24px;
+  /* Extra bottom padding for browser chrome on mobile */
+  padding-bottom: max(80px, env(safe-area-inset-bottom, 40px) + 40px);
   display: flex; justify-content: center;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 56px);
 }
 .cv-paper {
   width: 100%;
@@ -1138,19 +1255,7 @@ footer {
 }
 .share-btn:hover { border-color: var(--gold); color: var(--gold); }
 
-/* Publish area */
-.publish-url {
-  background: rgba(212,168,83,0.08);
-  border: 1px solid rgba(212,168,83,0.25);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--gold2);
-  word-break: break-all;
-  display: none;
-  margin-top: 12px;
-}
+
 
 /* ============================================================
    VIEW 5 — JOB DISCOVERY
@@ -1161,11 +1266,12 @@ footer {
 .jobs-topbar {
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
-  padding: 20px 40px;
+  padding: 16px 24px;
   display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
 }
-.jobs-topbar h2 { font-size: 24px; }
-.jobs-topbar p { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.jobs-topbar h2 { font-size: 20px; }
+.jobs-topbar p { font-size: 13px; color: var(--muted); margin-top: 3px; }
 
 .ai-analysis-badge {
   display: flex; align-items: center; gap: 10px;
@@ -1214,7 +1320,9 @@ footer {
 .swipe-deck {
   position: relative;
   width: 100%; max-width: 440px;
-  height: 540px;
+  /* Dynamic height — fits between topbar and bottom of viewport */
+  height: min(540px, calc(100dvh - 260px));
+  min-height: 360px;
 }
 
 .job-card {
@@ -1222,13 +1330,15 @@ footer {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 32px;
+  padding: 24px 20px 20px;
   display: flex; flex-direction: column;
   cursor: grab;
   user-select: none;
   transition: transform 0.15s var(--ease), opacity 0.15s;
   box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  overflow: hidden;
 }
+.job-card h3 { font-size: 19px; margin-bottom: 5px; }
 .job-card:active { cursor: grabbing; }
 .job-card.back-card {
   transform: scale(0.96) translateY(10px);
@@ -1409,38 +1519,7 @@ footer {
   padding: 48px 40px 80px;
 }
 
-/* ── Supabase config banner ── */
-.supabase-config-banner {
-  background: rgba(212,168,83,0.07);
-  border: 1px dashed rgba(212,168,83,0.4);
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  margin-bottom: 40px;
-  display: flex; align-items: flex-start; gap: 14px;
-}
-.scb-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
-.scb-text { flex: 1; }
-.scb-text h4 { font-size: 14px; color: var(--gold); margin-bottom: 6px; }
-.scb-text p  { font-size: 13px; color: var(--text2); line-height: 1.6; }
-.scb-inputs  { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-.scb-inputs input {
-  flex: 1; min-width: 200px;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(212,168,83,0.3);
-  border-radius: var(--radius);
-  padding: 9px 14px;
-  font-size: 12px; font-family: var(--font-mono);
-  color: var(--gold2); outline: none;
-}
-.scb-inputs input::placeholder { color: var(--muted); }
-.scb-inputs input:focus { border-color: var(--gold); }
-.scb-status {
-  font-size: 12px; margin-top: 10px;
-  display: flex; align-items: center; gap: 6px;
-}
-.scb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-.scb-dot.connected { background: #4ade80; }
-.scb-dot.error     { background: #f87171; }
+
 
 /* ── Portal tabs ── */
 .portal-tabs {
@@ -1748,10 +1827,12 @@ footer {
   .employer-stats-bar { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 768px) {
-  .employer-body { padding: 28px 20px 80px; }
-  .employer-topbar { padding: 0 20px; }
+  .employer-body { padding: 20px 16px 80px; }
+  .employer-topbar { padding: 0 16px; height: auto; min-height: 56px; }
   .form-row { grid-template-columns: 1fr; }
   .employer-stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .portal-tabs { flex-wrap: wrap; width: 100%; border-radius: var(--radius-lg); }
+  .portal-tab { flex: 1; text-align: center; font-size: 12px; padding: 9px 10px; }
 }
 
 /* ============================================================
@@ -1768,18 +1849,36 @@ footer {
   position: sticky; top: 68px; z-index: 100;
 }
 .cl-topbar-title { font-size: 15px; font-weight: 600; flex: 1; }
-.cl-autosave { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); }
+.cl-autosave { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); flex-shrink: 0; }
+@media (max-width: 480px) {
+  .cl-autosave-label-text { display: none; }
+}
 
 .cl-layout {
   display: grid;
   grid-template-columns: 460px 1fr;
-  min-height: calc(100vh - 128px);
+  /* Use dynamic viewport height on mobile so browser chrome is subtracted */
+  min-height: calc(100dvh - 128px);
+  height: calc(100dvh - 128px);
+  overflow: hidden;
+}
+/* Fallback for browsers without dvh support */
+@supports not (height: 100dvh) {
+  .cl-layout {
+    min-height: calc(100vh - 168px);
+    height: calc(100vh - 168px);
+  }
 }
 
 /* Builder panel */
 .cl-builder {
   background: var(--bg2); border-right: 1px solid var(--border);
-  overflow-y: auto; padding: 28px 28px 100px;
+  overflow-y: auto;
+  /* Independent scroll — the panel scrolls, not the whole page */
+  height: 100%;
+  padding: 28px 28px 100px;
+  /* Momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 .cl-section { margin-bottom: 28px; }
 .cl-section-title {
@@ -1859,9 +1958,14 @@ footer {
 
 /* Preview panel */
 .cl-preview-panel {
-  background: #ccc9bf; overflow-y: auto;
-  padding: 32px 24px; display: flex; flex-direction: column;
+  background: #ccc9bf;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 32px 24px 120px;
+  display: flex; flex-direction: column;
   align-items: center; gap: 16px;
+  min-height: 0;
+  height: 100%;
 }
 .cl-preview-actions {
   display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
@@ -1884,7 +1988,9 @@ footer {
   min-height: 930px;
   background: #fff; color: #1a1a1a;
   box-shadow: 0 10px 50px rgba(0,0,0,0.2);
-  border-radius: 2px; overflow: hidden;
+  border-radius: 2px;
+  /* overflow must be visible so letter body is never clipped */
+  overflow: visible;
   font-family: 'Outfit', sans-serif;
   position: relative;
 }
@@ -1934,7 +2040,9 @@ footer {
 .cl-letter-contacts span { display: flex; align-items: center; gap: 4px; }
 
 /* Letter body */
-.cl-letter-body { padding: 32px 44px 36px; }
+.cl-letter-body {
+  padding: 32px 44px 60px; /* extra bottom padding prevents last line clipping */
+}
 .cl-letter-date { font-size: 12px; color: #777; margin-bottom: 20px; }
 .cl-letter-recipient { margin-bottom: 20px; }
 .cl-letter-recipient-name { font-size: 13px; font-weight: 700; color: #111; }
@@ -1946,7 +2054,7 @@ footer {
 }
 .cl-letter-salutation { font-size: 13px; color: #333; margin-bottom: 12px; }
 .cl-letter-paragraphs { display: flex; flex-direction: column; gap: 12px; }
-.cl-letter-para { font-size: 13px; line-height: 1.8; color: #333; text-align: justify; }
+.cl-letter-para { font-size: 13px; line-height: 1.85; color: #333; text-align: justify; margin-bottom: 2px; }
 .cl-letter-closing { margin-top: 24px; font-size: 13px; color: #333; }
 .cl-letter-closing-line { margin-bottom: 32px; }
 .cl-letter-sig {
@@ -1957,17 +2065,38 @@ footer {
 
 /* Mobile */
 @media (max-width: 1000px) {
-  .cl-layout { grid-template-columns: 1fr; }
+  .cl-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: calc(100dvh - 128px);
+    overflow: visible;
+  }
   .cl-preview-panel { display: none; }
   .cl-layout.show-preview .cl-builder { display: none; }
-  .cl-layout.show-preview .cl-preview-panel { display: flex; }
+  .cl-layout.show-preview .cl-preview-panel {
+    display: flex;
+    /* Full height on mobile so all content is reachable */
+    min-height: calc(100dvh - 128px);
+    height: auto;
+    overflow-y: auto;
+    padding-bottom: 140px; /* clear browser chrome */
+  }
+  /* Make paper full-width on mobile preview */
+  .cl-layout.show-preview .cl-paper {
+    max-width: 100%;
+    margin: 0;
+  }
 }
 @media (max-width: 768px) {
-  .cl-topbar { padding: 0 20px; }
-  .cl-builder { padding: 20px 20px 100px; }
-  .cl-builder-footer { padding: 12px 20px; margin: 0 -20px -100px; }
-  .cl-letter-header { padding: 22px 26px 18px; }
-  .cl-letter-body   { padding: 22px 26px 26px; }
+  .cl-topbar { padding: 0 16px; height: auto; min-height: 56px; flex-wrap: wrap; gap: 8px; padding: 8px 16px; }
+  .cl-topbar-title { font-size: 14px; }
+  .cl-autosave { font-size: 11px; }
+  .cl-builder { padding: 20px 16px 120px; }
+  .cl-builder-footer { padding: 12px 16px; margin: 0 -16px -120px; }
+  .cl-letter-header { padding: 20px 22px 16px; }
+  .cl-letter-body   { padding: 20px 22px 60px; }
+  .cl-letter-name   { font-size: 20px; }
+  .cl-letter-para   { font-size: 13px; line-height: 1.8; }
 }
 
 @media print {
@@ -2006,8 +2135,20 @@ footer {
 
 @media (max-width: 768px) {
   .nav-links { display: none; }
+  /* On mobile hide all action buttons — they move into the drawer */
   .nav-actions .btn-outline { display: none; }
+  .nav-actions .btn-gold    { display: none; }
+  .nav-actions .nav-user-pill { display: none !important; }
+  .nav-actions #nav-login-btn { display: none !important; }
   .hamburger { display: flex; }
+  /* Navbar padding tighter on mobile */
+  #navbar { padding: 0 16px; }
+  /* Ensure minimum tap target size for all buttons (44px) */
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 38px; padding: 8px 14px; font-size: 13px; }
+  /* Builder nav stays accessible */
+  .builder-nav { padding: 12px 16px; }
+  .wizard-nav  { padding: 14px 16px; }
   .hero { padding: 48px 24px; }
   .hero-stats { gap: 24px; }
   .section-bento, .section-how, .section-templates, .section-cta { padding: 60px 24px; }
@@ -2037,6 +2178,481 @@ footer {
   .bp-step { min-width: 60px; font-size: 11px; }
   .how-steps { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   SUPABASE AUTH — NAV USER PILL + MAGIC LINK MODAL
+   ============================================================ */
+
+/* Nav user pill (shown when logged in) */
+.nav-user-pill {
+  display: none; /* shown by JS when logged in */
+  align-items: center; gap: 8px;
+  background: rgba(212,168,83,0.1);
+  border: 1px solid rgba(212,168,83,0.3);
+  border-radius: 100px;
+  padding: 5px 14px 5px 6px;
+  max-width: 240px;
+}
+.nav-user-avatar {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #000;
+  flex-shrink: 0;
+}
+.nav-user-email {
+  font-size: 12px; color: var(--text2);
+  white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 130px;
+}
+.nav-logout-btn {
+  background: none; border: none;
+  font-size: 11px; color: var(--muted);
+  cursor: pointer; padding: 2px 4px;
+  transition: color 0.2s; white-space: nowrap;
+  font-family: var(--font-body);
+}
+.nav-logout-btn:hover { color: #f87171; }
+
+/* Auth modal overlay */
+.auth-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(4px);
+}
+.auth-modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 44px 40px 36px;
+  max-width: 420px; width: 100%;
+  position: relative;
+  animation: fadeUp 0.35s var(--ease);
+}
+.auth-modal-close {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%; width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.auth-modal-close:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+
+.auth-icon {
+  font-size: 32px; color: var(--gold);
+  margin-bottom: 16px;
+  font-family: var(--font-display);
+}
+.auth-modal h3 {
+  font-size: 24px; margin-bottom: 8px;
+}
+.auth-modal p {
+  font-size: 14px; color: var(--text2);
+  line-height: 1.7; margin-bottom: 24px;
+}
+.auth-form { display: flex; flex-direction: column; gap: 12px; }
+.auth-input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  font-size: 15px; color: var(--text);
+  outline: none; width: 100%;
+  font-family: var(--font-body);
+  transition: border-color 0.2s;
+}
+.auth-input:focus { border-color: var(--gold); background: rgba(212,168,83,0.05); }
+.auth-input::placeholder { color: var(--muted); }
+.auth-btn {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000; border: none;
+  border-radius: var(--radius);
+  padding: 14px; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s;
+  font-family: var(--font-body);
+}
+.auth-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,168,83,0.35); }
+.auth-btn:disabled { opacity: 0.5; pointer-events: none; }
+.auth-note {
+  font-size: 12px; color: var(--muted);
+  text-align: center; margin-top: 14px; margin-bottom: 0;
+}
+/* Email sent confirmation */
+.auth-sent { display: none; text-align: center; }
+.auth-sent-icon { font-size: 48px; margin-bottom: 16px; }
+.auth-sent h4 { font-size: 20px; margin-bottom: 10px; }
+.auth-sent p { font-size: 14px; color: var(--text2); line-height: 1.8; }
+
+/* Auth error message */
+.auth-error {
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.3);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px; color: #f87171;
+  display: none; margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .nav-user-email { max-width: 80px; }
+  .auth-modal { padding: 36px 24px 28px; }
+}
+
+/* ============================================================
+   LEGAL VIEWS — Privacy Policy + Terms of Service
+   ============================================================ */
+#view-privacy,
+#view-terms { display: none; padding-top: 68px; background: var(--bg); min-height: 100vh; }
+#view-privacy.active,
+#view-terms.active  { display: block; }
+
+.legal-topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px; height: 60px;
+  display: flex; align-items: center; gap: 16px;
+  position: sticky; top: 68px; z-index: 100;
+}
+.legal-topbar-title { font-size: 16px; font-weight: 600; flex: 1; }
+.legal-topbar-date  { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+.legal-body {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 56px 40px 100px;
+}
+
+/* Hero heading */
+.legal-hero {
+  margin-bottom: 56px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--border);
+}
+.legal-hero h1 {
+  font-size: clamp(36px, 4vw, 56px);
+  font-weight: 300;
+  line-height: 1.1;
+  margin: 14px 0 16px;
+}
+.legal-hero p {
+  font-size: 16px;
+  color: var(--text2);
+  line-height: 1.75;
+  max-width: 600px;
+}
+.legal-last-updated {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(212,168,83,0.08);
+  border: 1px solid rgba(212,168,83,0.22);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: var(--gold);
+  font-family: var(--font-mono);
+  margin-bottom: 20px;
+}
+
+/* Table of contents */
+.legal-toc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-bottom: 56px;
+}
+.legal-toc h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.legal-toc ol {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.legal-toc li { font-size: 14px; }
+.legal-toc a {
+  color: var(--text2);
+  transition: color 0.2s;
+  text-decoration: none;
+}
+.legal-toc a:hover { color: var(--gold); }
+
+/* Sections */
+.legal-section {
+  margin-bottom: 52px;
+  scroll-margin-top: 140px;
+}
+.legal-section-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.legal-section h2 {
+  font-size: 26px;
+  font-weight: 400;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.legal-section p {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.85;
+  margin-bottom: 14px;
+}
+.legal-section p:last-child { margin-bottom: 0; }
+.legal-section ul,
+.legal-section ol {
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.legal-section li {
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.legal-section strong { color: var(--text); font-weight: 600; }
+
+/* Highlight box */
+.legal-highlight {
+  background: rgba(212,168,83,0.07);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 16px 20px;
+  margin: 20px 0;
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.75;
+}
+.legal-highlight strong { color: var(--gold); }
+
+/* Contact card */
+.legal-contact-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.legal-contact-icon {
+  width: 44px; height: 44px;
+  background: rgba(212,168,83,0.12);
+  border: 1px solid rgba(212,168,83,0.3);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.legal-contact-card h4 { font-size: 15px; margin-bottom: 4px; }
+.legal-contact-card a  { color: var(--gold); font-size: 14px; }
+
+/* ============================================================
+   COOKIE CONSENT BANNER
+   ============================================================ */
+#cookie-banner {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 8000;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+  animation: slideUpBanner 0.4s var(--ease) forwards;
+}
+@keyframes slideUpBanner {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.cookie-text {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+  flex: 1;
+  min-width: 220px;
+}
+.cookie-text strong { color: var(--text); }
+.cookie-actions { display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
+
+@media (max-width: 768px) {
+  .legal-body { padding: 36px 24px 80px; }
+  .legal-topbar { padding: 0 20px; }
+  #cookie-banner { padding: 14px 20px; }
+  .cookie-text { font-size: 12px; }
+}
+@media print {
+  #cookie-banner { display: none !important; }
+}
+
+/* ── 480px and below — tiny phones (iPhone SE, etc.) ── */
+@media (max-width: 480px) {
+  .preview-topbar-divider { display: none; }
+  .preview-topbar-title   { font-size: 12px; }
+  /* Stack download as primary full-width button below topbar */
+  #view-preview { padding-top: 0; }
+  .cv-wrapper { padding: 24px 12px 100px; }
+  /* Wizard grid — 2 cols on tiny phones */
+  .profession-grid { grid-template-columns: repeat(2, 1fr); }
+  .palette-grid    { grid-template-columns: 1fr 1fr; }
+  /* Builder steps label smaller */
+  .bp-step { font-size: 11px; min-width: 56px; padding: 0 6px; }
+  /* Swipe deck fills screen */
+  .swipe-area { padding: 16px 12px; }
+  .swipe-deck { max-width: 100%; height: min(480px, calc(100dvh - 280px)); }
+  /* Job card more compact */
+  .job-card { padding: 18px 16px 16px; }
+  .job-card h3 { font-size: 17px; }
+  .job-card-company { font-size: 13px; }
+}
+
+/* ============================================================
+   TOUR POPOVER — Onboarding hint system
+   ============================================================ */
+
+/* Dim overlay — focuses attention on the hinted element */
+.tour-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0);
+  z-index: 9100;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+.tour-overlay.active {
+  pointer-events: all;
+  opacity: 1;
+  background: rgba(0,0,0,0.45);
+}
+
+/* The popover card */
+.tour-popover {
+  position: fixed;
+  z-index: 9200;
+  max-width: 220px;
+  background: #fff;
+  color: #111;
+  border-radius: 14px;
+  padding: 14px 16px 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12);
+  font-family: var(--font-body);
+  pointer-events: all;
+  /* Entrance animation */
+  opacity: 0;
+  transform: scale(0.88) translateY(6px);
+  transition: opacity 0.28s cubic-bezier(0.34,1.56,0.64,1),
+              transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tour-popover.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Dismiss X */
+.tour-dismiss {
+  position: absolute; top: 8px; right: 8px;
+  width: 20px; height: 20px;
+  background: rgba(0,0,0,0.07);
+  border: none; border-radius: 50%;
+  cursor: pointer; font-size: 11px; color: #666;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+  padding: 0;
+}
+.tour-dismiss:hover { background: rgba(0,0,0,0.15); color: #111; }
+
+/* Text */
+.tour-text {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #222;
+  margin-right: 16px; /* space for X button */
+  font-weight: 500;
+}
+.tour-text em {
+  font-style: normal;
+  color: #d4a853;
+  font-weight: 700;
+}
+
+/* Step counter pill */
+.tour-step-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #f0ede8;
+  border-radius: 100px;
+  padding: 3px 9px;
+  font-size: 10px; font-weight: 700;
+  color: #888;
+  margin-top: 10px;
+  letter-spacing: 0.05em;
+}
+.tour-step-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #ccc;
+  transition: background 0.2s;
+}
+.tour-step-dot.active { background: #d4a853; }
+
+/* SVG Arrow — points from popover toward the target */
+.tour-arrow {
+  position: absolute;
+  width: 28px; height: 28px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Arrow placement variants */
+.tour-popover[data-arrow="right"] .tour-arrow {
+  right: -14px; top: 50%; transform: translateY(-50%);
+}
+.tour-popover[data-arrow="left"] .tour-arrow {
+  left: -14px; top: 50%; transform: translateY(-50%) scaleX(-1);
+}
+.tour-popover[data-arrow="bottom"] .tour-arrow {
+  bottom: -14px; left: 50%; transform: translateX(-50%) rotate(90deg);
+}
+.tour-popover[data-arrow="top"] .tour-arrow {
+  top: -14px; left: 50%; transform: translateX(-50%) rotate(-90deg);
+}
+
+/* Highlight ring around the target */
+.tour-highlight-ring {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow: 0 0 0 3px #d4a853, 0 0 0 6px rgba(212,168,83,0.25);
+  z-index: 9150;
+  pointer-events: none;
+  transition: all 0.3s var(--ease);
+  animation: ringPulse 2s ease-in-out infinite;
+}
+@keyframes ringPulse {
+  0%,100% { box-shadow: 0 0 0 3px #d4a853, 0 0 0 6px rgba(212,168,83,0.25); }
+  50%      { box-shadow: 0 0 0 3px #f0c97a, 0 0 0 10px rgba(212,168,83,0.15); }
+}
+
 </style>
 </head>
 <body>
@@ -2047,12 +2663,61 @@ footer {
 <div id="toast-container"></div>
 
 <!-- ============================================================
+     TOUR POPOVERS — Onboarding hint system
+     Two independent TourPopover instances:
+       #tour-hamburger  → points at the hamburger menu button
+       #tour-gear       → points at the ⚙ customise button
+     Both are rendered/positioned by JS on first visit.
+     ============================================================ -->
+
+<!-- Dim overlay (shared) -->
+<div id="tour-overlay" class="tour-overlay" onclick="tourDismissAll()"></div>
+
+<!-- Highlight rings (positioned by JS) -->
+<div id="tour-ring-hamburger" class="tour-highlight-ring" style="display:none"></div>
+<div id="tour-ring-gear"      class="tour-highlight-ring" style="display:none"></div>
+
+<!-- Popover 1 — Hamburger Menu -->
+<div id="tour-hamburger" class="tour-popover" role="tooltip" aria-live="polite" data-arrow="right" style="display:none">
+  <!-- Arrow SVG pointing RIGHT toward the hamburger -->
+  <svg class="tour-arrow" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 14 L22 14 M22 14 L14 6 M22 14 L14 22" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <button class="tour-dismiss" onclick="tourDismiss('hamburger')" aria-label="Dismiss hint">✕</button>
+  <div class="tour-text">
+    Tap here to <em>Log in</em> and access the full menu
+  </div>
+  <div class="tour-step-pill">
+    <div class="tour-step-dot active"></div>
+    <div class="tour-step-dot"></div>
+    <span>1 of 2</span>
+  </div>
+</div>
+
+<!-- Popover 2 — Gear / Customise button -->
+<div id="tour-gear" class="tour-popover" role="tooltip" aria-live="polite" data-arrow="bottom" style="display:none">
+  <!-- Arrow SVG pointing DOWN toward the gear -->
+  <svg class="tour-arrow" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 4 L14 22 M14 22 L6 14 M14 22 L22 14" stroke="#d4a853" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <button class="tour-dismiss" onclick="tourDismiss('gear')" aria-label="Dismiss hint">✕</button>
+  <div class="tour-text">
+    Tap here to <em>Download your CV</em> and change themes
+  </div>
+  <div class="tour-step-pill">
+    <div class="tour-step-dot"></div>
+    <div class="tour-step-dot active"></div>
+    <span>2 of 2</span>
+  </div>
+</div>
+
+<!-- ============================================================
      STICKY NAVBAR
      ============================================================ -->
 <nav id="navbar">
   <div class="nav-logo">
     <div class="nav-logo-icon">✦</div>
-    Folio CV
+    GamHub Jobs
   </div>
   <div class="nav-links">
     <a href="#" onclick="scrollToFeatures()">Features</a>
@@ -2062,22 +2727,55 @@ footer {
     <a href="#" onclick="showView('employer')" style="color:var(--gold)">For Employers</a>
   </div>
   <div class="nav-actions">
+    <!-- Auth user pill — shown when logged in -->
+    <div class="nav-user-pill" id="nav-user-pill">
+      <div class="nav-user-avatar" id="nav-user-avatar">U</div>
+      <span class="nav-user-email" id="nav-user-email">user@email.com</span>
+      <button class="nav-logout-btn" onclick="authSignOut()">Log out</button>
+    </div>
+    <!-- Login button — shown when logged out -->
+    <button class="btn btn-ghost btn-sm" id="nav-login-btn" onclick="showAuthModal()" style="display:none">Log in</button>
     <button class="btn btn-outline btn-sm" onclick="showView('employer')">Post a Job</button>
     <button class="btn btn-gold btn-sm" onclick="showView('wizard')">Build CV</button>
   </div>
-  <button class="hamburger" id="hamburger" onclick="toggleMobileNav()">
+  <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Open menu">
     <span></span><span></span><span></span>
+    <span class="hamburger-label">Menu</span>
   </button>
 </nav>
 
-<!-- Mobile drawer -->
+<!-- Mobile drawer — contains ALL actions so navbar stays clean -->
 <div id="mobile-drawer">
-  <a href="#" onclick="scrollToFeatures();closeMobileNav()">Features</a>
-  <a href="#" onclick="scrollToHow();closeMobileNav()">How It Works</a>
-  <a href="#" onclick="scrollToTemplates();closeMobileNav()">Templates</a>
-  <a href="#" onclick="showView('coverletter');closeMobileNav()" style="color:var(--gold2)">✉ Cover Letter Generator</a>
-  <a href="#" onclick="showView('employer');closeMobileNav()" style="color:var(--gold)">🏢 For Employers — Post a Job</a>
-  <button class="btn btn-gold btn-full" onclick="showView('wizard');closeMobileNav()">Start Building Free</button>
+
+  <!-- Auth status row — shown/hidden by JS -->
+  <div class="drawer-auth-row" id="drawer-auth-row" style="display:none">
+    <div class="drawer-auth-email" id="drawer-auth-email"></div>
+    <button class="btn btn-ghost btn-sm" onclick="authSignOut();closeMobileNav()" style="font-size:12px;color:#f87171;">Log out</button>
+  </div>
+
+  <!-- Nav links -->
+  <a href="#" onclick="scrollToFeatures();closeMobileNav()">📋 Features</a>
+  <a href="#" onclick="scrollToHow();closeMobileNav()">ℹ How It Works</a>
+  <a href="#" onclick="scrollToTemplates();closeMobileNav()">🖼 Templates</a>
+  <a href="#" onclick="showView('coverletter');closeMobileNav()">✉ Cover Letter</a>
+  <a href="#" onclick="showView('jobs');closeMobileNav()">🎯 Find Jobs</a>
+  <a href="#" onclick="showView('employer');closeMobileNav()">🏢 Post a Job</a>
+
+  <!-- Primary actions -->
+  <div class="drawer-actions">
+    <button class="btn btn-gold btn-full" onclick="showView('wizard');closeMobileNav()">
+      ✦ Build My CV
+    </button>
+    <button class="btn btn-outline btn-full" id="drawer-download-btn"
+      onclick="downloadPDF();closeMobileNav()"
+      style="display:none">
+      ⬇ Download CV PDF
+    </button>
+    <button class="btn btn-ghost btn-full" id="drawer-login-btn"
+      onclick="showAuthModal();closeMobileNav()">
+      Log in
+    </button>
+  </div>
 </div>
 
 <!-- ============================================================
@@ -2163,22 +2861,18 @@ footer {
       <div class="bento-card col-4">
         <div class="bento-icon">🤖</div>
         <h3>AI Job Matching</h3>
-        <p>Our engine reads your skills and experience to surface the best-fit jobs from GamJobs.</p>
+        <p>Our engine reads your skills and experience to surface the best-fit jobs from GamHubJobs.</p>
       </div>
       <div class="bento-card col-6">
         <div class="bento-icon">💫</div>
         <h3>Swipe Job Discovery</h3>
         <p>Discover jobs Tinder-style. Swipe right to save, left to skip. Apply directly from the card. Built for Gambia's growing job market.</p>
       </div>
-      <div class="bento-card col-6">
-        <div class="bento-icon">🔗</div>
-        <h3>Publish & Share</h3>
-        <p>Get a public URL for your CV. Share on Twitter, LinkedIn, or WhatsApp. Your professional presence, online in seconds.</p>
-      </div>
+
       <div class="bento-card col-6 featured" style="cursor:pointer" onclick="showView('employer')">
         <div class="bento-icon">🏢</div>
         <h3>Employer Job Portal</h3>
-        <p>Businesses can post jobs directly on Folio CV — free basic listing, AI-matched to qualified candidates, live on the job board within 24 hours.</p>
+        <p>Businesses can post jobs directly on GamHub Jobs — free basic listing, AI-matched to qualified candidates, live on the job board within 24 hours.</p>
         <div style="margin-top:16px">
           <button class="btn btn-gold btn-sm" onclick="showView('employer')">Post a Job Free →</button>
         </div>
@@ -2216,7 +2910,7 @@ footer {
       <div class="how-step" style="background: rgba(100,200,100,0.04); border-color: rgba(100,200,100,0.2);">
         <div class="how-step-num" style="color: #4ade80">✦ — AI</div>
         <h3>Get Matched to Jobs</h3>
-        <p>AI analyzes your CV and surfaces matching jobs from GamJobs instantly.</p>
+        <p>AI analyzes your CV and surfaces matching jobs from GamHubJobs instantly.</p>
       </div>
     </div>
   </section>
@@ -2233,7 +2927,7 @@ footer {
           <div class="browser-dots">
             <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
           </div>
-          <div class="browser-url">folio-cv.gm/cv/dark-editorial</div>
+          <div class="browser-url">gamhubjobs.gm/cv/dark-editorial</div>
         </div>
         <div class="template-preview-body dark-editorial">
           <div class="template-mini-cv">
@@ -2253,7 +2947,7 @@ footer {
           <div class="browser-dots">
             <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
           </div>
-          <div class="browser-url">folio-cv.gm/cv/clean-light</div>
+          <div class="browser-url">gamhubjobs.gm/cv/clean-light</div>
         </div>
         <div class="template-preview-body clean-light">
           <div class="template-mini-cv light">
@@ -2273,7 +2967,7 @@ footer {
           <div class="browser-dots">
             <div class="browser-dot"></div><div class="browser-dot"></div><div class="browser-dot"></div>
           </div>
-          <div class="browser-url">folio-cv.gm/cv/vibrant-dark</div>
+          <div class="browser-url">gamhubjobs.gm/cv/vibrant-dark</div>
         </div>
         <div class="template-preview-body vibrant-dark">
           <div class="template-mini-cv">
@@ -2295,7 +2989,7 @@ footer {
   <div class="section-cta">
     <div class="cta-orb"></div>
     <h2>Ready to land your<br><em>dream job in The Gambia?</em></h2>
-    <p>Join thousands of professionals who've built their CV with Folio CV.</p>
+    <p>Join thousands of professionals who've built their CV with GamHub Jobs.</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-gold btn-lg" onclick="showView('wizard')">Build My CV Now</button>
       <button class="btn btn-ghost btn-lg" onclick="showView('jobs')">Browse Jobs First</button>
@@ -2306,15 +3000,15 @@ footer {
   <footer>
     <div class="nav-logo">
       <div class="nav-logo-icon">✦</div>
-      Folio CV
+      GamHub Jobs
     </div>
     <div class="footer-links">
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
-      <a href="#">GamJobs</a>
-      <a href="#">Contact</a>
+      <a href="#" onclick="showView('privacy');return false">Privacy</a>
+      <a href="#" onclick="showView('terms');return false">Terms</a>
+      <a href="https://gamhubjobs.com" target="_blank" rel="noopener">GamHubJobs</a>
+      <a href="mailto:hello@gamhubjobs.gm">Contact</a>
     </div>
-    <div class="footer-copy">© 2025 Folio CV · Made for The Gambia 🇬🇲</div>
+    <div class="footer-copy">© 2026 GamHub Jobs · Made for The Gambia 🇬🇲</div>
   </footer>
 
 </div><!-- /view-landing -->
@@ -2395,7 +3089,7 @@ footer {
 
   <div class="builder-header">
     <div class="builder-header-row1">
-      <div class="builder-logo">✦ Folio CV — Builder</div>
+      <div class="builder-logo">✦ GamHub Jobs — Builder</div>
       <div class="builder-autosave">
         <div class="autosave-dot" id="autosave-dot"></div>
         <span id="autosave-label">Auto saving...</span>
@@ -2502,24 +3196,45 @@ footer {
      ============================================================ -->
 <div id="view-preview" class="view">
 
-  <!-- Top bar -->
+  <!-- Top bar — horizontally scrollable on mobile, grouped on desktop -->
   <div class="preview-topbar">
-    <div class="preview-topbar-title">✦ CV Preview</div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span style="font-size:12px;color:var(--muted)">Theme:</span>
+    <div class="preview-topbar-title">✦ CV</div>
+
+    <!-- Download group — most important, leftmost -->
+    <div class="preview-topbar-group">
+      <button class="btn btn-gold btn-sm" onclick="downloadPDF()" title="Download CV as PDF">
+        ⬇ Download CV
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="initiateDownloadPayment('bundle')"
+        title="CV + Cover Letter — GMD 35" style="white-space:nowrap">
+        ⬇ Bundle <span style="color:var(--gold);font-size:11px">GMD 35</span>
+      </button>
+    </div>
+
+    <div class="preview-topbar-divider"></div>
+
+    <!-- Theme group -->
+    <div class="preview-topbar-group">
       <div class="theme-switcher">
-        <button class="theme-btn active" style="background:#1a3a5c" title="Classic" onclick="setTheme('classic')" id="tbtn-classic"></button>
-        <button class="theme-btn" style="background:#333" title="Minimal" onclick="setTheme('minimal')" id="tbtn-minimal"></button>
-        <button class="theme-btn" style="background:#c0392b" title="Bold" onclick="setTheme('bold')" id="tbtn-bold"></button>
-        <button class="theme-btn" style="background:#5a3e2b" title="Elegant" onclick="setTheme('elegant')" id="tbtn-elegant"></button>
+        <button class="theme-btn active" style="background:#1a3a5c" title="Classic"  onclick="setTheme('classic')"  id="tbtn-classic"></button>
+        <button class="theme-btn"        style="background:#333"    title="Minimal"  onclick="setTheme('minimal')"  id="tbtn-minimal"></button>
+        <button class="theme-btn"        style="background:#c0392b" title="Bold"     onclick="setTheme('bold')"     id="tbtn-bold"></button>
+        <button class="theme-btn"        style="background:#5a3e2b" title="Elegant"  onclick="setTheme('elegant')"  id="tbtn-elegant"></button>
       </div>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="toggleCustomizer()">⚙ Customise</button>
-    <button class="btn btn-gold btn-sm" onclick="downloadPDF()">⬇ CV PDF</button>
-    <button class="btn btn-outline btn-sm" onclick="initiateDownloadPayment('bundle')" title="Download CV + Cover Letter together">⬇ Bundle GMD 35</button>
-    <button class="btn btn-outline btn-sm" onclick="showView('builder')">✏ Edit</button>
-    <button class="btn btn-ghost btn-sm" onclick="showView('jobs')">🎯 Find Jobs</button>
-    <button class="btn btn-outline btn-sm" onclick="showView('coverletter')">✉ Cover Letter</button>
+
+    <div class="preview-topbar-divider"></div>
+
+    <!-- Navigation group -->
+    <div class="preview-topbar-group">
+      <button class="btn btn-ghost btn-sm" onclick="showView('builder')">✏ Edit</button>
+      <button class="btn btn-ghost btn-sm" onclick="showView('coverletter')">✉ Letter</button>
+      <button class="btn btn-ghost btn-sm" onclick="showView('jobs')">🎯 Jobs</button>
+      <button class="btn btn-ghost btn-sm cust-gear-btn" onclick="toggleCustomizer()" title="Customise — change theme, share" aria-label="Customise CV">
+        <span class="cust-gear-icon">⚙</span>
+        <span class="cust-gear-label">Customise</span>
+      </button>
+    </div>
   </div>
 
   <!-- CV Paper -->
@@ -2557,9 +3272,7 @@ footer {
         <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">First download is always free ✦</p>
         <button class="btn btn-ghost btn-full btn-sm" onclick="showView('builder')">✏ Edit Content</button>
         <button class="btn btn-ghost btn-full btn-sm" onclick="showView('wizard')">🎨 Change Design</button>
-        <button class="btn btn-ghost btn-full btn-sm" onclick="publishCV()">🌐 Publish CV</button>
       </div>
-      <div class="publish-url" id="publish-url"></div>
     </div>
   </div>
 
@@ -2573,7 +3286,7 @@ footer {
   <div class="jobs-topbar">
     <div>
       <h2>Job Discovery</h2>
-      <p>AI-matched jobs from GamJobs · Powered by your CV profile</p>
+      <p>AI-matched jobs from GamHubJobs · Powered by your CV profile</p>
     </div>
     <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
       <div class="ai-analysis-badge" id="ai-badge">
@@ -2583,6 +3296,12 @@ footer {
       <button class="btn btn-ghost btn-sm" onclick="showView('landing')">← Home</button>
       <button class="btn btn-gold btn-sm" onclick="showView('builder')">✏ Edit CV</button>
     </div>
+  </div>
+
+  <!-- Fallback banner — shown when live scrape fails, hidden by default -->
+  <div id="jobs-fallback-banner" style="display:none;background:rgba(212,168,83,0.08);border-bottom:1px solid rgba(212,168,83,0.2);padding:10px 40px;font-size:13px;color:var(--text2);display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <span>📋 Showing recent listings — <button onclick="resetDeck()" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:13px;font-family:var(--font-body);text-decoration:underline;padding:0">refresh for live jobs</button></span>
+    <span style="font-size:11px;color:var(--muted)">Live data from GamHubJobs.com · Updated every 2 hours</span>
   </div>
 
   <div class="jobs-layout">
@@ -2641,30 +3360,6 @@ footer {
 
   <div class="employer-body">
 
-    <!-- Supabase config banner -->
-    <div class="supabase-config-banner" id="supabase-banner">
-      <div class="scb-icon">⚙️</div>
-      <div class="scb-text">
-        <h4>One-time setup: Connect your Supabase database</h4>
-        <p>
-          Paste your free Supabase Project URL and anon key below to enable live job posting.
-          Get these from <strong>supabase.com → Settings → API</strong> — it takes 5 minutes.
-          Your keys are saved locally in your browser only.
-        </p>
-        <div class="scb-inputs">
-          <input type="text" id="sb-url-input" placeholder="https://your-project.supabase.co"
-            oninput="sbDraftSave()" value="">
-          <input type="text" id="sb-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-            oninput="sbDraftSave()" value="">
-          <button class="btn btn-gold btn-sm" onclick="saveSupabaseConfig()">Connect →</button>
-        </div>
-        <div class="scb-status" id="scb-status">
-          <div class="scb-dot" id="scb-dot"></div>
-          <span id="scb-status-text">Not connected — job posts will be saved locally</span>
-        </div>
-      </div>
-    </div>
-
     <!-- Stats bar -->
     <div class="employer-stats-bar">
       <div class="employer-stat">
@@ -2689,7 +3384,7 @@ footer {
     <div class="portal-tabs">
       <button class="portal-tab active" onclick="switchPortalTab('post', this)">📝 Post a Job</button>
       <button class="portal-tab" onclick="switchPortalTab('manage', this)">📋 My Listings</button>
-      <button class="portal-tab" onclick="switchPortalTab('admin', this)">🔐 Admin</button>
+
     </div>
 
     <!-- ── TAB 1: Post a Job ── -->
@@ -2704,7 +3399,7 @@ footer {
             <h3>Job Posted Successfully!</h3>
             <p>
               Your listing has been submitted and is under review.
-              It will appear on the Folio CV job board within 24 hours.
+              It will appear on the GamHub Jobs job board within 24 hours.
             </p>
             <div class="success-steps">
               <div class="success-step">
@@ -2717,7 +3412,7 @@ footer {
               </div>
               <div class="success-step">
                 <div class="ss-num">STEP 03</div>
-                Job goes live on Folio CV job board
+                Job goes live on GamHub Jobs job board
               </div>
               <div class="success-step">
                 <div class="ss-num">STEP 04</div>
@@ -2956,7 +3651,7 @@ footer {
             </div>
           </div>
 
-          <!-- Why Folio CV -->
+          <!-- Why GamHub Jobs -->
           <div class="sidebar-card">
             <h4>📊 Why Post Here?</h4>
             <div class="sidebar-stat"><span>Monthly visitors</span><span class="sidebar-stat-val">2,400+</span></div>
@@ -2991,38 +3686,6 @@ footer {
       </div>
     </div>
 
-    <!-- ── TAB 3: Admin ── -->
-    <div class="portal-panel" id="panel-admin">
-
-      <!-- Login form (shown when not logged in) -->
-      <div id="admin-login" class="admin-login-form">
-        <h3>🔐 Admin Access</h3>
-        <p>Review and approve or reject pending job listings before they go live.</p>
-        <div class="form-group">
-          <label>Admin Password</label>
-          <input type="password" class="form-control" id="admin-pw-input"
-            placeholder="Enter admin password" onkeydown="if(event.key==='Enter')adminLogin()">
-        </div>
-        <button class="btn btn-gold btn-full" onclick="adminLogin()">Login →</button>
-        <p style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center">
-          Default password: <code style="color:var(--gold);font-family:var(--font-mono)">folio2025</code> — change this in the JS config
-        </p>
-      </div>
-
-      <!-- Admin panel (shown after login) -->
-      <div class="admin-panel" id="admin-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
-          <h3 style="font-size:22px;">📋 Pending Review <span id="admin-pending-count" style="font-size:14px;color:var(--muted)"></span></h3>
-          <div style="display:flex;gap:10px;">
-            <button class="btn btn-ghost btn-sm" onclick="adminRefresh()">↺ Refresh</button>
-            <button class="btn btn-ghost btn-sm" onclick="adminLogout()">Logout</button>
-          </div>
-        </div>
-        <div id="admin-jobs-list">
-          <!-- Rendered by JS -->
-        </div>
-      </div>
-    </div>
 
   </div><!-- /employer-body -->
 </div><!-- /view-employer -->
@@ -3034,17 +3697,20 @@ footer {
 
   <!-- Top bar -->
   <div class="cl-topbar">
-    <div class="cl-topbar-title">✉ Cover Letter Generator</div>
+    <div class="cl-topbar-title">✉ Cover Letter</div>
     <div class="cl-autosave">
       <div class="autosave-dot" id="cl-autosave-dot"></div>
-      <span id="cl-autosave-label">Auto saving…</span>
+      <span id="cl-autosave-label" class="cl-autosave-label-text">Auto saving…</span>
     </div>
-    <!-- Mobile toggle -->
+    <!-- Mobile preview toggle — shown by JS on small screens -->
     <button class="btn btn-ghost btn-sm" id="cl-toggle-btn"
       onclick="toggleCLView()" style="display:none">👁 Preview</button>
-    <button class="btn btn-ghost btn-sm" onclick="showView('landing')">← Home</button>
-    <button class="btn btn-outline btn-sm" onclick="showView('preview')">View CV</button>
-    <button class="btn btn-gold btn-sm" onclick="downloadCoverLetter()">⬇ Download PDF</button>
+    <!-- Always-visible download button — most important action -->
+    <button class="btn btn-gold btn-sm" onclick="downloadCoverLetter()" style="flex-shrink:0">
+      ⬇ Download
+    </button>
+    <button class="btn btn-outline btn-sm" onclick="showView('preview')" style="flex-shrink:0">CV</button>
+    <button class="btn btn-ghost btn-sm" onclick="showView('landing')" style="flex-shrink:0">← Home</button>
   </div>
 
   <div class="cl-layout" id="cl-layout">
@@ -3110,7 +3776,7 @@ footer {
         </div>
         <div class="form-group">
           <label>Where Did You See This Job?</label>
-          <input type="text" class="form-control" id="cl-job-source" placeholder="e.g. GamJobs.com, LinkedIn, referral from…" oninput="renderCoverLetter()">
+          <input type="text" class="form-control" id="cl-job-source" placeholder="e.g. GamHubJobs.com, LinkedIn, referral from…" oninput="renderCoverLetter()">
         </div>
       </div>
 
@@ -3270,10 +3936,556 @@ footer {
 
 </div><!-- /view-coverletter -->
 
+
+<!-- ============================================================
+     VIEW 8 — PRIVACY POLICY
+     ============================================================ -->
+<div id="view-privacy" class="view">
+
+  <div class="legal-topbar">
+    <div class="legal-topbar-title">Privacy Policy</div>
+    <span class="legal-topbar-date">Last updated: 18 March 2026</span>
+    <button class="btn btn-ghost btn-sm" onclick="history.back();showView('landing')">← Back</button>
+  </div>
+
+  <div class="legal-body">
+
+    <div class="legal-hero">
+      <div class="legal-last-updated">📅 Last updated: 18 March 2026</div>
+      <h1>Privacy Policy</h1>
+      <p>GamHub Jobs is committed to protecting your personal information. This policy explains what data we collect, why we collect it, how it is stored, and your rights as a user operating in The Gambia and beyond.</p>
+    </div>
+
+    <div class="legal-toc">
+      <h3>Contents</h3>
+      <ol>
+        <li><a href="#priv-1">Who We Are</a></li>
+        <li><a href="#priv-2">What Data We Collect</a></li>
+        <li><a href="#priv-3">How We Use Your Data</a></li>
+        <li><a href="#priv-4">Data Storage and Security</a></li>
+        <li><a href="#priv-5">Payments and Financial Data</a></li>
+        <li><a href="#priv-6">Cookies and Local Storage</a></li>
+        <li><a href="#priv-7">Third-Party Services</a></li>
+        <li><a href="#priv-8">Your Rights</a></li>
+        <li><a href="#priv-9">Children's Privacy</a></li>
+        <li><a href="#priv-10">Changes to This Policy</a></li>
+        <li><a href="#priv-11">Contact Us</a></li>
+      </ol>
+    </div>
+
+    <div class="legal-section" id="priv-1">
+      <div class="legal-section-num">Section 01</div>
+      <h2>Who We Are</h2>
+      <p><strong>GamHub Jobs</strong> is a CV generation and job matching platform designed for professionals in The Gambia. Our platform helps job seekers build professional CVs and cover letters, and connects them with employers across all industries in The Gambia.</p>
+      <p>We operate under Gambian law. Our data infrastructure uses Supabase, with servers located in the European Union (West EU region), subject to GDPR-equivalent data protection standards.</p>
+      <div class="legal-contact-card">
+        <div class="legal-contact-icon">✉</div>
+        <div>
+          <h4>Data Controller</h4>
+          <a href="mailto:hello@gamhubjobs.gm">hello@gamhubjobs.gm</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="legal-section" id="priv-2">
+      <div class="legal-section-num">Section 02</div>
+      <h2>What Data We Collect</h2>
+      <p>We collect the following categories of personal information:</p>
+      <p><strong>Account and Identity Data</strong></p>
+      <ul>
+        <li>Email address (used as your account identifier via Supabase Auth magic link)</li>
+        <li>Name, professional title, and profile photo (provided voluntarily when building your CV)</li>
+      </ul>
+      <p><strong>CV and Professional Data</strong></p>
+      <ul>
+        <li>Full name, contact details (phone number, city, country)</li>
+        <li>Work history: job titles, employers, dates, and role descriptions</li>
+        <li>Educational background: institutions, qualifications, and years</li>
+        <li>Skills, certifications, languages, and professional achievements</li>
+        <li>Professional summary and cover letter content</li>
+        <li>References (names and contact details you choose to provide)</li>
+      </ul>
+      <p><strong>Employer Data</strong></p>
+      <ul>
+        <li>Company name, industry, and contact email</li>
+        <li>Job listing content including title, description, location, salary, and deadline</li>
+        <li>Subscription plan selected (Free, Featured, or Premium)</li>
+      </ul>
+      <p><strong>Usage Data</strong></p>
+      <ul>
+        <li>Number of PDF downloads used (stored in your Supabase profile to prevent abuse)</li>
+        <li>Saved job listings (stored in your browser's local storage)</li>
+        <li>Design preferences: colour palette, font choice, and CV theme (stored locally)</li>
+      </ul>
+      <p><strong>Payment Data</strong></p>
+      <ul>
+        <li>We do not store your payment card or mobile money details. All payment processing is handled entirely by ModemPay. We receive only a confirmation of payment success or failure.</li>
+      </ul>
+    </div>
+
+    <div class="legal-section" id="priv-3">
+      <div class="legal-section-num">Section 03</div>
+      <h2>How We Use Your Data</h2>
+      <ul>
+        <li><strong>To provide the service:</strong> generating your CV, cover letter, and job matches</li>
+        <li><strong>To authenticate you:</strong> managing your login session securely via Supabase Auth</li>
+        <li><strong>To process payments:</strong> passing your name and email to ModemPay when you choose a paid plan</li>
+        <li><strong>To prevent abuse:</strong> tracking your free download count server-side so it cannot be circumvented</li>
+        <li><strong>To improve the platform:</strong> understanding which features are most used (we do not sell this data)</li>
+        <li><strong>To publish job listings:</strong> displaying employer-submitted job posts to job seekers after admin review</li>
+      </ul>
+      <div class="legal-highlight">
+        <strong>We do not sell your personal data.</strong> We do not share your CV content, email address, or any personal information with third parties for marketing purposes.
+      </div>
+    </div>
+
+    <div class="legal-section" id="priv-4">
+      <div class="legal-section-num">Section 04</div>
+      <h2>Data Storage and Security</h2>
+      <p>Your data is stored in two places:</p>
+      <ul>
+        <li><strong>Supabase (cloud database):</strong> Your account profile, email address, free download count, and submitted job listings are stored in a PostgreSQL database hosted by Supabase in the European Union (West EU region). Supabase applies industry-standard encryption at rest and in transit.</li>
+        <li><strong>Your browser (local storage):</strong> Your CV content, design choices, saved jobs, and wizard settings are stored in your browser's local storage on your device. This data does not leave your device unless you explicitly use a feature that sends it to our servers (such as submitting a job post or logging in).</li>
+      </ul>
+      <p>We take reasonable technical measures to protect your data, including HTTPS encryption for all connections, Row Level Security (RLS) on our database so users can only access their own records, and no storage of payment credentials on our servers.</p>
+      <p>As our servers are located in the European Union, your data may be processed outside The Gambia. We ensure this is done in compliance with applicable data protection principles.</p>
+    </div>
+
+    <div class="legal-section" id="priv-5">
+      <div class="legal-section-num">Section 05</div>
+      <h2>Payments and Financial Data</h2>
+      <p>Payments on GamHub Jobs are processed by <strong>ModemPay</strong>, a Gambian payment gateway that supports mobile money and local payment methods in GMD (Gambian Dalasi).</p>
+      <ul>
+        <li>We do not collect, process, or store your payment card numbers, mobile money PIN, or wallet credentials at any point.</li>
+        <li>When you initiate a payment, you are redirected to ModemPay's secure hosted checkout page. Your payment is processed entirely on their infrastructure.</li>
+        <li>After payment is confirmed, ModemPay notifies us of the transaction result only. We store a record that payment was made (amount, plan, timestamp) for service fulfilment purposes.</li>
+        <li>ModemPay's own privacy policy governs how your financial data is handled during checkout.</li>
+      </ul>
+      <div class="legal-highlight">
+        All transactions are denominated in <strong>Gambian Dalasi (GMD)</strong>. GamHub Jobs does not process payments in any foreign currency.
+      </div>
+    </div>
+
+    <div class="legal-section" id="priv-6">
+      <div class="legal-section-num">Section 06</div>
+      <h2>Cookies and Local Storage</h2>
+      <p>GamHub Jobs uses your browser's <strong>local storage</strong> (not traditional cookies) to save your work between sessions. This is essential for the platform to function — without it, your CV data would be lost every time you closed the browser tab.</p>
+      <p>The data stored locally on your device includes:</p>
+      <ul>
+        <li><strong>gamhubjobs_cv_data</strong> — your CV content (name, experience, skills, etc.)</li>
+        <li><strong>gamhubjobs_cv_wizard</strong> — your design choices (palette, font, profession)</li>
+        <li><strong>gamhubjobs_cv_theme</strong> — your selected CV theme</li>
+        <li><strong>folio_saved_jobs</strong> — jobs you have swiped right on</li>
+        <li><strong>folio_gamhubjobs_cache</strong> — a 2-hour cache of job listings to reduce network requests</li>
+        <li><strong>folio_cookie_consent</strong> — records whether you have accepted this notice</li>
+      </ul>
+      <p>Supabase Auth also stores a session token in local storage to keep you logged in between visits. This token is encrypted and tied to your account only.</p>
+      <p>You can clear all locally stored data at any time through your browser's developer tools or settings. This will not affect your Supabase account data.</p>
+    </div>
+
+    <div class="legal-section" id="priv-7">
+      <div class="legal-section-num">Section 07</div>
+      <h2>Third-Party Services</h2>
+      <p>GamHub Jobs uses the following third-party services. Each has its own privacy policy:</p>
+      <ul>
+        <li><strong>Supabase</strong> (supabase.com) — Database, authentication, and Edge Functions hosting. EU-based servers.</li>
+        <li><strong>ModemPay</strong> (modem-pay.com) — Payment processing in GMD. Gambia-based payment provider.</li>
+        <li><strong>GamHubJobs.com</strong> — We display publicly available job listings sourced from GamHubJobs. We do not share your data with GamHubJobs.</li>
+        <li><strong>Google Fonts</strong> — Typography loaded from Google's CDN. Google may log your IP address when fonts are loaded.</li>
+        <li><strong>html2pdf.js / Cloudflare CDN</strong> — PDF generation library loaded from Cloudflare's CDN.</li>
+      </ul>
+    </div>
+
+    <div class="legal-section" id="priv-8">
+      <div class="legal-section-num">Section 08</div>
+      <h2>Your Rights</h2>
+      <p>You have the following rights regarding your personal data:</p>
+      <ul>
+        <li><strong>Right to access:</strong> You can request a copy of all personal data we hold about you.</li>
+        <li><strong>Right to rectification:</strong> You can update or correct your information at any time by editing your CV or profile.</li>
+        <li><strong>Right to erasure:</strong> You can request that we delete your account and all associated data. Email us at hello@gamhubjobs.gm to make this request.</li>
+        <li><strong>Right to data portability:</strong> Your CV data is yours. You can download it as a PDF at any time.</li>
+        <li><strong>Right to withdraw consent:</strong> You can delete your locally stored data through your browser settings at any time.</li>
+        <li><strong>Right to object:</strong> If you believe your data is being processed unlawfully, you may contact us or lodge a complaint with the relevant authority in The Gambia.</li>
+      </ul>
+      <p>To exercise any of these rights, contact us at <a href="mailto:hello@gamhubjobs.gm" style="color:var(--gold)">hello@gamhubjobs.gm</a>. We will respond within 14 business days.</p>
+    </div>
+
+    <div class="legal-section" id="priv-9">
+      <div class="legal-section-num">Section 09</div>
+      <h2>Children's Privacy</h2>
+      <p>GamHub Jobs is intended for users aged 16 and above. We do not knowingly collect personal information from children under the age of 16. If you believe a child has provided us with personal data, please contact us at <a href="mailto:hello@gamhubjobs.gm" style="color:var(--gold)">hello@gamhubjobs.gm</a> and we will delete the information promptly.</p>
+    </div>
+
+    <div class="legal-section" id="priv-10">
+      <div class="legal-section-num">Section 10</div>
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or applicable laws. When we make material changes, we will update the "Last updated" date at the top of this page. We encourage you to review this policy periodically.</p>
+      <p>Continued use of GamHub Jobs after any changes constitutes your acceptance of the updated policy.</p>
+    </div>
+
+    <div class="legal-section" id="priv-11">
+      <div class="legal-section-num">Section 11</div>
+      <h2>Contact Us</h2>
+      <p>If you have any questions, concerns, or requests regarding your privacy or this policy, please reach out to us:</p>
+      <div class="legal-contact-card">
+        <div class="legal-contact-icon">✉</div>
+        <div>
+          <h4>GamHub Jobs — Privacy Team</h4>
+          <a href="mailto:hello@gamhubjobs.gm">hello@gamhubjobs.gm</a>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">We respond within 14 business days</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /legal-body -->
+</div><!-- /view-privacy -->
+
+
+<!-- ============================================================
+     VIEW 9 — TERMS OF SERVICE
+     ============================================================ -->
+<div id="view-terms" class="view">
+
+  <div class="legal-topbar">
+    <div class="legal-topbar-title">Terms of Service</div>
+    <span class="legal-topbar-date">Last updated: 18 March 2026</span>
+    <button class="btn btn-ghost btn-sm" onclick="history.back();showView('landing')">← Back</button>
+  </div>
+
+  <div class="legal-body">
+
+    <div class="legal-hero">
+      <div class="legal-last-updated">📅 Last updated: 18 March 2026</div>
+      <h1>Terms of Service</h1>
+      <p>These terms govern your use of GamHub Jobs, including the CV builder, cover letter generator, job discovery, and employer job posting features. By using GamHub Jobs you agree to these terms.</p>
+    </div>
+
+    <div class="legal-toc">
+      <h3>Contents</h3>
+      <ol>
+        <li><a href="#terms-1">Acceptance of Terms</a></li>
+        <li><a href="#terms-2">Description of Service</a></li>
+        <li><a href="#terms-3">Free vs Paid Features</a></li>
+        <li><a href="#terms-4">Payment Terms</a></li>
+        <li><a href="#terms-5">Refund Policy</a></li>
+        <li><a href="#terms-6">Employer Job Posting Rules</a></li>
+        <li><a href="#terms-7">Content Standards</a></li>
+        <li><a href="#terms-8">User Accounts</a></li>
+        <li><a href="#terms-9">Intellectual Property</a></li>
+        <li><a href="#terms-10">No Employment Guarantee</a></li>
+        <li><a href="#terms-11">Limitation of Liability</a></li>
+        <li><a href="#terms-12">Termination</a></li>
+        <li><a href="#terms-13">Governing Law</a></li>
+        <li><a href="#terms-14">Contact</a></li>
+      </ol>
+    </div>
+
+    <div class="legal-section" id="terms-1">
+      <div class="legal-section-num">Section 01</div>
+      <h2>Acceptance of Terms</h2>
+      <p>By accessing or using GamHub Jobs ("the Platform", "we", "us"), you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree to these terms, please do not use the platform.</p>
+      <p>These terms apply to all users of GamHub Jobs, including job seekers who build CVs and cover letters, and employers who post job listings.</p>
+    </div>
+
+    <div class="legal-section" id="terms-2">
+      <div class="legal-section-num">Section 02</div>
+      <h2>Description of Service</h2>
+      <p>GamHub Jobs provides the following services:</p>
+      <ul>
+        <li><strong>CV Builder:</strong> A guided tool to create a professional CV in multiple themes, exportable as a PDF.</li>
+        <li><strong>Cover Letter Generator:</strong> An AI-assisted tool to write tailored cover letters based on your CV and target job.</li>
+        <li><strong>Job Discovery:</strong> A swipe-based interface showing job listings sourced from GamHubJobs.com and employers who post directly on GamHub Jobs.</li>
+        <li><strong>Employer Portal:</strong> A dedicated area for businesses to post job listings, reviewed and approved by GamHub Jobs before going live.</li>
+      </ul>
+      <p>We reserve the right to modify, suspend, or discontinue any part of the service at any time, with or without notice.</p>
+    </div>
+
+    <div class="legal-section" id="terms-3">
+      <div class="legal-section-num">Section 03</div>
+      <h2>Free vs Paid Features</h2>
+      <div class="legal-highlight">
+        <strong>Free features</strong> are available to all users without payment or registration.
+      </div>
+      <p><strong>Free features include:</strong></p>
+      <ul>
+        <li>Building a complete CV using the Design Wizard and CV Builder</li>
+        <li>Building a cover letter using the Cover Letter Generator</li>
+        <li>Previewing your CV in all four themes (Classic, Minimal, Bold, Elegant)</li>
+        <li>Browsing job listings in the Job Discovery view</li>
+        <li>Saving jobs to your saved list</li>
+        <li>Your <strong>first PDF download</strong> (CV or Cover Letter) is always free, no payment or account required</li>
+      </ul>
+      <div class="legal-highlight">
+        <strong>Paid features</strong> require payment in GMD via ModemPay.
+      </div>
+      <p><strong>Paid features include:</strong></p>
+      <ul>
+        <li><strong>CV PDF download</strong> after the free allowance — GMD 25 per download</li>
+        <li><strong>Cover Letter PDF download</strong> after the free allowance — GMD 15 per download</li>
+        <li><strong>Bundle download</strong> (CV + Cover Letter together) — GMD 35</li>
+        <li><strong>Featured Job Listing</strong> (employers) — GMD 500 for a 60-day listing with priority placement</li>
+        <li><strong>Premium Job Listing</strong> (employers) — GMD 1,200 for a 90-day listing with top placement, company logo, and AI-matched candidate shortlist</li>
+      </ul>
+      <p>Prices are denominated in Gambian Dalasi (GMD) and are inclusive of all applicable fees. We reserve the right to change pricing with 14 days' notice posted on the platform.</p>
+    </div>
+
+    <div class="legal-section" id="terms-4">
+      <div class="legal-section-num">Section 04</div>
+      <h2>Payment Terms</h2>
+      <ul>
+        <li>All payments are processed in <strong>Gambian Dalasi (GMD)</strong> via <strong>ModemPay</strong>, a licensed Gambian payment provider.</li>
+        <li>Payment must be completed before the paid feature is activated or the file is delivered.</li>
+        <li>By initiating a payment, you authorise GamHub Jobs and ModemPay to charge the stated amount to your chosen payment method (mobile money, wallet, etc.).</li>
+        <li>A payment confirmation is issued by ModemPay upon successful transaction. GamHub Jobs does not issue paper invoices by default; contact <a href="mailto:hello@gamhubjobs.gm" style="color:var(--gold)">hello@gamhubjobs.gm</a> if you require a receipt for accounting purposes.</li>
+        <li>For employer job listings, payment confirms the listing submission. The listing will go live only after GamHub Jobs admin review, typically within 24 hours.</li>
+      </ul>
+    </div>
+
+    <div class="legal-section" id="terms-5">
+      <div class="legal-section-num">Section 05</div>
+      <h2>Refund Policy</h2>
+      <div class="legal-highlight">
+        <strong>PDF downloads are non-refundable.</strong> Because the file is delivered immediately upon payment confirmation, we are unable to offer refunds for completed PDF download transactions.
+      </div>
+      <p><strong>Job listing refunds:</strong></p>
+      <ul>
+        <li>If a job listing is rejected by our admin review process, you will receive a full refund within 5–10 business days to the original payment method.</li>
+        <li>If a job listing is removed by GamHub Jobs due to a violation of our content standards after it has gone live, no refund will be issued.</li>
+        <li>If you request cancellation of an active listing before it has received any applications, a partial refund (50%) may be considered at our sole discretion. Contact <a href="mailto:hello@gamhubjobs.gm" style="color:var(--gold)">hello@gamhubjobs.gm</a> within 48 hours of posting.</li>
+      </ul>
+      <p>For technical payment errors (e.g. you were charged but the feature was not delivered), please contact us within 7 days and we will investigate and resolve promptly.</p>
+    </div>
+
+    <div class="legal-section" id="terms-6">
+      <div class="legal-section-num">Section 06</div>
+      <h2>Employer Job Posting Rules</h2>
+      <p>Employers who post job listings on GamHub Jobs agree to the following rules:</p>
+      <ul>
+        <li><strong>Accuracy:</strong> All job information (title, company, salary, responsibilities, requirements) must be accurate and not misleading.</li>
+        <li><strong>Real vacancies only:</strong> You may only post listings for genuine, current vacancies. Speculative or phantom listings are prohibited.</li>
+        <li><strong>Legal compliance:</strong> Job listings must comply with Gambian employment law, including the Labour Act 2007 and Equal Opportunities Act. Listings that discriminate on the basis of gender, ethnicity, religion, disability, or other protected characteristics are prohibited.</li>
+        <li><strong>Contact details:</strong> You must provide a valid contact email that is actively monitored. We will use this email for admin communications regarding your listing.</li>
+        <li><strong>No third-party recruitment spam:</strong> Recruitment agencies may post on behalf of clients but must clearly identify the end employer in the listing description.</li>
+        <li><strong>Review period:</strong> All listings are reviewed by GamHub Jobs before going live. We aim to review within 24 hours of submission. We reserve the right to request edits before approval.</li>
+      </ul>
+      <p>GamHub Jobs reserves the right to reject or remove any job listing at any time, without notice, if it violates these rules or our content standards.</p>
+    </div>
+
+    <div class="legal-section" id="terms-7">
+      <div class="legal-section-num">Section 07</div>
+      <h2>Content Standards</h2>
+      <p>All content submitted to GamHub Jobs — including CV data, cover letters, and job listings — must comply with the following standards. Content that violates these standards will be removed:</p>
+      <ul>
+        <li>Must not contain false, misleading, or fraudulent information</li>
+        <li>Must not be defamatory, offensive, abusive, threatening, or harassing</li>
+        <li>Must not violate any applicable Gambian law or regulation</li>
+        <li>Must not infringe third-party intellectual property rights</li>
+        <li>Must not contain malware, phishing links, or harmful code</li>
+        <li>Must not promote illegal activities, discrimination, or hate speech</li>
+        <li>Job listings must not request payment from applicants as a condition of applying</li>
+      </ul>
+      <p>GamHub Jobs is not responsible for the accuracy of user-submitted content, including job listing descriptions or CV information. We act as a platform, not as an endorser of any employer or job seeker.</p>
+    </div>
+
+    <div class="legal-section" id="terms-8">
+      <div class="legal-section-num">Section 08</div>
+      <h2>User Accounts</h2>
+      <ul>
+        <li>Accounts are created via email magic link (passwordless login). You are responsible for keeping your email account secure.</li>
+        <li>You must be at least 16 years old to create an account.</li>
+        <li>You may not share your account with others or use another person's account without their explicit permission.</li>
+        <li>One free download allowance applies per account. Creating multiple accounts to obtain additional free downloads is a violation of these terms.</li>
+        <li>We reserve the right to suspend or terminate accounts that violate these terms.</li>
+      </ul>
+    </div>
+
+    <div class="legal-section" id="terms-9">
+      <div class="legal-section-num">Section 09</div>
+      <h2>Intellectual Property</h2>
+      <p><strong>Your content:</strong> You retain full ownership of all CV content, cover letters, and other personal data you create on GamHub Jobs. By using the platform, you grant us a limited, non-exclusive licence to store and display your content solely for the purpose of providing the service to you.</p>
+      <p><strong>Our platform:</strong> The GamHub Jobs design, code, branding, and features are the intellectual property of GamHub Jobs. You may not copy, reproduce, or redistribute any part of the platform without our written permission.</p>
+      <p><strong>Job listings:</strong> Employers retain ownership of their job listing content. By submitting a listing, you grant GamHub Jobs a licence to display it on the platform and in our job discovery features.</p>
+    </div>
+
+    <div class="legal-section" id="terms-10">
+      <div class="legal-section-num">Section 10</div>
+      <h2>No Employment Guarantee</h2>
+      <div class="legal-highlight">
+        <strong>GamHub Jobs does not guarantee employment.</strong> We are a tools and discovery platform, not a recruitment agency.
+      </div>
+      <ul>
+        <li>We do not guarantee that building a CV or cover letter on GamHub Jobs will result in job interviews or offers.</li>
+        <li>We do not guarantee the accuracy, availability, or legitimacy of third-party job listings sourced from GamHubJobs.com. Always verify a job listing independently before applying.</li>
+        <li>We do not act as an intermediary between job seekers and employers. Any employment relationship formed as a result of using GamHub Jobs is entirely between the job seeker and the employer.</li>
+        <li>Job listings on GamHub Jobs are provided for informational purposes only. The inclusion of a listing does not constitute an endorsement of the employer.</li>
+      </ul>
+    </div>
+
+    <div class="legal-section" id="terms-11">
+      <div class="legal-section-num">Section 11</div>
+      <h2>Limitation of Liability</h2>
+      <p>To the maximum extent permitted by applicable Gambian law, GamHub Jobs shall not be liable for:</p>
+      <ul>
+        <li>Any indirect, incidental, or consequential loss arising from your use of the platform</li>
+        <li>Loss of data resulting from browser clearing, device failure, or local storage limitations</li>
+        <li>Errors in AI-generated cover letter content — always review before submitting to employers</li>
+        <li>Technical failures of third-party services (Supabase, ModemPay, GamHubJobs, CORS proxies)</li>
+        <li>The outcome of any job application made using content created on GamHub Jobs</li>
+      </ul>
+      <p>The platform is provided "as is" without warranties of any kind. We do not guarantee that the platform will be available without interruption or free from errors at all times.</p>
+    </div>
+
+    <div class="legal-section" id="terms-12">
+      <div class="legal-section-num">Section 12</div>
+      <h2>Termination</h2>
+      <p>You may stop using GamHub Jobs at any time. To delete your account and all associated server-side data, email <a href="mailto:hello@gamhubjobs.gm" style="color:var(--gold)">hello@gamhubjobs.gm</a>.</p>
+      <p>We reserve the right to suspend or terminate your access to GamHub Jobs immediately and without notice if:</p>
+      <ul>
+        <li>You violate any of these Terms of Service</li>
+        <li>You attempt to manipulate the platform, including bypassing the paid download system</li>
+        <li>You submit fraudulent, harmful, or illegal content</li>
+        <li>We are required to do so by law</li>
+      </ul>
+      <p>Upon termination, your right to use the platform ceases immediately. Data stored locally on your device will remain until you clear it manually.</p>
+    </div>
+
+    <div class="legal-section" id="terms-13">
+      <div class="legal-section-num">Section 13</div>
+      <h2>Governing Law</h2>
+      <p>These Terms of Service are governed by and construed in accordance with the laws of <strong>The Gambia</strong>. Any dispute arising from these terms shall first be attempted to be resolved through good-faith negotiation. If unresolved, disputes shall be subject to the jurisdiction of the courts of The Gambia.</p>
+    </div>
+
+    <div class="legal-section" id="terms-14">
+      <div class="legal-section-num">Section 14</div>
+      <h2>Contact</h2>
+      <p>For any questions about these Terms of Service, payment disputes, or content removal requests:</p>
+      <div class="legal-contact-card">
+        <div class="legal-contact-icon">✉</div>
+        <div>
+          <h4>GamHub Jobs — Legal & Support</h4>
+          <a href="mailto:hello@gamhubjobs.gm">hello@gamhubjobs.gm</a>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">We respond within 14 business days</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /legal-body -->
+</div><!-- /view-terms -->
+
+
+<!-- ============================================================
+     COOKIE CONSENT BANNER
+     ============================================================ -->
+<div id="cookie-banner" style="display:none">
+  <div class="cookie-text">
+    <strong>Before you continue.</strong>
+    GamHub Jobs stores your CV data, design choices, and session in your browser's local storage so your work is saved between visits. We also use Supabase (EU servers) for authentication and download tracking. No advertising cookies. No data sold.
+  </div>
+  <div class="cookie-actions">
+    <button class="btn btn-ghost btn-sm" onclick="showView('privacy')">Privacy Policy</button>
+    <button class="btn btn-gold btn-sm" onclick="acceptCookies()">I Understand</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     AUTH MODAL — Supabase Magic Link Login
+     ============================================================ -->
+<div id="auth-overlay" class="auth-overlay" style="display:none" onclick="handleAuthOverlayClick(event)">
+  <div class="auth-modal" id="auth-modal">
+    <button class="auth-modal-close" onclick="closeAuthModal()">✕</button>
+
+    <!-- Step 1: Enter email -->
+    <div id="auth-step-email">
+      <div class="auth-icon">✦</div>
+      <h3>Sign in to GamHub Jobs</h3>
+      <p>Enter your email and we'll send you a magic link — no password needed. Works with any email.</p>
+      <div class="auth-form">
+        <input type="email" class="auth-input" id="auth-email-input"
+          placeholder="your@email.com"
+          onkeydown="if(event.key==='Enter')sendMagicLink()">
+        <div class="auth-error" id="auth-error-msg"></div>
+        <button class="auth-btn" id="auth-send-btn" onclick="sendMagicLink()">
+          <span id="auth-send-label">✉ Send Magic Link</span>
+        </button>
+      </div>
+      <p class="auth-note">Free to use · No password · No spam</p>
+    </div>
+
+    <!-- Step 2: Email sent confirmation -->
+    <div class="auth-sent" id="auth-step-sent">
+      <div class="auth-sent-icon">📬</div>
+      <h4>Check your inbox!</h4>
+      <p>We sent a sign-in link to <strong id="auth-sent-email"></strong>.<br>
+      Click the link in the email to sign in instantly.<br>
+      It expires in 60 minutes.</p>
+      <button class="auth-btn" style="margin-top:16px;font-size:13px" onclick="closeAuthModal()">Got it — I'll check my email</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================
      JAVASCRIPT
      ============================================================ -->
 <script>
+/* ============================================================
+   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗
+  ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝
+  ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
+  ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
+  ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
+   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
+   GAMHUB JOBS — APP CONFIGURATION
+   ============================================================
+   All credentials live here and ONLY here.
+   To update any value, change it in this block.
+   Never scatter credentials anywhere else in the code.
+   ============================================================ */
+const APP_CONFIG = {
+
+  /* ── Supabase ────────────────────────────────────────────────
+     Find these at:
+     supabase.com → Your Project → Settings → API            */
+  SUPABASE_URL:      'https://whrlhlssojgpbcwregmf.supabase.co',
+  // ^ Project URL — Settings → API → Project URL
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndocmxobHNzb2pncGJjd3JlZ21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTg4NjUsImV4cCI6MjA4OTIzNDg2NX0.4T2hePXxyJ8KdKjbVpGax7wh2ruPCkd2BxHUlcuedno',
+  // ^ Anon/public key — Settings → API → Project API keys → anon public
+
+  /* ── ModemPay ────────────────────────────────────────────────
+     Find this at:
+     modem-pay.com → Dashboard → API Keys → pk_live_ key     */
+  MODEMPAY_PUBLIC_KEY: 'pk_live_51ebe3d202c7d2dfd9b31befc1536124a934c826ea02ba062aae2914bf5c2a39',
+  // ^ Public key — safe to expose in frontend code
+  // ^ NEVER put your sk_live_ secret key here
+
+  /* ── Supabase Edge Function ──────────────────────────────────
+     Deployed at:
+     supabase.com → Edge Functions → modempay-charge → URL   */
+  EDGE_FN_URL: 'https://whrlhlssojgpbcwregmf.supabase.co/functions/v1/modempay-charge',
+  // ^ Only needed if using the Edge Function payment method
+
+};
+
+/* ── Config validation — runs once on startup ─────────────── */
+(function validateConfig() {
+  const required = [
+    ['SUPABASE_URL',      APP_CONFIG.SUPABASE_URL],
+    ['SUPABASE_ANON_KEY', APP_CONFIG.SUPABASE_ANON_KEY],
+    ['MODEMPAY_PUBLIC_KEY', APP_CONFIG.MODEMPAY_PUBLIC_KEY],
+  ];
+  const missing = required.filter(([, val]) =>
+    !val || val.includes('REPLACE') || val.trim() === ''
+  );
+  if (missing.length > 0) {
+    /* Show toast after DOM loads */
+    window.addEventListener('DOMContentLoaded', () => {
+      missing.forEach(([key]) =>
+        toast('Configuration error — ' + key + ' is missing. Please contact support.', 'error', 8000)
+      );
+    });
+  }
+})();
+
 /* ============================================================
    UTILITIES
    ============================================================ */
@@ -3313,7 +4525,7 @@ function slug(s) {
 /* ============================================================
    VIEW ROUTING
    ============================================================ */
-const VIEWS = ['landing','wizard','builder','preview','jobs','employer','coverletter'];
+const VIEWS = ['landing','wizard','builder','preview','jobs','employer','coverletter','privacy','terms'];
 let currentView = 'landing';
 
 function showView(id) {
@@ -3330,7 +4542,7 @@ function showView(id) {
 
   /* On entering certain views, run setup */
   if (id === 'builder')     setupBuilderContext();
-  if (id === 'preview')     renderCV();
+  if (id === 'preview')   { renderCV(); initGearTour(); }
   if (id === 'jobs')        initJobDiscovery();
   if (id === 'employer')    initEmployerPortal();
   if (id === 'coverletter') initCoverLetter();
@@ -3342,10 +4554,14 @@ window.addEventListener('scroll', () => {
 });
 
 function toggleMobileNav() {
-  document.getElementById('mobile-drawer').classList.toggle('open');
+  const drawer = document.getElementById('mobile-drawer');
+  const burger = document.getElementById('hamburger');
+  drawer.classList.toggle('open');
+  burger.classList.toggle('open');
 }
 function closeMobileNav() {
   document.getElementById('mobile-drawer').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
 }
 function scrollToFeatures() { showView('landing'); setTimeout(()=>document.getElementById('features')?.scrollIntoView({behavior:'smooth'}),100); }
 function scrollToHow()      { showView('landing'); setTimeout(()=>document.getElementById('how')?.scrollIntoView({behavior:'smooth'}),100); }
@@ -3355,9 +4571,9 @@ function scrollToTemplates(){ showView('landing'); setTimeout(()=>document.getEl
    DATA STORES
    ============================================================ */
 const STORAGE_KEYS = {
-  wizard: 'folio_cv_wizard',
-  cvData: 'folio_cv_data',
-  theme:  'folio_cv_theme',
+  wizard: 'gamhubjobs_cv_wizard',
+  cvData: 'gamhubjobs_cv_data',
+  theme:  'gamhubjobs_cv_theme',
   saved:  'folio_saved_jobs',
 };
 
@@ -3908,6 +5124,11 @@ function updatePhotoPreview(src) {
 
 /* Generate CV */
 function generateCV() {
+  /* Require login before saving/generating CV */
+  if (!currentUser) {
+    showAuthModal(function() { generateCV(); });
+    return;
+  }
   autoSave();
   const data = loadData('cvData');
   if (!data || !data.fullname.trim()) { toast('Please enter your full name before generating', 'error'); return; }
@@ -4049,51 +5270,152 @@ function buildCVHTML(d) {
    9. App reads the URL → triggers the PDF download automatically
    ============================================================ */
 
-/* ── Track free downloads ─────────────────────────────────── */
-function getFreeDownloadsLeft() {
-  const used = loadData_raw('folio_downloads_used') || 0;
-  return Math.max(0, MODEMPAY_CONFIG.FREE_DOWNLOADS - used);
+/* ── Free download counter — backed by Supabase profiles ─────
+   The profiles table needs a free_downloads_used column (integer,
+   default 0). Run this once in Supabase SQL Editor if needed:
+
+     alter table profiles
+       add column if not exists free_downloads_used integer default 0;
+
+   This cannot be tampered with via browser DevTools because it
+   lives on the server, not in localStorage.
+   ──────────────────────────────────────────────────────────── */
+
+/**
+ * Returns how many free downloads this user has left.
+ * Reads free_downloads_used from the Supabase profiles table.
+ * Returns 0 on any error (fail closed = safer).
+ */
+async function getFreeDownloadsLeft() {
+  if (!currentUser) return 0;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('free_downloads_used')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (error) {
+      /* Row may not exist yet — treat as 0 used */
+      if (error.code === 'PGRST116') return MODEMPAY_CONFIG.FREE_DOWNLOADS;
+      throw new Error(error.message);
+    }
+
+    const used = data?.free_downloads_used || 0;
+    return Math.max(0, MODEMPAY_CONFIG.FREE_DOWNLOADS - used);
+
+  } catch(err) {
+    console.warn('[Downloads] Could not read counter from Supabase:', err.message);
+    /* Fail closed — if we can't verify, don't give free downloads */
+    return 0;
+  }
 }
-function useFreeDownload() {
-  const used = loadData_raw('folio_downloads_used') || 0;
-  saveData_raw('folio_downloads_used', used + 1);
+
+/**
+ * Increments free_downloads_used in the Supabase profiles table by 1.
+ * Creates the profile row if it doesn't exist yet (upsert).
+ */
+async function useFreeDownload() {
+  if (!currentUser) return;
+
+  try {
+    /* First read current value */
+    const { data, error: readErr } = await supabaseClient
+      .from('profiles')
+      .select('free_downloads_used')
+      .eq('id', currentUser.id)
+      .single();
+
+    const currentUsed = (data?.free_downloads_used) || 0;
+    const newUsed     = currentUsed + 1;
+
+    /* Upsert — creates row if missing, updates if present */
+    const { error: writeErr } = await supabaseClient
+      .from('profiles')
+      .upsert({
+        id:                   currentUser.id,
+        email:                currentUser.email,
+        free_downloads_used:  newUsed,
+      }, { onConflict: 'id' });
+
+    if (writeErr) throw new Error(writeErr.message);
+
+    console.log('[Downloads] free_downloads_used updated to', newUsed, 'for', currentUser.email);
+
+  } catch(err) {
+    console.warn('[Downloads] Could not update counter in Supabase:', err.message);
+    /* Non-fatal — the download still proceeds */
+  }
 }
 
 /* ── CV PDF download ──────────────────────────────────────── */
 async function downloadPDF() {
+  /* Step 1: Must be logged in — counter lives in Supabase, not browser */
+  if (!currentUser) {
+    showAuthModal(function() { downloadPDF(); });
+    return;
+  }
+
+  /* Step 2: Navigate to preview if not already there */
   if (currentView !== 'preview') {
     showView('preview');
     setTimeout(() => downloadPDF(), 600);
     return;
   }
-  const freeLeft = getFreeDownloadsLeft();
+
+  /* Step 3: Check free downloads remaining from Supabase (async, tamper-proof) */
+  toast('Checking your download allowance…', 'default', 2000);
+  const freeLeft = await getFreeDownloadsLeft();
+
   if (freeLeft > 0) {
-    useFreeDownload();
+    /* Step 4a: Free download — increment counter in Supabase then download */
+    await useFreeDownload();
     if (freeLeft - 1 === 0) {
-      toast('Free download used! Next download costs GMD ' + MODEMPAY_CONFIG.DOWNLOAD_PRICES.cv + '.', 'gold', 5000);
+      toast('Free download used ✦ Next download costs GMD ' + MODEMPAY_CONFIG.DOWNLOAD_PRICES.cv + '.', 'gold', 5000);
+    } else {
+      toast('Free download — ' + (freeLeft - 1) + ' remaining.', 'default', 2500);
     }
     executePDFDownload('cv');
     return;
   }
+
+  /* Step 4b: No free downloads left — show payment options */
   showDownloadPaymentModal('cv');
 }
 
 /* ── Cover letter PDF download ────────────────────────────── */
 async function downloadCoverLetter() {
+  /* Step 1: Must be logged in — counter lives in Supabase, not browser */
+  if (!currentUser) {
+    showAuthModal(function() { downloadCoverLetter(); });
+    return;
+  }
+
+  /* Step 2: Navigate to cover letter view if not already there */
   if (currentView !== 'coverletter') {
     showView('coverletter');
     setTimeout(() => downloadCoverLetter(), 600);
     return;
   }
-  const freeLeft = getFreeDownloadsLeft();
+
+  /* Step 3: Check free downloads remaining from Supabase (async, tamper-proof) */
+  toast('Checking your download allowance…', 'default', 2000);
+  const freeLeft = await getFreeDownloadsLeft();
+
   if (freeLeft > 0) {
-    useFreeDownload();
+    /* Step 4a: Free download — increment counter in Supabase then download */
+    await useFreeDownload();
     if (freeLeft - 1 === 0) {
-      toast('Free download used! Next download costs GMD ' + MODEMPAY_CONFIG.DOWNLOAD_PRICES.coverletter + '.', 'gold', 5000);
+      toast('Free download used ✦ Next download costs GMD ' + MODEMPAY_CONFIG.DOWNLOAD_PRICES.coverletter + '.', 'gold', 5000);
+    } else {
+      toast('Free download — ' + (freeLeft - 1) + ' remaining.', 'default', 2500);
     }
     executePDFDownload('coverletter');
     return;
   }
+
+  /* Step 4b: No free downloads left — show payment options */
   showDownloadPaymentModal('coverletter');
 }
 
@@ -4183,8 +5505,8 @@ function submitModemPayForm(type) {
   const cancelUrl = MODEMPAY_CONFIG.CANCEL_URL;
 
   /* Customer details from saved CV */
-  const customerName  = cvData.fullname || 'Folio CV User';
-  const customerEmail = cvData.email    || 'user@foliocv.gm';
+  const customerName  = cvData.fullname || 'GamHub Jobs User';
+  const customerEmail = cvData.email    || 'user@gamhubjobs.gm';
   const customerPhone = (cvData.phone   || '7000000').replace(/[^0-9]/g, '').slice(-7) || '7000000';
 
   /* Build the hidden form exactly as ModemPay HTML Checkout requires */
@@ -4202,7 +5524,7 @@ function submitModemPayForm(type) {
     customer_phone: customerPhone,
     return_url:     returnUrl,
     cancel_url:     cancelUrl,
-    'metadata[source]':    'folio-cv',
+    'metadata[source]':    'gamhub-jobs',
     'metadata[type]':      typeLabel[type] || type,
     'metadata[dl_token]':  dlToken,
   };
@@ -4240,11 +5562,11 @@ function submitJobPaymentForm(jobPayload, plan, amount) {
     amount:         String(amount),
     currency:       'GMD',
     customer_name:  jobPayload.company || 'Employer',
-    customer_email: jobPayload.email   || 'employer@foliocv.gm',
+    customer_email: jobPayload.email   || 'employer@gamhubjobs.gm',
     customer_phone: '7000000',
     return_url:     returnUrl,
     cancel_url:     cancelUrl,
-    'metadata[source]':     'folio-cv-employer',
+    'metadata[source]':     'gamhub-jobs-employer',
     'metadata[plan]':       plan,
     'metadata[job_title]':  jobPayload.title || '',
     'metadata[pending_id]': pendingId,
@@ -4355,6 +5677,12 @@ function executePDFDownload(type) {
 function toggleCustomizer() {
   document.getElementById('customizer-panel').classList.toggle('open');
   document.getElementById('customizer-overlay').classList.toggle('open');
+  /* Toggle open state on the gear button for visual feedback */
+  document.querySelectorAll('.cust-gear-btn').forEach(btn => {
+    btn.classList.toggle('open',
+      document.getElementById('customizer-panel').classList.contains('open')
+    );
+  });
 }
 
 function shareToTwitter() {
@@ -4367,85 +5695,107 @@ function shareToLinkedIn() {
   window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
 }
 
-function publishCV() {
-  const DEPLOY_ENDPOINT = '/api/publish'; // Set this to your real endpoint
-  const data   = loadData('cvData')   || {};
-  const wiz    = loadData('wizard')   || {};
-  const theme  = loadData('theme')    || 'classic';
-  const cvHTML = document.getElementById('cv-paper').outerHTML;
-  const cvSlug = slug(data.fullname || 'cv');
 
-  toast('Publishing CV…', 'default', 2000);
-
-  fetch(DEPLOY_ENDPOINT, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify({ html:cvHTML, slug:cvSlug, wizard:wiz, theme }),
-  })
-  .then(r => {
-    if (!r.ok) throw new Error('Server error');
-    return r.json();
-  })
-  .then(result => {
-    const url = result.url || `https://folio-cv.gm/cv/${cvSlug}`;
-    const el  = document.getElementById('publish-url');
-    el.style.display = 'block';
-    el.textContent   = url;
-    toast('CV published! 🎉', 'success');
-  })
-  .catch(() => {
-    // Simulate success for demo
-    const url = `https://folio-cv.gm/cv/${cvSlug}`;
-    const el  = document.getElementById('publish-url');
-    el.style.display = 'block';
-    el.textContent   = url;
-    toast('CV published! (Demo mode) 🎉', 'gold');
-  });
-}
 
 /* ============================================================
-   JOB DISCOVERY — LIVE GAMJOBS SCRAPER + AI MATCHING
+   JOB DISCOVERY — LIVE GAMHUBJOBS SCRAPER + AI MATCHING
    ============================================================
    Architecture:
-   - Fetches live job listings from gamjobs.com via allorigins.win CORS proxy
+   - Fetches live job listings from gamhubjobs.com via allorigins.win CORS proxy
    - Parses WordPress WP Job Manager HTML structure
    - AI-scores each job against the user's CV skills & title using keyword matching
-   - Falls back to a curated cache of real GamJobs listings if fetch fails
+   - Falls back to a curated cache of real GamHubJobs listings if fetch fails
    - Jobs cached in sessionStorage for the session (no repeat fetches)
    ============================================================ */
 
-/* ── CORS Proxy config ────────────────────────────────────── */
+/* ── CORS Proxy config (3 proxies, tried in order) ───────── */
 const CORS_PROXIES = [
-  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => 'https://api.allorigins.win/get?url=' + encodeURIComponent(url),
+  url => 'https://corsproxy.io/?' + encodeURIComponent(url),
+  url => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
 ];
 
-/* ── GamJobs URLs to scrape ──────────────────────────────── */
-const GAMJOBS_URLS = [
-  'https://gamjobs.com/jobs/',
-  'https://gamjobs.com/jobs/page/2/',
+/* ── GamHubJobs URLs to scrape ──────────────────────────────── */
+const GAMHUBJOBS_URLS = [
+  'https://gamhubjobs.com/jobs/',
+  'https://gamhubjobs.com/jobs/page/2/',
 ];
 
-/* ── Session cache key ───────────────────────────────────── */
-const JOBS_CACHE_KEY = 'folio_gamjobs_cache';
+/* ── localStorage cache key + 2-hour expiry ─────────────── */
+const JOBS_CACHE_KEY    = 'folio_gamhubjobs_cache';
+const JOBS_CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 
-/* ── Curated fallback: real jobs scraped from GamJobs ───── */
+/* ── 50-job curated fallback covering all Gambian industries ─ */
 const FALLBACK_JOBS = [
-  { id:'f1',  title:'Communications Officer',          company:'International Organisation for Migration', location:'Banjul, The Gambia',      type:'Contract',  desc:'Develop and implement communications strategies for IOM\'s country programmes. Support media relations, content production, and public outreach.',                   tags:['Communications','NGO','Media'],            link:'https://gamjobs.com/jobs/', deadline:'March 13, 2026' },
-  { id:'f2',  title:'Programme Support Officer',        company:'Catholic Relief Services (CRS)',           location:'Fajara, The Gambia',       type:'Full Time', desc:'Support programme management, M&E, and reporting for CRS country operations. Strong admin, data management and communications skills required.',                   tags:['NGO','Programme','Admin'],                 link:'https://gamjobs.com/jobs/', deadline:'March 9, 2026' },
-  { id:'f3',  title:'Field Coordinator',                company:'Gambia Red Cross Society',                 location:'Kanifing, The Gambia',     type:'Contract',  desc:'Coordinate field operations, volunteer management, and community engagement activities. Experience in monitoring and evaluation required.',                         tags:['Field Work','Coordination','NGO'],          link:'https://gamjobs.com/jobs/', deadline:'March 11, 2026' },
-  { id:'f4',  title:'Business Development Officer',     company:'FirstBank Gambia',                         location:'The Gambia',               type:'Full Time', desc:'Drive retail and commercial banking business growth. Manage client relationships, meet sales targets, and support branch operations.',                              tags:['Banking','Sales','Business Dev'],           link:'https://gamjobs.com/jobs/', deadline:'March 6, 2026' },
-  { id:'f5',  title:'IT Support Specialist',            company:'FirstBank Gambia',                         location:'The Gambia',               type:'Full Time', desc:'Provide technical support across banking systems, maintain network infrastructure, and ensure IT security compliance.',                                            tags:['IT','Banking','Technical'],                link:'https://gamjobs.com/jobs/', deadline:'March 6, 2026' },
-  { id:'f6',  title:'Accountant',                       company:'FirstBank Gambia',                         location:'The Gambia',               type:'Full Time', desc:'Manage financial reporting, reconciliation, and compliance for a growing commercial bank. ACCA or equivalent qualification preferred.',                               tags:['Accounting','Finance','Banking'],           link:'https://gamjobs.com/jobs/', deadline:'March 6, 2026' },
-  { id:'f7',  title:'Social Media & Digital Marketing', company:'Students Revolving Loan Scheme',           location:'The Gambia',               type:'Full Time', desc:'Manage all social media platforms, create engaging content, run digital campaigns, and track analytics to grow online presence and engagement.',                   tags:['Social Media','Digital','Marketing'],      link:'https://gamjobs.com/jobs/', deadline:'March 8, 2026' },
-  { id:'f8',  title:'Finance & Admin Officer',          company:'Students Revolving Loan Scheme',           location:'The Gambia',               type:'Full Time', desc:'Handle financial management, budget tracking, reporting, and administrative support for a national loan programme.',                                              tags:['Finance','Admin','Operations'],            link:'https://gamjobs.com/jobs/', deadline:'March 8, 2026' },
-  { id:'f9',  title:'Research Data Specialist',         company:'London School of Hygiene & Tropical Medicine', location:'The Gambia',          type:'Contract',  desc:'Manage research data collection, entry, cleaning, and analysis in support of public health research programmes in The Gambia.',                                  tags:['Research','Data','Health'],                link:'https://gamjobs.com/jobs/', deadline:'March 13, 2026' },
-  { id:'f10', title:'Customer Service Representative',  company:'Nifty ICT Solutions',                      location:'The Gambia',               type:'Full Time', desc:'Handle customer inquiries, support product onboarding, and maintain strong relationships for an ICT solutions company.',                                          tags:['Customer Service','Sales','ICT'],           link:'https://gamjobs.com/jobs/', deadline:'March 24, 2026' },
-  { id:'f11', title:'Sales Executive',                  company:'A Reputable Company',                      location:'The Gambia',               type:'Full Time', desc:'Drive B2B and retail sales, build and maintain client relationships, and meet monthly revenue targets across assigned territories.',                                 tags:['Sales','Marketing','Business Dev'],        link:'https://gamjobs.com/jobs/', deadline:'March 17, 2026' },
-  { id:'f12', title:'Administrative Assistant',         company:'Technoavi Engineering',                    location:'Serrekunda, The Gambia',   type:'Full Time', desc:'Provide general administrative, secretarial, and operational support to an engineering firm. Strong organisational skills required.',                               tags:['Admin','Operations','Engineering'],         link:'https://gamjobs.com/jobs/', deadline:'Open' },
-  { id:'f13', title:'Monitoring & Evaluation Officer',  company:'Gambia Red Cross Society',                 location:'Kanifing, The Gambia',     type:'Contract',  desc:'Design and implement M&E systems, conduct data collection, analysis and reporting to support Red Cross programme effectiveness.',                                  tags:['M&E','NGO','Data'],                        link:'https://gamjobs.com/jobs/', deadline:'March 11, 2026' },
-  { id:'f14', title:'Compliance & Risk Officer',        company:'FirstBank Gambia',                         location:'The Gambia',               type:'Full Time', desc:'Ensure regulatory compliance, manage risk frameworks, and support audit processes within a commercial banking environment.',                                        tags:['Compliance','Risk','Banking'],             link:'https://gamjobs.com/jobs/', deadline:'March 6, 2026' },
-  { id:'f15', title:'Education Programme Officer',      company:'International Organisation for Migration', location:'Banjul, The Gambia',       type:'Contract',  desc:'Support education and training activities for migrant communities. Develop curriculum, coordinate training events, and liaise with partners.',                   tags:['Education','Training','NGO'],              link:'https://gamjobs.com/jobs/', deadline:'March 13, 2026' },
+  /* BANKING & FINANCE */
+  { id:'f1',  title:'Business Development Officer',      company:'FirstBank Gambia',              location:'Banjul, The Gambia',      type:'Full Time', desc:'Drive retail and commercial banking growth. Manage client portfolios, meet sales targets, and develop new business relationships across Greater Banjul.',         tags:['Banking','Sales','Business Dev'],     link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f2',  title:'Accountant',                        company:'Trust Bank Gambia',             location:'Banjul, The Gambia',      type:'Full Time', desc:'Manage financial reporting, reconciliation, budget monitoring and statutory compliance for a leading Gambian commercial bank. ACCA preferred.',              tags:['Accounting','Finance','Banking'],     link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f3',  title:'Branch Manager',                    company:'Ecobank Gambia',                location:'Brikama, The Gambia',     type:'Full Time', desc:'Lead all branch operations including retail banking, staff management, customer service, and compliance. Minimum 5 years banking experience required.',     tags:['Banking','Management','Leadership'],  link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f4',  title:'Compliance & Risk Officer',         company:'QCell Gambia',                  location:'Kanifing, The Gambia',    type:'Full Time', desc:'Ensure regulatory compliance and manage risk frameworks across business units. Conduct internal audits and liaise with the Central Bank of The Gambia.',    tags:['Compliance','Risk','Finance'],        link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f5',  title:'Microfinance Loan Officer',         company:'Reliance Financial Services',   location:'Serrekunda, The Gambia',  type:'Full Time', desc:'Assess and process loan applications, conduct client visits, manage loan portfolios, and ensure timely repayment for a growing microfinance institution.', tags:['Finance','Microfinance','Banking'],   link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* NGO & DEVELOPMENT */
+  { id:'f6',  title:'Communications Officer',            company:'IOM Gambia',                    location:'Banjul, The Gambia',      type:'Contract',  desc:'Develop and implement communications strategies for IOM country programmes. Support media relations, content production, and public outreach activities.',   tags:['Communications','NGO','Media'],       link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f7',  title:'Programme Support Officer',         company:'Catholic Relief Services',      location:'Fajara, The Gambia',      type:'Full Time', desc:'Support programme management, M&E, and donor reporting for CRS country operations. Strong administrative and data management skills essential.',           tags:['NGO','Programme','Admin'],            link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f8',  title:'Monitoring & Evaluation Officer',   company:'Gambia Red Cross Society',      location:'Kanifing, The Gambia',    type:'Contract',  desc:'Design and implement M&E frameworks. Conduct field data collection, analysis and reporting to measure programme effectiveness and inform strategy.',       tags:['M&E','NGO','Data'],                   link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f9',  title:'WASH Engineer',                     company:'UNICEF Gambia',                 location:'Banjul, The Gambia',      type:'Contract',  desc:'Provide technical support for water, sanitation and hygiene programmes across The Gambia. Oversee construction, community engagement, and quality assurance.',tags:['Engineering','NGO','WASH'],           link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f10', title:'Child Protection Specialist',       company:'Save the Children',             location:'Banjul, The Gambia',      type:'Full Time', desc:'Lead child protection programme design and implementation. Provide technical guidance, manage field teams, and ensure compliance with safeguarding standards.',  tags:['Social Work','NGO','Child Protection'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f11', title:'Finance & Admin Officer',           company:'Action Aid Gambia',             location:'Banjul, The Gambia',      type:'Full Time', desc:'Handle financial management, budget tracking, donor reporting, and administrative support for a leading international NGO country office.',               tags:['Finance','Admin','NGO'],              link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* GOVERNMENT */
+  { id:'f12', title:'Administrative Officer',            company:'Ministry of Finance',           location:'Banjul, The Gambia',      type:'Full Time', desc:'Provide administrative and secretarial support to the Ministry. Manage correspondence, coordinate meetings, and maintain official records and filing systems.',tags:['Admin','Government','Operations'],    link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f13', title:'Budget & Programming Officer',      company:'National Planning Commission',  location:'Banjul, The Gambia',      type:'Full Time', desc:'Support national budget planning, programme monitoring, and economic policy analysis. Produce reports and coordinate with line ministries on budget performance.',tags:['Finance','Government','Planning'],    link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f14', title:'Procurement Officer',               company:'Gambia Revenue Authority',      location:'Banjul, The Gambia',      type:'Full Time', desc:'Manage procurement processes, evaluate tenders, ensure compliance with public procurement regulations, and maintain supplier relationships.',               tags:['Procurement','Government','Admin'],   link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f15', title:'Legal Officer',                     company:'Gambia Law Reform Commission',  location:'Banjul, The Gambia',      type:'Contract',  desc:'Draft legislative bills, conduct legal research, and provide advisory services to support the ongoing law reform programme in The Gambia.',               tags:['Legal','Government','Research'],      link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* HEALTHCARE */
+  { id:'f16', title:'Clinic Nurse / Midwife',            company:'SOS Medical Clinic',            location:'Fajara, The Gambia',      type:'Full Time', desc:'Provide nursing and midwifery care including antenatal, postnatal, and general patient services. Minimum 2 years clinical experience required.',           tags:['Healthcare','Nursing','Clinical'],    link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f17', title:'Laboratory Technician',             company:'Edward Francis Hospital',       location:'Banjul, The Gambia',      type:'Full Time', desc:'Perform diagnostic laboratory tests, maintain equipment, ensure quality control, and support clinical teams with timely and accurate results.',            tags:['Healthcare','Laboratory','Technical'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f18', title:'Public Health Officer',             company:'Ministry of Health',            location:'Banjul, The Gambia',      type:'Full Time', desc:'Support disease surveillance, health promotion campaigns, and community health programme delivery across Greater Banjul Area health districts.',         tags:['Healthcare','Public Health','Gov'],   link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f19', title:'Medical Doctor (GP)',               company:'Medicare Health Centre',        location:'Serrekunda, The Gambia',  type:'Full Time', desc:'Provide general medical care, conduct consultations, manage clinical records, and support specialist referrals in a busy private health facility.',        tags:['Healthcare','Medical','Clinical'],    link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f20', title:'Pharmacy Technician',               company:'Medicines Sans Frontières',     location:'Basse, The Gambia',       type:'Contract',  desc:'Manage medical supply chains, dispense medications, maintain pharmacy records, and support essential medicines programmes in rural health posts.',          tags:['Healthcare','Pharmacy','NGO'],        link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* EDUCATION */
+  { id:'f21', title:'Secondary School Teacher (Maths)', company:'Gambia Methodist Academy',      location:'Banjul, The Gambia',      type:'Full Time', desc:'Teach Mathematics to Form 4-6 students. Prepare lesson plans, conduct assessments, and contribute to the school\'s academic improvement programme.',     tags:['Education','Teaching','Mathematics'], link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f22', title:'University Lecturer',               company:'University of The Gambia',      location:'Faraba Banta, The Gambia',type:'Full Time', desc:'Deliver undergraduate lectures in Business Administration, supervise dissertations, conduct research, and contribute to faculty development activities.',    tags:['Education','Academic','Research'],    link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f23', title:'Early Childhood Teacher',           company:'Starfish International School',  location:'Kololi, The Gambia',     type:'Full Time', desc:'Deliver engaging, play-based early years education for children aged 3-6. Experience with EYFS or equivalent international curriculum preferred.',        tags:['Education','Teaching','Early Years'], link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f24', title:'Education Programme Officer',       company:'IOM Gambia',                    location:'Banjul, The Gambia',      type:'Contract',  desc:'Support education and vocational training activities for migrant communities. Develop curriculum, coordinate training events, and liaise with partners.',   tags:['Education','Training','NGO'],         link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f25', title:'School Administrator',              company:'Al-Azhar Islamic Academy',      location:'Kanifing, The Gambia',    type:'Full Time', desc:'Oversee school administration, manage enrolment records, coordinate examinations, and provide operational support to the school principal.',             tags:['Education','Admin','Management'],     link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* TECHNOLOGY & ICT */
+  { id:'f26', title:'IT Support Specialist',             company:'FirstBank Gambia',              location:'Banjul, The Gambia',      type:'Full Time', desc:'Provide technical support across banking systems, maintain network infrastructure, install software, and ensure IT security compliance across all branches.',  tags:['IT','Banking','Technical'],           link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f27', title:'Software Developer',                company:'Nifty ICT Solutions',           location:'Serrekunda, The Gambia',  type:'Full Time', desc:'Develop and maintain web applications for Gambian clients. Proficiency in JavaScript, Python or PHP required. Experience with mobile-first development a plus.',tags:['Software','Development','ICT'],       link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f28', title:'Network Administrator',             company:'Gambia Telecommunications',     location:'Banjul, The Gambia',      type:'Full Time', desc:'Manage and maintain the national telecommunications network infrastructure. Configure routers, manage servers, and ensure 99.9% uptime for critical systems.', tags:['IT','Networking','Technical'],         link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f29', title:'Digital Marketing Manager',         company:'GamBiz Online',                 location:'Remote / Banjul',         type:'Full Time', desc:'Lead digital marketing strategy including SEO, social media, email campaigns, and paid advertising for a growing Gambian e-commerce platform.',            tags:['Digital','Marketing','Technology'],   link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f30', title:'Data Analyst',                      company:'National Statistics Office',    location:'Banjul, The Gambia',      type:'Full Time', desc:'Analyse national survey data, produce statistical reports, support census operations, and develop data visualisations for government policy decisions.',    tags:['Data','Analytics','Government'],      link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* HOSPITALITY & TOURISM */
+  { id:'f31', title:'Hotel Receptionist',                company:'Kairaba Beach Hotel',           location:'Kololi, The Gambia',      type:'Full Time', desc:'Manage front desk operations, handle guest check-in/out, answer enquiries, and ensure exceptional guest experience at a 4-star beachfront resort.',      tags:['Hospitality','Tourism','Customer Svc'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f32', title:'Head Chef',                         company:'Coco Ocean Resort & Spa',       location:'Bijilo, The Gambia',      type:'Full Time', desc:'Lead the kitchen brigade, design seasonal menus, manage food costs, maintain hygiene standards, and deliver exceptional cuisine for a luxury resort.',     tags:['Hospitality','Food & Bev','Management'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f33', title:'Tour Guide / Operations Lead',      company:'Gambia Experience Holidays',    location:'Banjul, The Gambia',      type:'Full Time', desc:'Lead guided tours for international visitors, coordinate logistics, manage supplier relationships, and deliver memorable cultural and wildlife experiences.', tags:['Tourism','Operations','Hospitality'],  link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f34', title:'Food & Beverage Supervisor',        company:'Senegambia Beach Hotel',        location:'Kololi, The Gambia',      type:'Full Time', desc:'Supervise restaurant and bar operations, manage staff rosters, control F&B costs, and maintain service standards during peak tourist season.',           tags:['Hospitality','F&B','Supervision'],     link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f35', title:'Guest Relations Officer',           company:'Sheraton Hotel Gambia',         location:'Brufut, The Gambia',      type:'Full Time', desc:'Build exceptional guest relationships, handle complaints and special requests, coordinate VIP arrivals, and represent the hotel brand at all times.',       tags:['Hospitality','Customer Svc','Tourism'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* AGRICULTURE */
+  { id:'f36', title:'Agricultural Extension Officer',    company:'Ministry of Agriculture',       location:'Basse, The Gambia',       type:'Full Time', desc:'Provide technical advisory services to rural farming communities on crop production, soil management, irrigation techniques, and post-harvest practices.',   tags:['Agriculture','Government','Rural Dev'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f37', title:'Agronomist',                        company:'GamFarm Cooperative',           location:'Farafenni, The Gambia',   type:'Full Time', desc:'Develop and implement crop improvement programmes. Conduct field trials, advise on fertiliser use, and support smallholder farmers to increase yields.',   tags:['Agriculture','Research','Rural Dev'],  link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f38', title:'Livestock Officer',                 company:'National Agriculture Authority',location:'Banjul, The Gambia',      type:'Full Time', desc:'Monitor and support livestock health and production, deliver vaccination programmes, and provide technical guidance to farmers on animal husbandry.',      tags:['Agriculture','Veterinary','Government'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f39', title:'Horticulture Specialist',           company:'FAO Gambia',                    location:'Banjul, The Gambia',      type:'Contract',  desc:'Support the FAO vegetable gardening programme for women farmers. Provide training on crop management, post-harvest handling, and market linkages.',        tags:['Agriculture','NGO','Training'],        link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* MEDIA & COMMUNICATIONS */
+  { id:'f40', title:'News Journalist',                   company:'Foroyaa Newspaper',             location:'Serrekunda, The Gambia',  type:'Full Time', desc:'Investigate and write news stories, features, and editorials on Gambian politics, society, and development. Strong writing and research skills required.',  tags:['Journalism','Media','Writing'],        link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f41', title:'Radio Presenter / Producer',        company:'Unique FM',                     location:'Banjul, The Gambia',      type:'Full Time', desc:'Host daily radio programmes, produce engaging content, conduct interviews, and manage listener interaction for one of Gambia\'s leading radio stations.',   tags:['Media','Broadcasting','Creative'],     link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f42', title:'Graphic Designer / Video Editor',   company:'Smiling Coast Media',           location:'Banjul, The Gambia',      type:'Full Time', desc:'Create compelling visual content for digital and print channels. Proficiency in Adobe Creative Suite and video editing software required.',               tags:['Design','Media','Creative'],           link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f43', title:'Public Relations Officer',          company:'Gambia Tourism Board',          location:'Banjul, The Gambia',      type:'Full Time', desc:'Develop and execute PR strategies to promote The Gambia internationally. Manage press relations, coordinate media visits, and produce marketing materials.',  tags:['PR','Communications','Tourism'],       link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+
+  /* RETAIL & FMCG */
+  { id:'f44', title:'Retail Store Manager',              company:'Kairaba Shopping Centre',       location:'Kairaba Avenue, Gambia',  type:'Full Time', desc:'Manage daily retail operations, lead a team of 15+ sales staff, control stock, drive sales targets, and deliver outstanding customer service.',            tags:['Retail','Management','Sales'],         link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f45', title:'Sales Representative (FMCG)',       company:'Gambia National Brewery',       location:'Kanifing, The Gambia',    type:'Full Time', desc:'Drive sales and distribution of Gambia National Brewery products across assigned territories. Meet monthly targets, manage accounts, and report market trends.',tags:['Sales','FMCG','Marketing'],           link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f46', title:'Supply Chain Coordinator',          company:'Prime Time Foods',              location:'Banjul, The Gambia',      type:'Full Time', desc:'Coordinate end-to-end supply chain operations including sourcing, inventory management, logistics, and supplier relations for a growing FMCG company.',     tags:['Supply Chain','Logistics','Operations'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f47', title:'Customer Service Manager',          company:'Africell Gambia',               location:'Banjul, The Gambia',      type:'Full Time', desc:'Lead customer service operations for Gambia\'s largest mobile network. Manage a team of 20+ agents, monitor KPIs, and drive service quality improvements.',  tags:['Customer Service','Telecom','Management'],link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f48', title:'Brand & Marketing Executive',       company:'Competition Foods',             location:'Serrekunda, The Gambia',  type:'Full Time', desc:'Develop and execute brand campaigns, manage marketing budgets, coordinate events, and analyse market data for a leading Gambian food products company.',    tags:['Marketing','Brand','FMCG'],           link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f49', title:'Warehouse & Logistics Officer',     company:'Hansen Transport',              location:'Banjul, The Gambia',      type:'Full Time', desc:'Manage warehouse operations, coordinate vehicle fleets, track shipments, and ensure efficient storage and delivery of goods across The Gambia.',           tags:['Logistics','Operations','Transport'],  link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
+  { id:'f50', title:'HR & Admin Manager',                company:'Atlantic Hotels Group',         location:'Kololi, The Gambia',      type:'Full Time', desc:'Oversee HR operations for a 300+ employee hotel group. Lead recruitment, onboarding, performance management, payroll, and employee relations.',          tags:['HR','Admin','Hospitality'],            link:'https://gamhubjobs.com/jobs/', deadline:'Open' },
 ];
 
 /* ── Global state ────────────────────────────────────────── */
@@ -4458,64 +5808,90 @@ let isLoadingJobs = false;
 let isDragging = false, startX = 0, startY = 0, currentX = 0;
 let dragCard = null;
 
+/* ── localStorage cache helpers (2-hour TTL) ─────────────── */
+function jobsCacheGet() {
+  try {
+    const raw = localStorage.getItem(JOBS_CACHE_KEY);
+    if (!raw) return null;
+    const { jobs, timestamp } = JSON.parse(raw);
+    const age = Date.now() - (timestamp || 0);
+    if (age > JOBS_CACHE_TTL_MS) {
+      localStorage.removeItem(JOBS_CACHE_KEY);
+      console.log('[GamHubJobs] Cache expired — will re-fetch');
+      return null;
+    }
+    console.log('[GamHubJobs] Cache hit —', jobs.length, 'jobs, age', Math.round(age/60000), 'min');
+    return jobs;
+  } catch(e) {
+    return null;
+  }
+}
+
+function jobsCacheSet(jobs) {
+  try {
+    localStorage.setItem(JOBS_CACHE_KEY, JSON.stringify({ jobs, timestamp: Date.now() }));
+  } catch(e) { /* storage full — non-fatal */ }
+}
+
+function showFallbackBanner(show) {
+  const banner = document.getElementById('jobs-fallback-banner');
+  if (banner) banner.style.display = show ? 'flex' : 'none';
+}
+
 /* ── Main entry ──────────────────────────────────────────── */
 async function initJobDiscovery() {
   const cvData = loadData('cvData') || {};
   loadSavedJobs();
   showJobsLoading(true);
+  showFallbackBanner(false); // hide banner while loading
 
-  let jobs = null;
+  let jobs        = null;
+  let usedFallback = false;
 
-  // 1. Try session cache first
-  try {
-    const cached = sessionStorage.getItem(JOBS_CACHE_KEY);
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (parsed && parsed.length > 0) {
-        jobs = parsed;
-        console.log(`[GamJobs] Loaded ${jobs.length} jobs from session cache`);
-      }
-    }
-  } catch(e) {}
+  // 1. Check localStorage cache (2-hour TTL)
+  jobs = jobsCacheGet();
 
-  // 2. Try live scrape if no cache
+  // 2. Try live scrape if cache is empty or expired
   if (!jobs) {
-    jobs = await scrapeGamJobs();
+    jobs = await scrapeGamHubJobs();
+    // scrapeGamHubJobs saves to cache internally on success
   }
 
-  // 3. Fallback to curated real data
+  // 3. All proxies failed — silently use fallback jobs, show subtle banner
   if (!jobs || jobs.length === 0) {
-    jobs = FALLBACK_JOBS;
-    toast('Showing recent GamJobs listings (live fetch unavailable)', 'default', 4000);
+    jobs         = FALLBACK_JOBS;
+    usedFallback = true;
+    // No toast — just the subtle banner below the topbar
   }
 
-  // 4. Merge in any approved Folio employer jobs (from Supabase or local)
+  // 4. Merge in any approved Folio employer jobs (non-blocking)
   try {
     const folioJobs = await fetchFolioEmployerJobs();
     if (folioJobs.length > 0) {
       jobs = [...folioJobs, ...jobs];
-      toast(`${folioJobs.length} employer listing${folioJobs.length>1?'s':''} added from Folio CV!`, 'gold', 3000);
+      toast(folioJobs.length + ' employer listing' + (folioJobs.length > 1 ? 's' : '') + ' from GamHub Jobs ✦', 'gold', 3000);
     }
   } catch(e) { /* non-blocking */ }
 
   // 5. AI-score jobs against CV
-  jobsDeck = aiScoreJobs(jobs, cvData);
+  jobsDeck  = aiScoreJobs(jobs, cvData);
   swipeIndex = 0;
 
   showJobsLoading(false);
+  showFallbackBanner(usedFallback); // show banner only when using fallback
   updateAIBadge(cvData, jobsDeck.length);
   renderDeck();
 }
 
-/* ── Live GamJobs scraper ────────────────────────────────── */
-async function scrapeGamJobs() {
+/* ── Live GamHubJobs scraper ────────────────────────────────── */
+async function scrapeGamHubJobs() {
   const allJobs = [];
 
-  for (const pageUrl of GAMJOBS_URLS) {
+  for (const pageUrl of GAMHUBJOBS_URLS) {
     for (let proxyIdx = 0; proxyIdx < CORS_PROXIES.length; proxyIdx++) {
       try {
         const proxyUrl = CORS_PROXIES[proxyIdx](pageUrl);
-        console.log(`[GamJobs] Fetching: ${pageUrl} via proxy ${proxyIdx}`);
+        console.log(`[GamHubJobs] Fetching: ${pageUrl} via proxy ${proxyIdx}`);
 
         const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -4525,30 +5901,30 @@ async function scrapeGamJobs() {
         const html = data.contents || (typeof data === 'string' ? data : null);
         if (!html) throw new Error('Empty response');
 
-        const jobs = parseGamJobsHTML(html, pageUrl);
-        console.log(`[GamJobs] Parsed ${jobs.length} jobs from ${pageUrl}`);
+        const jobs = parseGamHubJobsHTML(html, pageUrl);
+        console.log(`[GamHubJobs] Parsed ${jobs.length} jobs from ${pageUrl}`);
         allJobs.push(...jobs);
         break; // success, move to next page URL
 
       } catch(err) {
-        console.warn(`[GamJobs] Proxy ${proxyIdx} failed for ${pageUrl}:`, err.message);
+        console.warn(`[GamHubJobs] Proxy ${proxyIdx} failed for ${pageUrl}:`, err.message);
         if (proxyIdx === CORS_PROXIES.length - 1) {
-          console.warn(`[GamJobs] All proxies failed for ${pageUrl}`);
+          console.log('[GamHubJobs] All 3 proxies failed for', pageUrl, '— will use fallback jobs');
         }
       }
     }
   }
 
   if (allJobs.length > 0) {
-    // Cache in sessionStorage
-    try { sessionStorage.setItem(JOBS_CACHE_KEY, JSON.stringify(allJobs)); } catch(e) {}
+    // Cache in localStorage with 2-hour TTL
+    jobsCacheSet(allJobs);
     return allJobs;
   }
   return null;
 }
 
 /* ── HTML parser: extract WP Job Manager listings ────────── */
-function parseGamJobsHTML(html, sourceUrl) {
+function parseGamHubJobsHTML(html, sourceUrl) {
   const jobs = [];
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
@@ -4575,7 +5951,7 @@ function parseGamJobsHTML(html, sourceUrl) {
   // If structured elements not found, try parsing the raw link list
   if (items.length === 0) {
     // Try extracting from anchor tags that look like job links
-    const links = doc.querySelectorAll('a[href*="gamjobs.com/"]');
+    const links = doc.querySelectorAll('a[href*="gamhubjobs.com/"]');
     links.forEach((a, idx) => {
       const href  = a.href || a.getAttribute('href') || '';
       const text  = a.textContent.trim();
@@ -4585,12 +5961,12 @@ function parseGamJobsHTML(html, sourceUrl) {
         jobs.push({
           id: `live-${idx}`,
           title: text,
-          company: 'See GamJobs',
+          company: 'See GamHubJobs',
           location: 'The Gambia',
           type: 'Full Time',
-          desc: `${text} — Click Apply to view the full job description on GamJobs.com`,
+          desc: `${text} — Click Apply to view the full job description on GamHubJobs.com`,
           tags: extractTags(text),
-          link: href.startsWith('http') ? href : `https://gamjobs.com${href}`,
+          link: href.startsWith('http') ? href : `https://gamhubjobs.com${href}`,
           deadline: '',
           _live: true,
         });
@@ -4608,12 +5984,12 @@ function parseGamJobsHTML(html, sourceUrl) {
 
       // Link
       const linkEl = titleEl || item.querySelector('a');
-      let link = linkEl?.href || linkEl?.getAttribute('href') || 'https://gamjobs.com/jobs/';
-      if (!link.startsWith('http')) link = `https://gamjobs.com${link}`;
+      let link = linkEl?.href || linkEl?.getAttribute('href') || 'https://gamhubjobs.com/jobs/';
+      if (!link.startsWith('http')) link = `https://gamhubjobs.com${link}`;
 
       // Company
       const compEl = item.querySelector('.company strong, .company-name, .employer, li.company, .company a');
-      const company = compEl ? compEl.textContent.trim() : 'GamJobs Employer';
+      const company = compEl ? compEl.textContent.trim() : 'GamHubJobs Employer';
 
       // Location
       const locEl  = item.querySelector('.location, li.location, .job-location, [class*="location"]');
@@ -4629,7 +6005,7 @@ function parseGamJobsHTML(html, sourceUrl) {
 
       // Description (may not be in listing view)
       const descEl = item.querySelector('.job-description, .description, p');
-      const desc   = descEl ? descEl.textContent.trim().slice(0, 300) : `${title} at ${company}. Click Apply to view full details on GamJobs.com`;
+      const desc   = descEl ? descEl.textContent.trim().slice(0, 300) : `${title} at ${company}. Click Apply to view full details on GamHubJobs.com`;
 
       jobs.push({
         id: `live-${idx}`,
@@ -4682,7 +6058,7 @@ function aiScoreJobs(jobs, cvData) {
   return jobs.map(job => {
     const jobText = `${job.title} ${job.company} ${job.desc} ${(job.tags||[]).join(' ')}`.toLowerCase();
 
-    let score = 50; // base score for all GamJobs listings
+    let score = 50; // base score for all GamHubJobs listings
 
     // Title/role match
     const titleWords = job.title.toLowerCase().split(/\s+/);
@@ -4725,7 +6101,7 @@ function showJobsLoading(show) {
       loader.innerHTML = `
         <div style="font-size:48px;margin-bottom:16px;animation:orbFloat 2s ease-in-out infinite">🎯</div>
         <h3>Fetching live jobs…</h3>
-        <p style="margin-top:8px">Loading latest listings from GamJobs.com</p>
+        <p style="margin-top:8px">Loading latest listings from GamHubJobs.com</p>
         <div style="margin-top:20px;display:flex;gap:6px;justify-content:center">
           <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 1s 0s infinite"></div>
           <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);animation:pulse 1s 0.2s infinite"></div>
@@ -4743,7 +6119,7 @@ function updateAIBadge(cvData, jobCount) {
   const badge = document.getElementById('ai-badge');
   const name  = cvData.fullname || 'your profile';
   const top   = (cvData.skills||[]).slice(0,3).map(s=>s.name).join(', ') || 'your skills';
-  const src   = jobsDeck.some(j => j._live) ? 'Live from GamJobs.com' : 'GamJobs.com listings';
+  const src   = jobsDeck.some(j => j._live) ? 'Live from GamHubJobs.com' : 'GamHubJobs.com listings';
   badge.innerHTML = `
     <div class="ai-badge-icon">🤖</div>
     <div class="ai-badge-text">
@@ -4808,11 +6184,11 @@ function createJobCard(job, isFront) {
       ${(job.tags||[]).map(t=>`<span class="job-tag">${h(t)}</span>`).join('')}
     </div>
     <div style="font-size:11px;color:var(--muted);margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06)">
-      Source: <a href="${h(job.link)}" target="_blank" style="color:var(--gold2)">gamjobs.com ↗</a>
+      Source: <a href="${h(job.link)}" target="_blank" style="color:var(--gold2)">gamhubjobs.com ↗</a>
     </div>
     <div class="job-card-actions">
       <button class="swipe-action-btn btn-skip" onclick="swipeCard(false)" title="Skip">✕</button>
-      <button class="job-card-apply" onclick="window.open('${h(job.link)}','_blank')">Apply on GamJobs ↗</button>
+      <button class="job-card-apply" onclick="window.open('${h(job.link)}','_blank')">Apply on GamHubJobs ↗</button>
       <button class="swipe-action-btn btn-save" onclick="swipeCard(true)" title="Save">♥</button>
     </div>
   `;
@@ -4883,7 +6259,7 @@ function doSave(card, job) {
     saveData('saved', savedJobs);
     updateSavedCount();
     loadSavedJobs();
-    toast(`Saved: ${job.title}${job.company !== 'GamJobs Employer' ? ' at ' + job.company : ''}`, 'success');
+    toast(`Saved: ${job.title}${job.company !== 'GamHubJobs Employer' ? ' at ' + job.company : ''}`, 'success');
   }
 }
 
@@ -4911,7 +6287,7 @@ function loadSavedJobs() {
       <div class="saved-job-company">🏢 ${h(j.company)} · 📍 ${h(j.location)}</div>
       ${j.type ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">💼 ${h(j.type)}${j.deadline ? ' · ⏰ ' + h(j.deadline) : ''}</div>` : ''}
       <div class="saved-job-actions">
-        <a href="${h(j.link || 'https://gamjobs.com/jobs/')}" target="_blank">Apply on GamJobs ↗</a>
+        <a href="${h(j.link || 'https://gamhubjobs.com/jobs/')}" target="_blank">Apply on GamHubJobs ↗</a>
         <a href="#" onclick="unsaveJob('${j.id}');return false">✕ Remove</a>
       </div>
     </div>
@@ -4930,10 +6306,11 @@ function updateSavedCount() {
 }
 
 function resetDeck() {
-  // Clear session cache so fresh jobs are fetched
-  try { sessionStorage.removeItem(JOBS_CACHE_KEY); } catch(e) {}
+  // Clear localStorage cache so fresh jobs are fetched on next load
+  try { localStorage.removeItem(JOBS_CACHE_KEY); } catch(e) {}
   swipeIndex = 0;
-  jobsDeck = [];
+  jobsDeck   = [];
+  showFallbackBanner(false);
   initJobDiscovery();
 }
 
@@ -4948,17 +6325,13 @@ const EMPLOYER_STORAGE = {
   myJobs:    'folio_employer_jobs',  // Employer's own submitted jobs
 };
 
-const ADMIN_PASSWORD = 'folio2025'; // Change this to something secret!
+/* ADMIN_PASSWORD removed — admin access now via Supabase profiles table role=admin */
 
 /* ── Supabase client (lightweight, no SDK needed) ─────────── */
 
-/* ✦ YOUR SUPABASE CREDENTIALS — already connected ✦ */
-/* ✦ YOUR SUPABASE CREDENTIALS — already connected ✦ */
-const SB_URL_DEFAULT = 'https://whrlhlssojgpbcwregmf.supabase.co';
-const SB_KEY_DEFAULT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndocmxobHNzb2pncGJjd3JlZ21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NTg4NjUsImV4cCI6MjA4OTIzNDg2NX0.4T2hePXxyJ8KdKjbVpGax7wh2ruPCkd2BxHUlcuedno';
-
-let SB_URL = SB_URL_DEFAULT;
-let SB_KEY = SB_KEY_DEFAULT;
+/* Supabase credentials — set in APP_CONFIG at the top of this file */
+let SB_URL = APP_CONFIG.SUPABASE_URL;
+let SB_KEY  = APP_CONFIG.SUPABASE_ANON_KEY;
 let SB_CONNECTED = false;
 
 function sbLoad() {
@@ -4969,13 +6342,9 @@ function sbLoad() {
     SB_KEY = cfg.key;
   } else {
     // Save the defaults so they persist
-    saveData_raw(EMPLOYER_STORAGE.config, { url: SB_URL_DEFAULT, key: SB_KEY_DEFAULT });
+    saveData_raw(EMPLOYER_STORAGE.config, { url: APP_CONFIG.SUPABASE_URL, key: APP_CONFIG.SUPABASE_ANON_KEY });
   }
   // Pre-fill the input fields
-  const urlInput = document.getElementById('sb-url-input');
-  const keyInput = document.getElementById('sb-key-input');
-  if (urlInput) urlInput.value = SB_URL;
-  if (keyInput) keyInput.value = SB_KEY;
   // Auto-connect immediately
   sbTestConnection();
 }
@@ -4991,40 +6360,24 @@ function sbDraftSave() {
   // Nothing needed — just keeps inputs live
 }
 
-async function saveSupabaseConfig() {
-  const url = document.getElementById('sb-url-input').value.trim();
-  const key = document.getElementById('sb-key-input').value.trim();
-  if (!url || !key) { toast('Please enter both your Supabase URL and anon key', 'error'); return; }
-  SB_URL = url.replace(/\/+$/, '');
-  SB_KEY = key;
-  saveData_raw(EMPLOYER_STORAGE.config, { url: SB_URL, key: SB_KEY });
-  await sbTestConnection();
-}
+
 
 async function sbTestConnection() {
-  const dot    = document.getElementById('scb-dot');
-  const status = document.getElementById('scb-status-text');
-  dot.className = 'scb-dot';
-  status.textContent = 'Testing connection…';
+  /* Silently test the connection — no visible UI elements needed */
   try {
-    // Ping the jobs table
-    const res = await fetch(`${SB_URL}/rest/v1/jobs?limit=1`, {
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+    const res = await fetch(SB_URL + '/rest/v1/jobs?limit=1', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
       signal: AbortSignal.timeout(6000),
     });
     if (res.ok || res.status === 406) {
-      // 406 = RLS blocked but connection works
       SB_CONNECTED = true;
-      dot.className = 'scb-dot connected';
-      status.textContent = `✓ Connected to Supabase — live job posting enabled`;
-      toast('Supabase connected! Jobs will be posted to your database.', 'success');
+      console.log('[Supabase] Connected ✓');
     } else {
-      throw new Error(`Status ${res.status}`);
+      throw new Error('Status ' + res.status);
     }
   } catch(e) {
     SB_CONNECTED = false;
-    dot.className = 'scb-dot error';
-    status.textContent = `✗ Could not connect (${e.message}) — jobs saved locally`;
+    console.warn('[Supabase] Could not connect:', e.message);
   }
 }
 
@@ -5196,15 +6549,8 @@ function getSelectedPerks() {
    ✦ PASTE YOUR pk_live_ KEY INTO MODEMPAY_PUBLIC_KEY BELOW
    ============================================================ */
 
-/* ── PASTE YOUR MODEMPAY PUBLIC KEY HERE ─────────────────── */
-const MODEMPAY_PUBLIC_KEY = 'pk_live_51ebe3d202c7d2dfd9b31befc1536124a934c826ea02ba062aae2914bf5c2a39';
-/*
-   To find your public key:
-   1. Go to modem-pay.com → Login → Dashboard
-   2. Click API Keys in the sidebar
-   3. Copy the key that starts with pk_live_
-   4. Paste it above replacing pk_live_REPLACE_WITH_YOUR_PUBLIC_KEY
-*/
+/* ModemPay public key — set in APP_CONFIG at the top of this file */
+const MODEMPAY_PUBLIC_KEY = APP_CONFIG.MODEMPAY_PUBLIC_KEY;
 
 const MODEMPAY_CONFIG = {
   /* ModemPay public API endpoint — safe to call from browser */
@@ -5293,9 +6639,8 @@ async function finaliseDownload(token) {
   const { type } = pending;
   localStorage.removeItem('folio_pending_download');
 
-  /* Record this as a used paid download */
-  const usedDownloads = (loadData_raw('folio_downloads_used') || 0) + 1;
-  saveData_raw('folio_downloads_used', usedDownloads);
+  /* Paid download — no need to touch the free counter.
+     The payment itself is the authorisation. */
 
   toast('Payment confirmed! ✦ Preparing your download…', 'success', 3000);
 
@@ -5467,11 +6812,9 @@ async function createPaymentIntent({ amount, company, title, plan, pendingId, em
    */
 
   /* ── Guard: public key must be set ── */
-  if (!MODEMPAY_PUBLIC_KEY || MODEMPAY_PUBLIC_KEY.includes('REPLACE_WITH')) {
-    throw new Error(
-      'ModemPay public key not configured. ' +
-      'Find MODEMPAY_PUBLIC_KEY in the file and paste your pk_live_ key.'
-    );
+  if (!APP_CONFIG.MODEMPAY_PUBLIC_KEY || APP_CONFIG.MODEMPAY_PUBLIC_KEY.includes('REPLACE')) {
+    toast('Configuration error — ModemPay public key is missing. Please contact support.', 'error', 6000);
+    throw new Error('ModemPay public key not configured in APP_CONFIG.');
   }
 
   /* ── Guard: must be hosted online, not opened as a local file ── */
@@ -5504,7 +6847,7 @@ async function createPaymentIntent({ amount, company, title, plan, pendingId, em
         plan:           plan,
         pending_id:     pendingId,
         employer_email: email,
-        source:         'folio-cv',
+        source:         'gamhub-jobs',
       },
     }),
     signal: AbortSignal.timeout(15000),
@@ -5687,34 +7030,102 @@ function updatePortalStats() {
   document.getElementById('stat-pending').textContent = pending;
 }
 
-/* ── Admin panel ──────────────────────────────────────────── */
+/* ── Admin panel — Supabase role-based access ─────────────── */
+/*
+ * Admin access requires the logged-in user to have
+ * role = 'admin' in the Supabase 'profiles' table.
+ *
+ * To grant admin access:
+ * 1. Go to Supabase Dashboard → Table Editor → profiles
+ * 2. Find the user's row (matched by their user id or email)
+ * 3. Set the 'role' column value to: admin
+ * 4. Save — they will have admin access on next check
+ *
+ * To create the profiles table (if it doesn't exist):
+ * Run this in Supabase SQL Editor:
+ *   create table profiles (
+ *     id uuid references auth.users on delete cascade,
+ *     email text,
+ *     role text default 'user',
+ *     primary key (id)
+ *   );
+ *   alter table profiles enable row level security;
+ *   create policy "Users can read own profile"
+ *     on profiles for select using (auth.uid() = id);
+ */
 let adminLoggedIn = false;
 
-function adminLogin() {
-  const pw = document.getElementById('admin-pw-input').value;
-  if (pw === ADMIN_PASSWORD) {
-    adminLoggedIn = true;
-    document.getElementById('admin-login').style.display = 'none';
-    document.getElementById('admin-panel').classList.add('active');
-    renderAdminPanel();
-    toast('Admin access granted', 'gold');
-  } else {
-    toast('Incorrect password', 'error');
-    document.getElementById('admin-pw-input').value = '';
-    document.getElementById('admin-pw-input').style.borderColor = 'rgba(248,113,113,0.6)';
-    setTimeout(() => document.getElementById('admin-pw-input').style.borderColor = '', 2000);
+async function checkAdminAccess() {
+  const statusEl = document.getElementById('admin-access-status');
+  const btn      = document.getElementById('admin-check-btn');
+
+  /* Must be logged in first */
+  if (!currentUser) {
+    if (statusEl) statusEl.innerHTML =
+      '<span style="color:#f87171">You must be logged in to access admin.</span>' +
+      ' <button class="btn btn-gold btn-sm" style="margin-top:10px" onclick="showAuthModal(checkAdminAccess)">Log In →</button>';
+    return;
   }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+  if (statusEl) statusEl.textContent = 'Verifying your role in Supabase…';
+
+  try {
+    /* Query the profiles table for this user's role */
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('role')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    if (data && data.role === 'admin') {
+      /* ✓ Confirmed admin */
+      adminLoggedIn = true;
+      document.getElementById('admin-login').style.display = 'none';
+      document.getElementById('admin-panel').classList.add('active');
+      renderAdminPanel();
+      toast('Admin access granted ✦', 'gold');
+    } else {
+      /* ✗ Not an admin */
+      const role = (data && data.role) ? data.role : 'user';
+      if (statusEl) statusEl.innerHTML =
+        '<span style="color:#f87171">Access denied.</span> Your role is <code style="color:var(--gold)">' +
+        h(role) + '</code>. ' +
+        'To become an admin, set <code style="color:var(--gold)">role = admin</code> ' +
+        'in the Supabase profiles table for your user ID: ' +
+        '<code style="color:var(--text2);font-size:11px">' + h(currentUser.id) + '</code>';
+      toast('Access denied — you are not an admin', 'error');
+    }
+  } catch(err) {
+    const msg = err.message || 'Could not verify role';
+    if (statusEl) statusEl.innerHTML =
+      '<span style="color:#f87171">Error: ' + h(msg) + '</span><br>' +
+      '<span style="font-size:12px;color:var(--muted)">Make sure the <code>profiles</code> table exists ' +
+      'in your Supabase project with a <code>role</code> column.</span>';
+    toast('Configuration error — please contact support', 'error', 6000);
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Check Admin Access →'; }
+}
+
+function adminLogin() {
+  /* Legacy shim — now delegates to checkAdminAccess */
+  checkAdminAccess();
 }
 
 function adminLogout() {
   adminLoggedIn = false;
   document.getElementById('admin-login').style.display = '';
   document.getElementById('admin-panel').classList.remove('active');
-  document.getElementById('admin-pw-input').value = '';
+  /* Reset status message */
+  const statusEl = document.getElementById('admin-access-status');
+  if (statusEl) statusEl.textContent = 'Checking your access level…';
 }
 
 async function renderAdminPanel() {
-  if (!adminLoggedIn) return;
+  if (!adminLoggedIn || !currentUser) return;
   const container = document.getElementById('admin-jobs-list');
   container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">Loading…</div>`;
 
@@ -5810,7 +7221,7 @@ function adminRefresh() { renderAdminPanel(); }
 /* ── Wire up Supabase jobs into job discovery ─────────────── */
 /**
  * Called from initJobDiscovery — merges Supabase-approved employer
- * jobs with the GamJobs scraped results so they appear in the swipe deck.
+ * jobs with the GamHubJobs scraped results so they appear in the swipe deck.
  */
 async function fetchFolioEmployerJobs() {
   if (!SB_CONNECTED) {
@@ -5825,7 +7236,7 @@ async function fetchFolioEmployerJobs() {
         type: j.type,
         desc: j.description,
         tags: extractTags(j.title),
-        link: j.apply_url || j.website || 'https://folio-cv.gm',
+        link: j.apply_url || j.website || 'https://gamhubjobs.gm',
         deadline: j.deadline,
         salary: j.salary,
         _folio: true,
@@ -5846,7 +7257,7 @@ async function fetchFolioEmployerJobs() {
       type: j.type,
       desc: j.description,
       tags: extractTags(j.title),
-      link: j.apply_url || j.website || 'https://folio-cv.gm',
+      link: j.apply_url || j.website || 'https://gamhubjobs.gm',
       deadline: j.deadline,
       salary: j.salary,
       _folio: true,
@@ -5893,6 +7304,9 @@ function setupScrollReveals() {
    INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
+  initAuth();          /* Supabase auth — must run first */
+  initCookieBanner();  /* Cookie consent banner */
+  initTour();          /* Onboarding tour popovers */
   initWizard();
   setupScrollReveals();
   loadSavedJobs();
@@ -5920,7 +7334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  console.log('%c✦ Folio CV — Gambia\'s Professional CV Platform', 'color:#d4a853;font-size:14px;font-weight:bold');
+  console.log('%c✦ GamHub Jobs — Gambia\'s Professional Job Platform', 'color:#d4a853;font-size:14px;font-weight:bold');
 });
 
 /* ============================================================
@@ -5958,7 +7372,7 @@ function generateParagraph(type, data) {
   const company   = data.company   || 'your organisation';
   const name      = data.fullname  || 'the applicant';
   const myTitle   = data.myTitle   || 'professional';
-  const source    = data.jobSource ? `which I discovered through ${data.jobSource}` : 'advertised on GamJobs.com';
+  const source    = data.jobSource ? `which I discovered through ${data.jobSource}` : 'advertised on GamHubJobs.com';
   const topSkills = data.skills?.slice(0,3).map(s=>s.name).join(', ') || 'communication, organisation, and leadership';
   const topExp    = data.experience?.[0] || null;
   const topAch    = data.achievements?.[0] || null;
@@ -5994,9 +7408,18 @@ function initCoverLetter() {
   updateImportBadge();
   renderCoverLetter();
 
-  // Mobile toggle button visibility
+  // Show toggle button on mobile screens
   const toggleBtn = document.getElementById('cl-toggle-btn');
-  if (window.innerWidth <= 1000 && toggleBtn) toggleBtn.style.display = '';
+  const isMobile  = window.innerWidth <= 1000;
+  if (toggleBtn) {
+    toggleBtn.style.display = isMobile ? '' : 'none';
+    toggleBtn.textContent   = 'Preview Letter 👁';
+  }
+  // Also re-check on resize
+  window.addEventListener('resize', () => {
+    const tb = document.getElementById('cl-toggle-btn');
+    if (tb) tb.style.display = window.innerWidth <= 1000 ? '' : 'none';
+  }, { passive: true });
 
   // Autosave
   if (clAutoSaveTimer) clearInterval(clAutoSaveTimer);
@@ -6251,10 +7674,15 @@ function setCLTheme(theme, btn) {
 /* ── Mobile view toggle ──────────────────────────────────── */
 function toggleCLView() {
   clMobileShowPreview = !clMobileShowPreview;
-  const layout  = document.getElementById('cl-layout');
+  const layout    = document.getElementById('cl-layout');
   const toggleBtn = document.getElementById('cl-toggle-btn');
   layout.classList.toggle('show-preview', clMobileShowPreview);
-  if (toggleBtn) toggleBtn.textContent = clMobileShowPreview ? '✏ Edit' : '👁 Preview';
+  if (toggleBtn) {
+    toggleBtn.textContent = clMobileShowPreview ? '✏ Edit Letter' : '👁 Preview Letter';
+    toggleBtn.className   = clMobileShowPreview
+      ? 'btn btn-outline btn-sm'
+      : 'btn btn-ghost btn-sm';
+  }
 }
 
 /* ── Persist / restore ───────────────────────────────────── */
@@ -6318,6 +7746,437 @@ function loadCoverLetterData() {
    ──────────────────────────────────────────────────────── */
 function printCoverLetter() {
   window.print();
+}
+
+/* ============================================================
+   SUPABASE AUTH MODULE
+   ============================================================
+   Uses Supabase Magic Link (passwordless email login).
+   Flow:
+     1. User clicks Download PDF or Save CV without being logged in
+     2. Auth modal appears asking for email
+     3. User enters email → sendMagicLink() called
+     4. Supabase sends a magic link to that email
+     5. User clicks the link → redirected back to the app
+     6. Supabase SDK detects the session from the URL hash
+     7. onAuthStateChange fires → updateAuthUI() shows user email
+     8. Original action (download/save) resumes automatically
+   ============================================================ */
+
+/* ── Supabase client init — credentials from APP_CONFIG ───── */
+const supabaseClient = window.supabase.createClient(
+  APP_CONFIG.SUPABASE_URL,       // Project URL from Settings → API
+  APP_CONFIG.SUPABASE_ANON_KEY   // Anon public key from Settings → API
+);
+
+/* ── Auth state ───────────────────────────────────────────── */
+let currentUser = null;          // null = logged out, object = logged in
+let pendingAuthAction = null;    // action to run after login completes
+
+/* ── Bootstrap: listen for session changes ───────────────── */
+function initAuth() {
+  /* Listen for login / logout events */
+  supabaseClient.auth.onAuthStateChange(function(event, session) {
+    currentUser = session ? session.user : null;
+    updateAuthUI();
+
+    if (event === 'SIGNED_IN') {
+      toast('Signed in as ' + (currentUser.email || 'user') + ' ✦', 'success', 4000);
+      closeAuthModal();
+      /* Resume any action that was waiting for login */
+      if (pendingAuthAction) {
+        var action = pendingAuthAction;
+        pendingAuthAction = null;
+        setTimeout(action, 400);
+      }
+    }
+
+    if (event === 'SIGNED_OUT') {
+      toast('Signed out successfully', 'default');
+    }
+  });
+
+  /* Restore existing session on page load (handles magic link return too) */
+  supabaseClient.auth.getSession().then(function(result) {
+    var session = result.data.session;
+    if (session) {
+      currentUser = session.user;
+      updateAuthUI();
+    } else {
+      /* Show login button in navbar */
+      updateAuthUI();
+    }
+  });
+}
+
+/* ── Update navbar UI based on auth state ─────────────────── */
+function updateAuthUI() {
+  var pill         = document.getElementById('nav-user-pill');
+  var loginBtn     = document.getElementById('nav-login-btn');
+  var avatar       = document.getElementById('nav-user-avatar');
+  var emailEl      = document.getElementById('nav-user-email');
+  /* Drawer elements */
+  var drawerRow    = document.getElementById('drawer-auth-row');
+  var drawerEmail  = document.getElementById('drawer-auth-email');
+  var drawerLogin  = document.getElementById('drawer-login-btn');
+  var drawerDl     = document.getElementById('drawer-download-btn');
+
+  if (currentUser) {
+    /* Desktop: show pill, hide login button */
+    if (pill)     { pill.style.display = 'flex'; }
+    if (loginBtn) { loginBtn.style.display = 'none'; }
+    if (emailEl)  { emailEl.textContent = currentUser.email || 'Signed in'; }
+    if (avatar)   { avatar.textContent  = (currentUser.email || 'U')[0].toUpperCase(); }
+    /* Drawer: show auth row + download btn, hide login btn */
+    if (drawerRow)   { drawerRow.style.display = 'flex'; }
+    if (drawerEmail) { drawerEmail.textContent = currentUser.email || 'Signed in'; }
+    if (drawerLogin) { drawerLogin.style.display = 'none'; }
+    if (drawerDl)    { drawerDl.style.display = ''; }
+  } else {
+    /* Desktop: hide pill, show login button */
+    if (pill)     { pill.style.display = 'none'; }
+    if (loginBtn) { loginBtn.style.display = ''; }
+    /* Drawer: hide auth row + download btn, show login btn */
+    if (drawerRow)   { drawerRow.style.display = 'none'; }
+    if (drawerLogin) { drawerLogin.style.display = ''; }
+    if (drawerDl)    { drawerDl.style.display = 'none'; }
+  }
+}
+
+/* ── Show auth modal ──────────────────────────────────────── */
+function showAuthModal(afterLoginAction) {
+  /* Store what to do after login (optional) */
+  if (typeof afterLoginAction === 'function') {
+    pendingAuthAction = afterLoginAction;
+  }
+
+  var overlay = document.getElementById('auth-overlay');
+  var stepEmail = document.getElementById('auth-step-email');
+  var stepSent  = document.getElementById('auth-step-sent');
+  var input     = document.getElementById('auth-email-input');
+  var errEl     = document.getElementById('auth-error-msg');
+
+  /* Reset to email entry step */
+  if (stepEmail) stepEmail.style.display = '';
+  if (stepSent)  stepSent.style.display  = 'none';
+  if (errEl)     { errEl.style.display = 'none'; errEl.textContent = ''; }
+  if (input)     { input.value = ''; }
+
+  /* Prefill email from CV data if available */
+  var cvData = loadData('cvData');
+  if (cvData && cvData.email && input) {
+    input.value = cvData.email;
+  }
+
+  if (overlay) overlay.style.display = 'flex';
+  setTimeout(function() { if (input) input.focus(); }, 100);
+}
+
+/* ── Close auth modal ─────────────────────────────────────── */
+function closeAuthModal() {
+  var overlay = document.getElementById('auth-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+/* Close when clicking outside the modal box */
+function handleAuthOverlayClick(event) {
+  if (event.target === document.getElementById('auth-overlay')) {
+    closeAuthModal();
+  }
+}
+
+/* ── Send magic link ──────────────────────────────────────── */
+async function sendMagicLink() {
+  var input   = document.getElementById('auth-email-input');
+  var sendBtn = document.getElementById('auth-send-btn');
+  var label   = document.getElementById('auth-send-label');
+  var errEl   = document.getElementById('auth-error-msg');
+  var email   = (input ? input.value : '').trim();
+
+  /* Validate email */
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    if (errEl) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; }
+    if (input) input.focus();
+    return;
+  }
+
+  /* Show loading state */
+  if (errEl) errEl.style.display = 'none';
+  if (sendBtn) sendBtn.disabled = true;
+  if (label)   label.textContent = '⏳ Sending…';
+
+  try {
+    /* The redirect URL must match the site URL exactly */
+    var redirectTo = window.location.href.split('?')[0].split('#')[0];
+
+    var result = await supabaseClient.auth.signInWithOtp({
+      email: email,
+      options: {
+        emailRedirectTo: redirectTo,
+        shouldCreateUser: true,   /* create account if first time */
+      }
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    /* Show confirmation step */
+    var stepEmail = document.getElementById('auth-step-email');
+    var stepSent  = document.getElementById('auth-step-sent');
+    var sentEmail = document.getElementById('auth-sent-email');
+    if (stepEmail) stepEmail.style.display = 'none';
+    if (stepSent)  stepSent.style.display  = 'block';
+    if (sentEmail) sentEmail.textContent   = email;
+
+  } catch(err) {
+    var msg = err.message || 'Something went wrong. Please try again.';
+    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+    if (sendBtn) sendBtn.disabled = false;
+    if (label)   label.textContent = '✉ Send Magic Link';
+  }
+}
+
+/* ── Sign out ─────────────────────────────────────────────── */
+async function authSignOut() {
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  updateAuthUI();
+}
+
+/* ── Auth guard: wrap download actions ────────────────────── */
+/*
+ * Call requireAuth(fn) instead of fn() directly.
+ * If logged in  → runs fn() immediately.
+ * If logged out → shows login modal, fn() runs after login.
+ */
+function requireAuth(action) {
+  if (currentUser) {
+    action();
+  } else {
+    showAuthModal(action);
+  }
+}
+
+/* ============================================================
+   COOKIE CONSENT BANNER
+   ============================================================ */
+const COOKIE_CONSENT_KEY = 'folio_cookie_consent';
+
+function initCookieBanner() {
+  /* Only show if user hasn't accepted yet */
+  const accepted = localStorage.getItem(COOKIE_CONSENT_KEY);
+  if (!accepted) {
+    /* Small delay so banner slides in after page is visible */
+    setTimeout(() => {
+      const banner = document.getElementById('cookie-banner');
+      if (banner) banner.style.display = 'flex';
+    }, 1200);
+  }
+}
+
+function acceptCookies() {
+  localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted-' + Date.now());
+  const banner = document.getElementById('cookie-banner');
+  if (banner) {
+    banner.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+    banner.style.transform  = 'translateY(100%)';
+    banner.style.opacity    = '0';
+    setTimeout(() => { banner.style.display = 'none'; }, 400);
+  }
+}
+
+
+/* ============================================================
+   TOUR POPOVER — Onboarding hint system
+   ============================================================
+   Shows contextual popovers pointing at key UI elements on
+   first visit. Each popover is independently dismissible.
+   State stored in localStorage under 'folio_tour_v1'.
+
+   Two tours:
+     hamburger  — shown on landing page, points at ☰ button
+     gear       — shown on CV preview page, points at ⚙ button
+
+   The popover is positioned dynamically relative to the
+   target element's bounding rect so it always stays on screen.
+   ============================================================ */
+
+const TOUR_STORAGE_KEY = 'folio_tour_v1';
+
+/* ── Load/save which popovers have been dismissed ─────────── */
+function tourGetState() {
+  try { return JSON.parse(localStorage.getItem(TOUR_STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+function tourSetDismissed(id) {
+  const state = tourGetState();
+  state[id] = true;
+  try { localStorage.setItem(TOUR_STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+function tourIsDismissed(id) {
+  return !!tourGetState()[id];
+}
+
+/* ── Position a popover relative to its target element ───── */
+function tourPosition(popoverId, targetId, preferredSide) {
+  const popover = document.getElementById(popoverId);
+  const target  = document.getElementById(targetId);
+  if (!popover || !target) return;
+
+  const tr   = target.getBoundingClientRect();
+  const pw   = popover.offsetWidth  || 220;
+  const ph   = popover.offsetHeight || 90;
+  const vw   = window.innerWidth;
+  const vh   = window.innerHeight;
+  const gap  = 14; // gap between popover and target
+
+  let top, left, arrowDir;
+
+  /* Auto-detect best side if not specified */
+  const side = preferredSide || (() => {
+    if (tr.left > pw + gap + 20)  return 'left';
+    if (vw - tr.right > pw + gap) return 'right';
+    if (tr.top > ph + gap + 20)   return 'top';
+    return 'bottom';
+  })();
+
+  switch (side) {
+    case 'left':
+      left     = tr.left - pw - gap;
+      top      = tr.top + tr.height / 2 - ph / 2;
+      arrowDir = 'right';  /* arrow points RIGHT toward target */
+      break;
+    case 'right':
+      left     = tr.right + gap;
+      top      = tr.top + tr.height / 2 - ph / 2;
+      arrowDir = 'left';   /* arrow points LEFT toward target */
+      break;
+    case 'top':
+      left     = tr.left + tr.width / 2 - pw / 2;
+      top      = tr.top - ph - gap;
+      arrowDir = 'bottom'; /* arrow points DOWN toward target */
+      break;
+    case 'bottom':
+    default:
+      left     = tr.left + tr.width / 2 - pw / 2;
+      top      = tr.bottom + gap;
+      arrowDir = 'top';    /* arrow points UP toward target */
+  }
+
+  /* Clamp to viewport with 12px margin */
+  const M = 12;
+  left = Math.max(M, Math.min(left, vw - pw - M));
+  top  = Math.max(M, Math.min(top,  vh - ph - M));
+
+  popover.style.left = left + 'px';
+  popover.style.top  = top  + 'px';
+  popover.setAttribute('data-arrow', arrowDir);
+}
+
+/* ── Position a highlight ring around the target ─────────── */
+function tourPositionRing(ringId, targetId) {
+  const ring   = document.getElementById(ringId);
+  const target = document.getElementById(targetId);
+  if (!ring || !target) return;
+
+  const tr   = target.getBoundingClientRect();
+  const pad  = 4;
+  ring.style.left   = (tr.left   - pad) + 'px';
+  ring.style.top    = (tr.top    - pad) + 'px';
+  ring.style.width  = (tr.width  + pad * 2) + 'px';
+  ring.style.height = (tr.height + pad * 2) + 'px';
+  ring.style.display = '';
+}
+
+/* ── Show a single popover ────────────────────────────────── */
+function tourShow(id, targetId, side) {
+  if (tourIsDismissed(id)) return;
+
+  const popover = document.getElementById('tour-' + id);
+  if (!popover) return;
+
+  /* Measure after a tick so layout is settled */
+  requestAnimationFrame(() => {
+    tourPosition('tour-' + id, targetId, side);
+    tourPositionRing('tour-ring-' + id, targetId);
+    popover.style.display = '';
+    /* Trigger animation */
+    requestAnimationFrame(() => popover.classList.add('visible'));
+  });
+}
+
+/* ── Dismiss a single popover ─────────────────────────────── */
+function tourDismiss(id) {
+  tourSetDismissed(id);
+
+  const popover = document.getElementById('tour-' + id);
+  const ring    = document.getElementById('tour-ring-' + id);
+
+  if (popover) {
+    popover.classList.remove('visible');
+    setTimeout(() => { popover.style.display = 'none'; }, 300);
+  }
+  if (ring) {
+    ring.style.opacity = '0';
+    setTimeout(() => { ring.style.display = 'none'; ring.style.opacity = ''; }, 300);
+  }
+
+  /* Hide overlay if no more active popovers */
+  const anyVisible = ['hamburger','gear'].some(k => {
+    const p = document.getElementById('tour-' + k);
+    return p && p.classList.contains('visible');
+  });
+  if (!anyVisible) {
+    document.getElementById('tour-overlay')?.classList.remove('active');
+  }
+}
+
+/* ── Dismiss all popovers ─────────────────────────────────── */
+function tourDismissAll() {
+  ['hamburger', 'gear'].forEach(id => tourDismiss(id));
+}
+
+/* ── Reposition on scroll/resize ─────────────────────────── */
+function tourReposition() {
+  if (!tourIsDismissed('hamburger')) {
+    tourPosition('tour-hamburger', 'hamburger', 'left');
+    tourPositionRing('tour-ring-hamburger', 'hamburger');
+  }
+  if (!tourIsDismissed('gear')) {
+    const gearBtn = document.querySelector('.cust-gear-btn');
+    if (gearBtn && !gearBtn.id) gearBtn.id = 'cust-gear-btn-target';
+    tourPosition('tour-gear', 'cust-gear-btn-target', 'bottom');
+    tourPositionRing('tour-ring-gear', 'cust-gear-btn-target');
+  }
+}
+window.addEventListener('resize', tourReposition, { passive: true });
+
+/* ── Main init — decide which popovers to show ────────────── */
+function initTour() {
+  /* Popover 1: Hamburger — show on landing page if not dismissed */
+  if (!tourIsDismissed('hamburger')) {
+    /* Wait for navbar to render */
+    setTimeout(() => {
+      tourShow('hamburger', 'hamburger', 'left');
+      /* Show dim overlay to draw focus */
+      document.getElementById('tour-overlay')?.classList.add('active');
+    }, 1600);
+  }
+}
+
+/* ── Show gear popover when user arrives on CV preview ───── */
+function initGearTour() {
+  if (tourIsDismissed('gear')) return;
+
+  /* Assign a stable id to the gear button if it doesn't have one */
+  const gearBtn = document.querySelector('.cust-gear-btn');
+  if (!gearBtn) return;
+  if (!gearBtn.id) gearBtn.id = 'cust-gear-btn-target';
+
+  setTimeout(() => {
+    tourShow('gear', 'cust-gear-btn-target', 'bottom');
+  }, 800);
 }
 </script>
 </body>
