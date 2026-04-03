@@ -11,17 +11,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Poppins:wght@300;400;500;600&family=Roboto+Slab:wght@300;400;600&family=Pacifico&family=Baloo+2:wght@400;600&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 
 <!-- html2pdf -->
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <!-- Supabase JS v2 — for authentication -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <!-- ModemPay SDK — loaded as a global via CDN -->
 <!-- We use a thin fetch wrapper instead since the SDK uses ES modules.
      The createPaymentIntent function below handles everything natively. -->
 
 <!-- EmailJS SDK — for sending job notification emails to admin -->
-<script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <link rel="icon" type="image/png" href="favicon.png">
 
@@ -78,6 +78,12 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Scroll lock when modal is open */
+body.modal-open {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* Grain overlay */
@@ -1540,77 +1546,161 @@ footer {
 #view-job-details { display: none; padding-top: 68px; min-height: 100vh; }
 #view-job-details.active { display: block; }
 
-/* Sticky top bar */
 .jd-page-topbar {
-  position: sticky;
-  top: 68px;
-  z-index: 100;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  position: sticky; top: 68px; z-index: 100;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  padding: 0 24px; height: 52px;
+  display: flex; align-items: center;
 }
 .jd-page-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text2);
-  border-radius: 100px;
-  padding: 7px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: none; border: 1px solid var(--border); color: var(--text2);
+  border-radius: 100px; padding: 7px 16px; font-size: 13px; font-weight: 600;
+  font-family: var(--font-body); cursor: pointer; transition: all 0.2s;
 }
 .jd-page-back:hover { border-color: var(--gold); color: var(--gold); }
 
-/* Page hero */
 .jd-page-hero {
-  padding: 32px 24px 24px;
-  max-width: 760px;
-  margin: 0 auto;
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
+  padding: 32px 24px 24px; max-width: 760px; margin: 0 auto;
+  display: flex; align-items: flex-start; gap: 18px;
 }
 .jd-page-logo .js-logo,
-.jd-page-logo .js-logo-fallback {
-  width: 64px;
-  height: 64px;
-  border-radius: 14px;
-  flex-shrink: 0;
-}
+.jd-page-logo .js-logo-fallback { width: 64px; height: 64px; border-radius: 14px; flex-shrink: 0; }
 .jd-page-hero-info { flex: 1; min-width: 0; }
 .jd-page-title {
+  font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 700; color: var(--text); margin: 0 0 6px; line-height: 1.2;
+}
+.jd-page-company { font-size: 14px; color: var(--text2); font-weight: 500; margin: 0 0 12px; }
+.jd-page-content { max-width: 760px; margin: 0 auto; padding: 0 24px 60px; }
+.jd-page-sections { display: flex; flex-direction: column; }
+.jd-page-actions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border);
+}
+
+/* ── Job Detail Modal ── */
+.jd-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  /* NO backdrop-filter blur — causes mobile rendering issues */
+  z-index: 1200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  /* Prevent iOS rubber-band scroll on the overlay itself */
+  overscroll-behavior: contain;
+}
+.jd-backdrop.jd-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (min-width: 640px) {
+  .jd-backdrop {
+    align-items: center;
+    padding: 20px;
+  }
+}
+
+.jd-modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 700px;
+  /* Mobile: full height minus safe area */
+  height: 100%;
+  max-height: 100dvh;
+  border-radius: 20px 20px 0 0;
+  /* Use flex column — only .jd-modal-body scrolls */
+  display: flex;
+  flex-direction: column;
+  overflow: visible; /* do NOT clip children here */
+  box-shadow: 0 -8px 48px rgba(0,0,0,0.5);
+  transform: translateY(32px);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  /* Keep modal above navbar */
+  position: relative;
+}
+.jd-backdrop.jd-open .jd-modal {
+  transform: translateY(0);
+}
+@media (min-width: 640px) {
+  .jd-modal {
+    height: auto;
+    max-height: 90vh;
+    border-radius: 20px;
+    transform: translateY(16px);
+  }
+  .jd-backdrop.jd-open .jd-modal {
+    transform: translateY(0);
+  }
+}
+
+/* Modal header */
+.jd-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 24px 24px 0;
+  flex-shrink: 0;
+}
+.jd-modal-head-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+.jd-modal-logo-wrap .js-logo,
+.jd-modal-logo-wrap .js-logo-fallback {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.jd-modal-title {
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 6px;
-  line-height: 1.2;
+  margin: 0 0 4px;
+  line-height: 1.25;
 }
-.jd-page-company {
-  font-size: 14px;
+.jd-modal-company {
+  font-size: 13px;
   color: var(--text2);
   font-weight: 500;
-  margin: 0 0 12px;
+  margin: 0;
+}
+.jd-close {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-top: 2px;
+}
+.jd-close:hover {
+  background: rgba(255,255,255,0.12);
+  color: var(--text);
+  border-color: var(--gold);
 }
 
-/* Full-page content wrapper */
-.jd-page-content {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 0 24px 60px;
-}
-
-/* Chips row */
+/* Highlight chips */
 .jd-chips-row {
   display: flex;
   flex-wrap: wrap;
@@ -1647,11 +1737,18 @@ footer {
   color: var(--gold);
 }
 
-/* Full-page sections wrapper */
-.jd-page-sections {
-  display: flex;
-  flex-direction: column;
+/* Scrollable body — ONLY this element scrolls */
+.jd-modal-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0; /* critical for flex children to scroll correctly */
+  padding: 20px 24px 40px;
 }
+.jd-modal-body::-webkit-scrollbar { width: 4px; }
+.jd-modal-body::-webkit-scrollbar-track { background: transparent; }
+.jd-modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
 /* Sections */
 .jd-section {
@@ -1778,17 +1875,7 @@ footer {
   color: var(--gold);
 }
 
-/* Bottom actions bar */
-.jd-page-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-}
-
-/* ── Card action buttons row ── */
+/* Action buttons row */
 .js-card-actions {
   display: flex;
   gap: 8px;
@@ -4151,7 +4238,7 @@ body.cookie-visible .wa-widget { bottom: 100px; }
       <p class="builder-step-desc">Final details to make you reachable and stand out.</p>
       <div class="form-group"><label>Email *</label><input type="email" class="form-control" id="b-email" placeholder="fatou@example.com"></div>
       <div class="form-group"><label>Phone</label><input type="text" class="form-control" id="b-phone" placeholder="+220 XXX XXXX"></div>
-      <div class="form-group"><label>LinkedIn URL</label><input type="text" class="form-control" id="b-linkedin" placeholder="https://linkedin.com/in/yourname"></div>
+      <div class="form-group"><label>LinkedIn URL</label><input type="text" class="form-control" id="b-linkedin" placeholder="linkedin.com/in/yourname"></div>
       <div class="divider"></div>
       <div class="form-group"><label>Languages (comma-separated)</label><input type="text" class="form-control" id="b-languages" placeholder="e.g. English, Wolof, French"></div>
       <div class="form-group"><label>Certifications (one per line)</label><textarea class="form-control" id="b-certs" rows="3" placeholder="e.g. Google Analytics Certified&#10;HubSpot Content Marketing"></textarea></div>
@@ -4341,19 +4428,101 @@ body.cookie-visible .wa-widget { bottom: 100px; }
     </div>
   </div>
 
+  <!-- ── Job Detail Modal ── -->
+  <div
+    class="jd-backdrop"
+    id="jd-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="jd-title"
+    style="display:none"
+  >
+    <div class="jd-modal" id="jd-modal">
+
+      <!-- Modal header -->
+      <div class="jd-modal-head">
+        <div class="jd-modal-head-left">
+          <div class="jd-modal-logo-wrap" id="jd-logo-wrap"></div>
+          <div>
+            <h2 class="jd-modal-title" id="jd-title"></h2>
+            <p class="jd-modal-company" id="jd-company"></p>
+          </div>
+        </div>
+        <button
+          class="jd-close"
+          id="jd-close"
+          aria-label="Close job details"
+        >✕</button>
+      </div>
+
+      <!-- Highlight chips row -->
+      <div class="jd-chips-row" id="jd-chips-row"></div>
+
+      <!-- Scrollable body -->
+      <div class="jd-modal-body" id="jd-modal-body">
+
+        <!-- SECTION 1: Company Details -->
+        <section class="jd-section" id="jd-sec-company">
+          <h3 class="jd-section-title">
+            <span class="jd-section-icon">🏢</span> Company Details
+          </h3>
+          <div class="jd-detail-grid" id="jd-company-grid"></div>
+        </section>
+
+        <!-- SECTION 2: Job Details -->
+        <section class="jd-section" id="jd-sec-details">
+          <h3 class="jd-section-title">
+            <span class="jd-section-icon">📋</span> Job Details
+          </h3>
+          <div class="jd-detail-grid" id="jd-details-grid"></div>
+        </section>
+
+        <!-- SECTION 3: Description -->
+        <section class="jd-section" id="jd-sec-desc">
+          <h3 class="jd-section-title">
+            <span class="jd-section-icon">📝</span> About the Role
+          </h3>
+          <p class="jd-body-text" id="jd-description"></p>
+        </section>
+
+        <!-- SECTION 4: Requirements -->
+        <section class="jd-section" id="jd-sec-req">
+          <h3 class="jd-section-title">
+            <span class="jd-section-icon">✅</span> Requirements
+          </h3>
+          <div class="jd-list-text" id="jd-requirements"></div>
+        </section>
+
+        <!-- SECTION 5: Perks & Benefits -->
+        <section class="jd-section" id="jd-sec-perks">
+          <h3 class="jd-section-title">
+            <span class="jd-section-icon">🎁</span> Perks &amp; Benefits
+          </h3>
+          <div class="jd-list-text" id="jd-perks"></div>
+        </section>
+
+        <!-- SECTION 6: How to Apply -->
+        <section class="jd-section jd-section-apply" id="jd-sec-apply">
+          <h3 class="jd-section-title">
+            <span class="jd-section-icon">🚀</span> How to Apply
+          </h3>
+          <p class="jd-body-text" id="jd-apply-info"></p>
+          <div class="jd-apply-actions" id="jd-apply-actions"></div>
+        </section>
+
+      </div><!-- /jd-modal-body -->
+    </div><!-- /jd-modal -->
+  </div><!-- /jd-backdrop -->
+
 </div><!-- /view-job-search -->
 
 <!-- ============================================================
      VIEW 4b — JOB DETAILS (FULL PAGE)
      ============================================================ -->
 <div id="view-job-details" class="view">
-
-  <!-- Sticky back bar -->
   <div class="jd-page-topbar">
     <button class="jd-page-back" id="jd-back-btn">← Back to Jobs</button>
   </div>
-
-  <!-- Hero: logo + title + company -->
   <div class="jd-page-hero">
     <div class="jd-page-logo" id="jd-page-logo"></div>
     <div class="jd-page-hero-info">
@@ -4362,56 +4531,36 @@ body.cookie-visible .wa-widget { bottom: 100px; }
       <div class="jd-chips-row" id="jd-page-chips"></div>
     </div>
   </div>
-
-  <!-- Main content -->
   <div class="jd-page-content">
     <div class="jd-page-sections">
-
-      <!-- Section 1: Company Details -->
       <section class="jd-section" id="jd-sec-company">
-        <h3 class="jd-section-title"><span class="jd-section-icon">🏢</span> Company Details</h3>
+        <h3 class="jd-section-title"><span class="jd-section-icon">&#127970;</span> Company Details</h3>
         <div class="jd-detail-grid" id="jd-page-company-grid"></div>
       </section>
-
-      <!-- Section 2: Job Details -->
       <section class="jd-section" id="jd-sec-details">
-        <h3 class="jd-section-title"><span class="jd-section-icon">📋</span> Job Details</h3>
+        <h3 class="jd-section-title"><span class="jd-section-icon">&#128203;</span> Job Details</h3>
         <div class="jd-detail-grid" id="jd-page-details-grid"></div>
       </section>
-
-      <!-- Section 3: Description -->
       <section class="jd-section" id="jd-sec-desc">
-        <h3 class="jd-section-title"><span class="jd-section-icon">📝</span> About the Role</h3>
+        <h3 class="jd-section-title"><span class="jd-section-icon">&#128221;</span> About the Role</h3>
         <p class="jd-body-text" id="jd-page-description"></p>
       </section>
-
-      <!-- Section 4: Requirements -->
       <section class="jd-section" id="jd-sec-req">
-        <h3 class="jd-section-title"><span class="jd-section-icon">✅</span> Requirements</h3>
+        <h3 class="jd-section-title"><span class="jd-section-icon">&#9989;</span> Requirements</h3>
         <div class="jd-list-text" id="jd-page-requirements"></div>
       </section>
-
-      <!-- Section 5: Perks & Benefits -->
       <section class="jd-section" id="jd-sec-perks">
-        <h3 class="jd-section-title"><span class="jd-section-icon">🎁</span> Perks &amp; Benefits</h3>
+        <h3 class="jd-section-title"><span class="jd-section-icon">&#127873;</span> Perks &amp; Benefits</h3>
         <div class="jd-list-text" id="jd-page-perks"></div>
       </section>
-
-      <!-- Section 6: How to Apply -->
       <section class="jd-section jd-section-apply" id="jd-sec-apply">
-        <h3 class="jd-section-title"><span class="jd-section-icon">🚀</span> How to Apply</h3>
+        <h3 class="jd-section-title"><span class="jd-section-icon">&#128640;</span> How to Apply</h3>
         <p class="jd-body-text" id="jd-page-apply-info"></p>
       </section>
-
-    </div><!-- /jd-page-sections -->
-
-    <!-- Bottom action buttons -->
+    </div>
     <div class="jd-page-actions" id="jd-page-actions"></div>
-
-  </div><!-- /jd-page-content -->
-
+  </div>
 </div><!-- /view-job-details -->
-
 
 <!-- VIEW 5 (Job Discovery) removed -->
 
@@ -4454,7 +4603,6 @@ body.cookie-visible .wa-widget { bottom: 100px; }
     <div class="portal-tabs">
       <button class="portal-tab active" onclick="switchPortalTab('post', this)">📝 Post a Job</button>
       <button class="portal-tab" onclick="switchPortalTab('manage', this)">📋 My Listings</button>
-      <button class="portal-tab" onclick="switchPortalTab('admin', this)">🛡 Admin Review</button>
 
     </div>
 
@@ -4771,40 +4919,6 @@ body.cookie-visible .wa-widget { bottom: 100px; }
         <!-- Rendered by JS -->
       </div>
     </div>
-
-    <!-- ── TAB 3: Admin Review ── -->
-    <div class="portal-panel" id="panel-admin">
-
-      <!-- Access check gate -->
-      <div id="admin-login" class="admin-login-form">
-        <h3>🛡 Admin Access</h3>
-        <p>This panel is restricted to GamHub Jobs administrators. Your access level is verified against the Supabase profiles table — no password needed.</p>
-        <div id="admin-access-status" style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6">
-          Click the button below to verify your admin role.
-        </div>
-        <button class="btn btn-gold btn-full" id="admin-check-btn" onclick="checkAdminAccess()">
-          Check Admin Access →
-        </button>
-      </div>
-
-      <!-- Admin panel — shown only after role verified -->
-      <div class="admin-panel" id="admin-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
-          <div>
-            <h3 style="font-size:22px;margin-bottom:4px">Pending Job Reviews <span id="admin-pending-count" style="font-size:14px;color:var(--muted);font-family:var(--font-mono)"></span></h3>
-            <p style="font-size:13px;color:var(--muted)">Approve or reject job listings submitted by employers.</p>
-          </div>
-          <div style="display:flex;gap:10px">
-            <button class="btn btn-ghost btn-sm" onclick="adminRefresh()">↻ Refresh</button>
-            <button class="btn btn-outline btn-sm" onclick="adminLogout()">Sign Out of Admin</button>
-          </div>
-        </div>
-        <div id="admin-jobs-list">
-          <!-- Rendered by renderAdminPanel() -->
-        </div>
-      </div>
-
-    </div><!-- /panel-admin -->
 
 
   </div><!-- /employer-body -->
@@ -5650,10 +5764,7 @@ function sanitizeText(val, maxLen) {
  * Returns the URL if valid, empty string otherwise.
  */
 function sanitizeUrl(val) {
-  let s = String(val || '').trim();
-  if (!s) return '';
-  /* Auto-prepend https:// if user typed a bare domain (e.g. linkedin.com/in/xyz) */
-  if (s && !/^https?:\/\//i.test(s)) s = 'https://' + s;
+  const s = String(val || '').trim();
   return /^https?:\/\//i.test(s) ? s.slice(0, 500) : '';
 }
 
@@ -5725,7 +5836,7 @@ function slug(s) {
 /* ============================================================
    VIEW ROUTING
    ============================================================ */
-const VIEWS = ['landing','wizard','builder','preview','job-search','job-details','employer','coverletter','privacy','terms'];
+const VIEWS = ['landing','wizard','builder','preview','jobs','job-search','job-details','employer','coverletter','privacy','terms'];
 let currentView = 'landing';
 
 function showView(id) {
@@ -6205,8 +6316,7 @@ function collectBuilderData() {
   const skills = [];
   document.querySelectorAll('.skill-entry').forEach(el => {
     const name  = el.querySelector('.skill-name-input')?.value || '';
-    const level = parseInt(el.querySelector('.skill-level-input')?.value || '80', 10);
-    if (name.trim()) skills.push({ name, level });
+    if (name.trim()) skills.push({ name });
   });
 
   const experience = [];
@@ -6331,7 +6441,7 @@ function builderPrev() {
 }
 
 /* Add skill row */
-function addSkill(name='', level=80) {
+function addSkill(name='') {
   const list = document.getElementById('skills-list');
   const div  = document.createElement('div');
   div.className = 'dynamic-item skill-entry';
@@ -6339,7 +6449,6 @@ function addSkill(name='', level=80) {
     <div class="skill-row">
       <input type="text" class="form-control skill-name-input" value="${h(name)}"
         placeholder="e.g. Microsoft Excel, Photoshop, Public Speaking">
-      <input type="hidden" class="skill-level-input" value="${parseInt(level,10)||80}">
       <button class="btn-remove" onclick="this.closest('.skill-entry').remove()">✕</button>
     </div>
   `;
@@ -7197,7 +7306,7 @@ async function sbFetchJobs(adminMode = false) {
   if (!rateLimiter.check('supabase_read')) {
     throw new Error('Too many read requests — please wait ' + rateLimiter.waitSeconds('supabase_read') + 's.');
   }
-  const filter = adminMode ? '' : '?approved=eq.true&order=created_at.desc';
+  const filter = adminMode ? '' : '?approved=eq.false&order=created_at.desc';
   const url = `${SB_URL}/rest/v1/jobs${filter || '?order=created_at.desc'}`;
   const res = await fetch(url, {
     headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
@@ -7227,6 +7336,7 @@ async function sbUpdateJob(id, patch) {
 
 /* ── Init ─────────────────────────────────────────────────── */
 function initEmployerPortal() {
+  sbLoad();
   setDeadlineDefault();
   renderManageJobs();
   updatePortalStats();
@@ -8166,6 +8276,12 @@ async function adminReject(id, isLocal) {
 
 function adminRefresh() { renderAdminPanel(); }
 
+
+/* ── Init on DOMContentLoaded (added to existing init) ───── */
+document.addEventListener('DOMContentLoaded', () => {
+  sbLoad(); // Connect to Supabase immediately on page load
+});
+
 /* ============================================================
    JOB SEARCH — Full module
    ============================================================ */
@@ -8525,7 +8641,8 @@ function createJobCard(job, idx) {
       <button
         class="js-btn-view"
         id="${vmBtnId}"
-        aria-label="View details for ${escHtml(job.title)}"
+        aria-controls="${descId}"
+        aria-expanded="false"
       >View Details →</button>
 
       <a
@@ -8595,11 +8712,11 @@ function createJobCard(job, idx) {
 
   /* ── Attach event listeners (no inline handlers) ── */
 
-  /* Whole card click → open job page */
+  /* Whole card click → open modal (Part 20) */
   card.style.cursor = 'pointer';
   card.addEventListener('click', () => openJobPage(job));
 
-  /* View Details → open job page; stop event reaching card */
+  /* View More → open modal; stop event reaching card (Part 19) */
   const vmBtn = card.querySelector(`#${vmBtnId}`);
   vmBtn.addEventListener('click', e => {
     e.stopPropagation();
@@ -8673,12 +8790,156 @@ function closeAllShareDropdowns() {
 /* Close on outside click */
 document.addEventListener('click', () => closeAllShareDropdowns());
 
+/* ── Expand / collapse description ── */
+/* (kept as stub for any external calls; modal is now the primary detail view) */
+function toggleJobDesc(descId, btnId) {
+  const desc = document.getElementById(descId);
+  const btn  = document.getElementById(btnId);
+  if (!desc || !btn) return;
+  const expanded = desc.classList.toggle('expanded');
+  btn.textContent = expanded ? 'View Less ▲' : 'View More';
+  btn.setAttribute('aria-expanded', String(expanded));
+}
 
 /* ============================================================
-   JOB DETAILS — FULL PAGE VIEW
+   JOB DETAIL MODAL
    ============================================================ */
 
-let _selectedJobId = null;
+function openJobModal(job) {
+  const backdrop = document.getElementById('jd-backdrop');
+  if (!backdrop) return;
+
+  /* ── Populate header ── */
+  const initials = job.company.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  document.getElementById('jd-logo-wrap').innerHTML = job.logo
+    ? `<img class="js-logo" src="${escHtml(job.logo)}" alt="${escHtml(job.company)} logo" loading="lazy">`
+    : `<div class="js-logo-fallback" aria-hidden="true">${initials}</div>`;
+  document.getElementById('jd-title').textContent   = job.title;
+  document.getElementById('jd-company').textContent = job.company + (job.industry ? ' · ' + job.industry : '');
+
+  /* ── Highlight chips ── */
+  const typeClass = { 'Remote':'remote','Part-Time':'part','Internship':'intern','Contract':'contract' }[job.type] || '';
+  let chips = '';
+  if (job.type)     chips += `<span class="jd-chip jd-chip-type ${typeClass}">💼 ${escHtml(job.type)}</span>`;
+  if (job.deadline) chips += `<span class="jd-chip jd-chip-deadline">⏰ Deadline: ${escHtml(job.deadline)}</span>`;
+  if (job.salary)   chips += `<span class="jd-chip jd-chip-salary">💰 ${escHtml(job.salary)}</span>`;
+  document.getElementById('jd-chips-row').innerHTML = chips;
+
+  /* ── Section 1: Company details ── */
+  const companyItems = [
+    { label: 'Company',  value: job.company  },
+    { label: 'Industry', value: job.industry },
+    { label: 'Email',    value: job.email, link: job.email ? 'mailto:' + job.email : null },
+    { label: 'Website',  value: job.website, link: job.website },
+  ].filter(i => i.value);
+
+  document.getElementById('jd-company-grid').innerHTML = companyItems.map(i => `
+    <div class="jd-detail-item">
+      <div class="jd-detail-label">${escHtml(i.label)}</div>
+      <div class="jd-detail-value">${i.link
+        ? `<a href="${escHtml(i.link)}" target="_blank" rel="noopener noreferrer">${escHtml(i.value)}</a>`
+        : escHtml(i.value)
+      }</div>
+    </div>
+  `).join('');
+
+  /* ── Section 2: Job details ── */
+  const jobItems = [
+    { label: 'Job Title',    value: job.title      },
+    { label: 'Location',     value: job.location   },
+    { label: 'Job Type',     value: job.type       },
+    { label: 'Experience',   value: job.experience },
+    { label: 'Salary',       value: job.salary     },
+    { label: 'Deadline',     value: job.deadline   },
+  ].filter(i => i.value);
+
+  document.getElementById('jd-details-grid').innerHTML = jobItems.map(i => `
+    <div class="jd-detail-item">
+      <div class="jd-detail-label">${escHtml(i.label)}</div>
+      <div class="jd-detail-value">${escHtml(i.value)}</div>
+    </div>
+  `).join('');
+
+  /* ── Section 3: Description ── */
+  document.getElementById('jd-description').textContent = job.description || '';
+  document.getElementById('jd-sec-desc').style.display = job.description ? '' : 'none';
+
+  /* ── Section 4: Requirements (newline-separated bullets) ── */
+  document.getElementById('jd-requirements').innerHTML = renderListText(job.requirements);
+  document.getElementById('jd-sec-req').style.display = job.requirements ? '' : 'none';
+
+  /* ── Section 5: Perks ── */
+  document.getElementById('jd-perks').innerHTML = renderListText(job.perks);
+  document.getElementById('jd-sec-perks').style.display = job.perks ? '' : 'none';
+
+  /* ── Section 6: How to Apply ── */
+  document.getElementById('jd-apply-info').textContent = job.applyInfo || '';
+  document.getElementById('jd-sec-apply').style.display = (job.applyInfo || job.applyLink) ? '' : 'none';
+
+  const applyActionsEl = document.getElementById('jd-apply-actions');
+  applyActionsEl.innerHTML = '';
+  if (job.applyLink) {
+    const applyBtn = document.createElement('a');
+    applyBtn.className = 'jd-apply-btn jd-apply-btn-primary';
+    applyBtn.href = job.applyLink;
+    applyBtn.target = '_blank';
+    applyBtn.rel = 'noopener noreferrer';
+    applyBtn.textContent = 'Apply Now →';
+    applyActionsEl.appendChild(applyBtn);
+  }
+  const backBtn = document.createElement('button');
+  backBtn.className = 'jd-apply-btn jd-apply-btn-ghost';
+  backBtn.textContent = '← Back to Jobs';
+  backBtn.addEventListener('click', closeJobModal);
+  applyActionsEl.appendChild(backBtn);
+
+  /* ── Show modal ── */
+  /* Set display first, then trigger transition on next paint */
+  backdrop.style.display = 'flex';
+
+  /* Prevent the page behind from scrolling without breaking iOS */
+  document.body.dataset.scrollY = window.scrollY;
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + window.scrollY + 'px';
+  document.body.style.width = '100%';
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      backdrop.classList.add('jd-open');
+      /* Focus close button for keyboard/screen reader users */
+      const closeBtn = document.getElementById('jd-close');
+      if (closeBtn) closeBtn.focus();
+    });
+  });
+
+  /* Reset modal scroll */
+  const modalBody = document.getElementById('jd-modal-body');
+  if (modalBody) modalBody.scrollTop = 0;
+}
+
+let _jdCloseTimer = null;
+function closeJobModal() {
+  const backdrop = document.getElementById('jd-backdrop');
+  if (!backdrop || !backdrop.classList.contains('jd-open')) return;
+
+  backdrop.classList.remove('jd-open');
+
+  /* Restore page scroll position — reverse of the fixed-body trick */
+  const scrollY = parseInt(document.body.dataset.scrollY || '0', 10);
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo(0, scrollY);
+
+  /* Hide after transition; fallback timer in case transitionend misfires on mobile */
+  clearTimeout(_jdCloseTimer);
+  _jdCloseTimer = setTimeout(() => { backdrop.style.display = 'none'; }, 320);
+  backdrop.addEventListener('transitionend', function handler() {
+    clearTimeout(_jdCloseTimer);
+    backdrop.style.display = 'none';
+    backdrop.removeEventListener('transitionend', handler);
+  }, { once: true });
+}
 
 /* Render newline-separated bullet strings as structured HTML */
 function renderListText(str) {
@@ -8687,6 +8948,7 @@ function renderListText(str) {
     .map(line => line.trim())
     .filter(Boolean)
     .map(line => {
+      /* Strip leading bullet characters */
       const text = line.replace(/^[•\-\*]\s*/, '');
       return `<div class="jd-list-item">
         <span class="jd-list-bullet">✦</span>
@@ -8696,104 +8958,76 @@ function renderListText(str) {
     .join('');
 }
 
+/* Wire up close button and backdrop click */
+document.addEventListener('DOMContentLoaded', () => {
+  const closeBtn = document.getElementById('jd-close');
+  const backdrop = document.getElementById('jd-backdrop');
+  if (closeBtn) closeBtn.addEventListener('click', closeJobModal);
+  if (backdrop) backdrop.addEventListener('click', e => {
+    if (e.target === backdrop) closeJobModal();
+  });
+  document.addEventListener('keydown', e => {
+    const b = document.getElementById('jd-backdrop');
+    if (e.key === 'Escape' && b && b.classList.contains('jd-open')) closeJobModal();
+  });
+});
+
+
+/* ============================================================
+   JOB DETAILS — FULL PAGE VIEW
+   ============================================================ */
+let _selectedJobId = null;
+
 function openJobPage(job) {
   _selectedJobId = job.id;
-
-  /* ── Hero: logo + title + company ── */
-  const initials = job.company.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const initials = job.company.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
   document.getElementById('jd-page-logo').innerHTML = job.logo
-    ? `<img class="js-logo" src="${escHtml(job.logo)}" alt="${escHtml(job.company)} logo" loading="lazy">`
-    : `<div class="js-logo-fallback" aria-hidden="true">${initials}</div>`;
+    ? '<img class="js-logo" src="'+escHtml(job.logo)+'" alt="'+escHtml(job.company)+' logo" loading="lazy">'
+    : '<div class="js-logo-fallback" aria-hidden="true">'+initials+'</div>';
   document.getElementById('jd-page-title').textContent   = job.title;
-  document.getElementById('jd-page-company').textContent = job.company + (job.industry ? ' · ' + job.industry : '');
-
-  /* ── Chips ── */
-  const typeClass = { 'Remote':'remote','Part-Time':'part','Internship':'intern','Contract':'contract' }[job.type] || '';
-  let chips = '';
-  if (job.type)     chips += `<span class="jd-chip jd-chip-type ${typeClass}">💼 ${escHtml(job.type)}</span>`;
-  if (job.deadline) chips += `<span class="jd-chip jd-chip-deadline">⏰ Deadline: ${escHtml(job.deadline)}</span>`;
-  if (job.salary)   chips += `<span class="jd-chip jd-chip-salary">💰 ${escHtml(job.salary)}</span>`;
-  document.getElementById('jd-page-chips').innerHTML = chips;
-
-  /* ── Section 1: Company Details ── */
-  const companyItems = [
-    { label: 'Company',  value: job.company  },
-    { label: 'Industry', value: job.industry },
-    { label: 'Email',    value: job.email,   link: job.email   ? 'mailto:' + job.email : null },
-    { label: 'Website',  value: job.website, link: job.website },
-  ].filter(i => i.value);
-  document.getElementById('jd-page-company-grid').innerHTML = companyItems.map(i => `
-    <div class="jd-detail-item">
-      <div class="jd-detail-label">${escHtml(i.label)}</div>
-      <div class="jd-detail-value">${i.link
-        ? `<a href="${escHtml(i.link)}" target="_blank" rel="noopener noreferrer">${escHtml(i.value)}</a>`
-        : escHtml(i.value)
-      }</div>
-    </div>`).join('');
-  document.getElementById('jd-sec-company').style.display = companyItems.length ? '' : 'none';
-
-  /* ── Section 2: Job Details ── */
-  const jobItems = [
-    { label: 'Job Title',  value: job.title      },
-    { label: 'Location',   value: job.location   },
-    { label: 'Job Type',   value: job.type       },
-    { label: 'Experience', value: job.experience },
-    { label: 'Salary',     value: job.salary     },
-    { label: 'Deadline',   value: job.deadline   },
-  ].filter(i => i.value);
-  document.getElementById('jd-page-details-grid').innerHTML = jobItems.map(i => `
-    <div class="jd-detail-item">
-      <div class="jd-detail-label">${escHtml(i.label)}</div>
-      <div class="jd-detail-value">${escHtml(i.value)}</div>
-    </div>`).join('');
-  document.getElementById('jd-sec-details').style.display = jobItems.length ? '' : 'none';
-
-  /* ── Section 3: Description ── */
-  document.getElementById('jd-page-description').textContent = job.description || '';
-  document.getElementById('jd-sec-desc').style.display = job.description ? '' : 'none';
-
-  /* ── Section 4: Requirements ── */
-  document.getElementById('jd-page-requirements').innerHTML = renderListText(job.requirements);
-  document.getElementById('jd-sec-req').style.display = job.requirements ? '' : 'none';
-
-  /* ── Section 5: Perks ── */
-  document.getElementById('jd-page-perks').innerHTML = renderListText(job.perks);
-  document.getElementById('jd-sec-perks').style.display = job.perks ? '' : 'none';
-
-  /* ── Section 6: How to Apply ── */
-  document.getElementById('jd-page-apply-info').textContent = job.applyInfo || '';
-  document.getElementById('jd-sec-apply').style.display = (job.applyInfo || job.applyLink) ? '' : 'none';
-
-  /* ── Bottom action buttons ── */
-  const actionsEl = document.getElementById('jd-page-actions');
-  actionsEl.innerHTML = '';
-  if (job.applyLink) {
-    const applyBtn = document.createElement('a');
-    applyBtn.className = 'jd-apply-btn jd-apply-btn-primary';
-    applyBtn.href = job.applyLink;
-    applyBtn.target = '_blank';
-    applyBtn.rel = 'noopener noreferrer';
-    applyBtn.textContent = 'Apply Now →';
-    actionsEl.appendChild(applyBtn);
-  }
-  const shareBtn = document.createElement('button');
-  shareBtn.className = 'jd-apply-btn jd-apply-btn-ghost';
-  shareBtn.textContent = '🔗 Share Job';
-  shareBtn.addEventListener('click', () => {
-    const jobUrl = window.location.origin + '/job/' + job.id;
-    shareWhatsApp(job, jobUrl, job.title + ' at ' + job.company);
-  });
-  actionsEl.appendChild(shareBtn);
-
-  /* ── Navigate to full-page view ── */
+  document.getElementById('jd-page-company').textContent = job.company+(job.industry?' · '+job.industry:'');
+  const typeClass={'Remote':'remote','Part-Time':'part','Internship':'intern','Contract':'contract'}[job.type]||'';
+  let chips='';
+  if(job.type)     chips+='<span class="jd-chip jd-chip-type '+typeClass+'">'+escHtml(job.type)+'</span>';
+  if(job.deadline) chips+='<span class="jd-chip jd-chip-deadline">Deadline: '+escHtml(job.deadline)+'</span>';
+  if(job.salary)   chips+='<span class="jd-chip jd-chip-salary">'+escHtml(job.salary)+'</span>';
+  document.getElementById('jd-page-chips').innerHTML=chips;
+  const ci=[
+    {label:'Company',value:job.company},
+    {label:'Industry',value:job.industry},
+    {label:'Email',value:job.email,link:job.email?'mailto:'+job.email:null},
+    {label:'Website',value:job.website,link:job.website},
+  ].filter(i=>i.value);
+  document.getElementById('jd-page-company-grid').innerHTML=ci.map(i=>'<div class="jd-detail-item"><div class="jd-detail-label">'+escHtml(i.label)+'</div><div class="jd-detail-value">'+(i.link?'<a href="'+escHtml(i.link)+'" target="_blank" rel="noopener noreferrer">'+escHtml(i.value)+'</a>':escHtml(i.value))+'</div></div>').join('');
+  document.getElementById('jd-sec-company').style.display=ci.length?'':'none';
+  const ji=[
+    {label:'Job Title',value:job.title},{label:'Location',value:job.location},
+    {label:'Job Type',value:job.type},{label:'Experience',value:job.experience},
+    {label:'Salary',value:job.salary},{label:'Deadline',value:job.deadline},
+  ].filter(i=>i.value);
+  document.getElementById('jd-page-details-grid').innerHTML=ji.map(i=>'<div class="jd-detail-item"><div class="jd-detail-label">'+escHtml(i.label)+'</div><div class="jd-detail-value">'+escHtml(i.value)+'</div></div>').join('');
+  document.getElementById('jd-sec-details').style.display=ji.length?'':'none';
+  document.getElementById('jd-page-description').textContent=job.description||'';
+  document.getElementById('jd-sec-desc').style.display=job.description?'':'none';
+  document.getElementById('jd-page-requirements').innerHTML=renderListText(job.requirements);
+  document.getElementById('jd-sec-req').style.display=job.requirements?'':'none';
+  document.getElementById('jd-page-perks').innerHTML=renderListText(job.perks);
+  document.getElementById('jd-sec-perks').style.display=job.perks?'':'none';
+  document.getElementById('jd-page-apply-info').textContent=job.applyInfo||'';
+  document.getElementById('jd-sec-apply').style.display=(job.applyInfo||job.applyLink)?'':'none';
+  const ae=document.getElementById('jd-page-actions');
+  ae.innerHTML='';
+  if(job.applyLink){const a=document.createElement('a');a.className='jd-apply-btn jd-apply-btn-primary';a.href=job.applyLink;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Apply Now →';ae.appendChild(a);}
+  const sb=document.createElement('button');sb.className='jd-apply-btn jd-apply-btn-ghost';sb.textContent='Share Job';
+  sb.addEventListener('click',()=>shareWhatsApp(job,window.location.origin+'/job/'+job.id,job.title+' at '+job.company));
+  ae.appendChild(sb);
   showView('job-details');
 }
-
-function closeJobPage() {
-  showView('job-search');
-}
-
-
+function closeJobPage(){showView('job-search');}
+document.addEventListener('DOMContentLoaded',()=>{
+  const b=document.getElementById('jd-back-btn');
+  if(b) b.addEventListener('click',closeJobPage);
+});
 
 /* ============================================================
    SHARE FUNCTIONS — no inline onclick, no hardcoded URLs
@@ -8860,12 +9094,7 @@ function shareEmail(job, jobUrl, jobText) {
     job.description + '\n\n' +
     'Apply here: ' + jobUrl
   );
-  const a = document.createElement('a');
-  a.href = 'mailto:?subject=' + subject + '&body=' + body;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
 }
 
 function shareLinkedIn(job, jobUrl) {
@@ -8921,17 +9150,12 @@ function setupScrollReveals() {
    INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-  sbLoad();            /* Connect to Supabase immediately on page load */
   initAuth();          /* Supabase auth — must run first */
   initCookieBanner();  /* Cookie consent banner */
   initTour();          /* Onboarding tour popovers */
   initWACOverlay();    /* WhatsApp channel prompt — fires after 60s */
   initWizard();
   setupScrollReveals();
-
-  /* Wire up job-details back button */
-  const backBtn = document.getElementById('jd-back-btn');
-  if (backBtn) backBtn.addEventListener('click', closeJobPage);
 
   // Restore theme
   const savedTheme = loadData('theme');
@@ -9332,7 +9556,6 @@ function saveCoverLetterData() {
     paraAchieve:  sanitizeText(raw.paraAchieve, 2000),
     paraCompany:  sanitizeText(raw.paraCompany, 2000),
     paraClosing:  sanitizeText(raw.paraClosing, 2000),
-    theme:        sanitizeText(clTheme,           40),
   };
   try { localStorage.setItem(CL_STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
   if (dot) { dot.classList.add('saved'); }
@@ -9962,6 +10185,18 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 
+<!-- =======================================
+<!-- ============================================================
+     WHATSAPP FLOATING CHAT WIDGET
+     ============================================================ -->
+<div class="wa-widget">
+  <span class="wa-label" onclick="window.open('https://wa.me/2207000000','_blank','noopener,noreferrer')">Chat with us</span>
+  <a class="wa-btn" href="https://wa.me/2207000000" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 2C8.28 2 2 8.28 2 16c0 2.46.66 4.77 1.8 6.77L2 30l7.43-1.75A13.93 13.93 0 0 0 16 30c7.72 0 14-6.28 14-14S23.72 2 16 2zm0 25.5a11.44 11.44 0 0 1-5.83-1.6l-.42-.25-4.3 1.01 1.04-4.2-.28-.44A11.5 11.5 0 1 1 16 27.5zm6.35-8.6c-.35-.17-2.06-1.02-2.38-1.13-.32-.12-.55-.17-.78.17-.23.35-.9 1.13-1.1 1.36-.2.23-.4.26-.75.09-.35-.17-1.48-.55-2.82-1.74-1.04-.93-1.75-2.08-1.95-2.43-.2-.35-.02-.54.15-.71.16-.16.35-.4.52-.6.17-.2.23-.35.35-.58.12-.23.06-.43-.03-.6-.09-.17-.78-1.88-1.07-2.57-.28-.67-.57-.58-.78-.59h-.67c-.23 0-.6.09-.91.43-.32.35-1.2 1.17-1.2 2.85s1.23 3.3 1.4 3.53c.17.23 2.42 3.7 5.86 5.19.82.35 1.46.56 1.96.72.82.26 1.57.22 2.16.13.66-.1 2.06-.84 2.35-1.66.29-.81.29-1.51.2-1.66-.08-.14-.31-.23-.66-.4z"/>
+    </svg>
+  </a>
+</div>
 
 </body>
 </html>
